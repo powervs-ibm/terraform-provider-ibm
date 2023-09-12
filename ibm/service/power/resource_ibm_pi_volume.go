@@ -51,7 +51,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 			helpers.PIVolumeShareable: {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Flag to indicate if the volume can be shared across multiple instances?",
+				Description: "Flag to indicate if the volume can be shared across multiple instances.",
 			},
 			helpers.PIVolumeSize: {
 				Type:        schema.TypeFloat,
@@ -62,22 +62,26 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validate.ValidateAllowedStringValues([]string{"ssd", "standard", "tier1", "tier3"}),
+				ValidateFunc:     validate.ValidateAllowedStringValues([]string{"tier0", "tier1", "tier3", "tier5k"}),
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Type of Disk, required if pi_affinity_policy and pi_volume_pool not provided, otherwise ignored",
+				Description:      "Type of Disk, required if pi_affinity_policy or pi_volume_pool provided",
 			},
 			helpers.PIVolumePool: {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Volume pool where the volume will be created; if provided then pi_volume_type and pi_affinity_policy values will be ignored",
+				RequiredWith:     []string{helpers.PIVolumeType},
+				ExactlyOneOf:     []string{PIAffinityPolicy, helpers.PIVolumePool},
+				Description:      "Volume pool where the volume will be created; if provided then pi_affinity_policy values will be ignored",
 			},
 			PIAffinityPolicy: {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Affinity policy for data volume being created; ignored if pi_volume_pool provided; for policy affinity requires one of pi_affinity_instance or pi_affinity_volume to be specified; for policy anti-affinity requires one of pi_anti_affinity_instances or pi_anti_affinity_volumes to be specified",
+				RequiredWith:     []string{helpers.PIVolumeType},
+				ExactlyOneOf:     []string{PIAffinityPolicy, helpers.PIVolumePool},
 				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", PIAffinityPolicy),
 			},
 			PIAffinityVolume: {
