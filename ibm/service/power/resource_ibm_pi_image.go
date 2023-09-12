@@ -111,10 +111,11 @@ func ResourceIBMPIImage() *schema.Resource {
 				ForceNew:      true,
 			},
 			helpers.PIImageStorageType: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Type of storage",
-				ForceNew:    true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Type of storage",
+				RequiredWith: []string{helpers.PIImageBucketName},
+				ForceNew:     true,
 			},
 			helpers.PIImageStoragePool: {
 				Type:        schema.TypeString,
