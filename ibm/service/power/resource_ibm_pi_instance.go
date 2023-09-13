@@ -99,8 +99,8 @@ func ResourceIBMPIInstance() *schema.Resource {
 
 			helpers.PIInstanceStorageType: {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
+				Required:    true,
 				Description: "Storage type for server deployment",
 			},
 			PIInstanceStoragePool: {
