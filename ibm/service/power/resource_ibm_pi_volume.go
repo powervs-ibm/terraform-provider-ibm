@@ -116,7 +116,6 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Computed:    true,
 				Description: "Indicates if the volume should be replication enabled or not",
 			},
-
 			// Computed Attributes
 			"volume_id": {
 				Type:        schema.TypeString,
@@ -183,6 +182,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Indicates master volume name",
+			},
+			"io_throttle_rate": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Amount of iops assigned to the volume",
 			},
 		},
 	}
@@ -320,6 +324,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	}
 	d.Set("wwn", vol.Wwn)
 	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
+	d.Set("io_throttle_rate", vol.IoThrottleRate)
 
 	return nil
 }
@@ -357,12 +362,16 @@ func resourceIBMPIVolumeUpdate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange(helpers.PIReplicationEnabled) {
-		replicationEnabled := d.Get(helpers.PIReplicationEnabled).(bool)
-		volActionBody := models.VolumeAction{
-			ReplicationEnabled: &replicationEnabled,
+	if d.HasChanges(helpers.PIReplicationEnabled, helpers.PIVolumeType) {
+		var replicationEnabled bool
+		volActionBody := models.VolumeAction{}
+		if v, ok := d.GetOk(helpers.PIReplicationEnabled); ok {
+			replicationEnabled = v.(bool)
+			volActionBody.ReplicationEnabled = &replicationEnabled
 		}
-
+		if v, ok := d.GetOk(helpers.PIVolumeType); ok {
+			volActionBody.TargetStorageTier = flex.PtrToString(v.(string))
+		}
 		err = client.VolumeAction(volumeID, &volActionBody)
 		if err != nil {
 			return diag.FromErr(err)
