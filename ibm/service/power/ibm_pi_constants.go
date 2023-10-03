@@ -148,4 +148,13 @@ const (
 	StatusPending = "PENDING"
 	SctionStart   = "start"
 	SctionStop    = "stop"
+
+	// Workspaces
+	Attr_WorkspaceCapabilities = "pi_workspace_capabilities"
+	Attr_WorkspaceDetails      = "pi_workspace_details"
+	Attr_WorkspaceID           = "pi_workspace_id"
+	Attr_WorkspaceLocation     = "pi_workspace_location"
+	Attr_WorkspaceName         = "pi_workspace_name"
+	Attr_WorkspaceStatus       = "pi_workspace_status"
+	Attr_WorkspaceType         = "pi_workspace_type"
 )
