@@ -6,18 +6,15 @@ import (
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
-	PERCapability         = "per"
-	CCCapability          = "cloud_connections"
-	VPNCapability         = "vpn_connections"
 	WorkspaceCreationDate = "creation_date"
 	WorkspaceCRN          = "crn"
-	WorkspaceHref         = "href"
 	WorkspaceRegion       = "region"
 	WorkspaceType         = "type"
 	WorkspaceUrl          = "url"
@@ -43,10 +40,7 @@ func DatasourceIBMPIWorkspace() *schema.Resource {
 			Attr_WorkspaceDetails: {
 				Type:        schema.TypeMap,
 				Computed:    true,
-				Description: "The workspace information",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Description: "Workspace information",
 			},
 			Attr_WorkspaceID: {
 				Type:        schema.TypeString,
@@ -57,9 +51,6 @@ func DatasourceIBMPIWorkspace() *schema.Resource {
 				Type:        schema.TypeMap,
 				Computed:    true,
 				Description: "Workspace location",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 			Attr_WorkspaceName: {
 				Type:        schema.TypeString,
@@ -99,16 +90,17 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set(Attr_WorkspaceStatus, wsData.Status)
 	d.Set(Attr_WorkspaceType, wsData.Type)
 	d.Set(Attr_WorkspaceCapabilities, wsData.Capabilities)
-	wsdetails := map[string]string{
+	wsdetails := map[string]interface{}{
 		WorkspaceCreationDate: wsData.Details.CreationDate.String(),
 		WorkspaceCRN:          *wsData.Details.Crn,
 	}
-	d.Set(Attr_WorkspaceDetails, wsdetails)
-	wslocation := map[string]string{
+	d.Set(Attr_WorkspaceDetails, flex.Flatten(wsdetails))
+	wslocation := map[string]interface{}{
 		WorkspaceRegion: *wsData.Location.Region,
 		WorkspaceType:   *wsData.Location.Type,
 		WorkspaceUrl:    *wsData.Location.URL,
 	}
-	d.Set(Attr_WorkspaceLocation, wslocation)
+	d.Set(Attr_WorkspaceLocation, flex.Flatten(wslocation))
+
 	return nil
 }
