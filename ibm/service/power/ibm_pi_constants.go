@@ -5,6 +5,7 @@ import "time"
 const (
 	// used by all
 	Arg_CloudInstanceID = "pi_cloud_instance_id"
+	Arg_DatacenterZone  = "pi_datacenter_zone"
 
 	// Keys
 	Arg_KeyName = "pi_key_name"
@@ -157,4 +158,10 @@ const (
 	Attr_WorkspaceName         = "pi_workspace_name"
 	Attr_WorkspaceStatus       = "pi_workspace_status"
 	Attr_WorkspaceType         = "pi_workspace_type"
+
+	// Datacenter
+	Attr_DatacenterCapabilities = "pi_datacenter_capabilities"
+	Attr_DatacenterLocation     = "pi_datacenter_location"
+	Attr_DatacenterStatus       = "pi_datacenter_status"
+	Attr_DatacenterType         = "pi_datacenter_type"
 )
