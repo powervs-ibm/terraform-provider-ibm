@@ -17,9 +17,9 @@ func TestAccIBMPIWorkspacesDataSourceBasic(t *testing.T) {
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIWorkspaceDataSourceConfig(),
+				Config: testAccCheckIBMPIWorkspacesDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.ibm_pi_workspace.test", "pi_workspace_name"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_workspaces.test", "pi_workspace_name"),
 				),
 			},
 		},

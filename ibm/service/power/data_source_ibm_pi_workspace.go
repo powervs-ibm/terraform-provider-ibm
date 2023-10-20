@@ -45,11 +45,6 @@ func DatasourceIBMPIWorkspace() *schema.Resource {
 				Computed:    true,
 				Description: "Workspace information",
 			},
-			Attr_WorkspaceID: {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Workspace ID",
-			},
 			Attr_WorkspaceLocation: {
 				Type:        schema.TypeMap,
 				Computed:    true,
@@ -89,7 +84,6 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	d.Set(Attr_WorkspaceName, wsData.Name)
-	d.Set(Attr_WorkspaceID, wsData.ID)
 	d.Set(Attr_WorkspaceStatus, wsData.Status)
 	d.Set(Attr_WorkspaceType, wsData.Type)
 	d.Set(Attr_WorkspaceCapabilities, wsData.Capabilities)
@@ -100,8 +94,8 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set(Attr_WorkspaceDetails, flex.Flatten(wsdetails))
 	wslocation := map[string]interface{}{
 		WorkspaceRegion: *wsData.Location.Region,
-		WorkspaceType:   *wsData.Location.Type,
-		WorkspaceUrl:    *wsData.Location.URL,
+		WorkspaceType:   wsData.Location.Type,
+		WorkspaceUrl:    wsData.Location.URL,
 	}
 	d.Set(Attr_WorkspaceLocation, flex.Flatten(wslocation))
 	d.SetId(*wsData.ID)

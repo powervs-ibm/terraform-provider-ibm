@@ -15,7 +15,7 @@ Retrieve information about  Power Systems workspaces.
 
 ```terraform
 data "ibm_pi_workspace" "workspace" {
-  pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
+  pi_cloud_instance_id = "99fba9c9-66f9-99bc-9999-aca999ee9d9b"
 }
 ```
   
@@ -45,6 +45,7 @@ In addition to all argument reference list, you can access the following attribu
      Nested schema for `pi_workspace_details`:
     - `creation_date` - (String) Workspace creation date.
     - `crn` - (String) Workspace crn.
+  - `pi_workspace_id` - (String) Workspace ID.
   - `pi_workspace_location` - (Map) Workspace location.
 
     Nested schema for `Workspace location`:

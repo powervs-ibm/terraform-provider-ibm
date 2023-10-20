@@ -13,21 +13,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	Datacenters = "datacenters"
+)
+
 func DataSourceIBMPIDatacenters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIDatacentersRead,
 		Schema: map[string]*schema.Schema{
-			"datacenters": {
+			Datacenters: {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
-						Attr_DatacenterHref: {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Datacenter href",
-						},
 						Attr_DatacenterCapabilities: {
 							Type:        schema.TypeMap,
 							Computed:    true,
@@ -35,6 +34,11 @@ func DataSourceIBMPIDatacenters() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeBool,
 							},
+						},
+						Attr_DatacenterHref: {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Datacenter href",
 						},
 						Attr_DatacenterLocation: {
 							Type:        schema.TypeMap,
@@ -68,8 +72,8 @@ func dataSourceIBMPIDatacentersRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	datacenters := make([]map[string]interface{}, 0, len(datacentersData.Datacenter))
-	for _, datacenter := range datacentersData.Datacenter {
+	datacenters := make([]map[string]interface{}, 0, len(datacentersData.Datacenters))
+	for _, datacenter := range datacentersData.Datacenters {
 		if datacenter != nil {
 			dc := map[string]interface{}{
 				Attr_DatacenterCapabilities: datacenter.Capabilities,
@@ -88,6 +92,6 @@ func dataSourceIBMPIDatacentersRead(ctx context.Context, d *schema.ResourceData,
 	}
 	var clientgenU, _ = uuid.GenerateUUID()
 	d.SetId(clientgenU)
-	d.Set("datacenters", datacenters)
+	d.Set(Datacenters, datacenters)
 	return nil
 }

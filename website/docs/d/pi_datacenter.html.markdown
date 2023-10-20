@@ -9,13 +9,12 @@ description: |-
 
 # ibm_pi_Datacenter
 
-Retrieve information about Power Systems account Datacenter.
+Retrieve information about a Power Systems Datacenter.
 
 ## Example usage
 
 ```terraform
 data "ibm_pi_datacenter" "datacenter" {
-  pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
   pi_datacenter_zone= "dal12"
 }
 ```
@@ -24,7 +23,6 @@ data "ibm_pi_datacenter" "datacenter" {
 
 Review the argument references that you can specify for your data source.
 
-- `pi_cloud_instance_id` - (Required, String) Cloud Instance ID of a PCloud Instance.
 - `pi_datacenter_zone` - (Optional, String) Datacenter zone you want to retrieve. If no value is supplied, the `zone` configured within the IBM provider will be utilized.
 
 ## Attribute reference
@@ -42,7 +40,7 @@ In addition to all argument reference list, you can access the following attribu
 
 - `pi_datacenter_location` - (Map) Datacenter location.
 
-    Nested schema for `Datacenter location`:
+    Nested schema for `pi_datacenter_location`:
   - `region` - (String) The Datacenter location region zone.
   - `type` - (String) The Datacenter location region type.
   - `url`- (String) The Datacenter location region url.

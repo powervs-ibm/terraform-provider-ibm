@@ -30,11 +30,6 @@ func DataSourceIBMPIDatacenter() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Attr_DatacenterHref: {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Datacenter href",
-			},
 			Attr_DatacenterCapabilities: {
 				Type:        schema.TypeMap,
 				Computed:    true,
@@ -42,6 +37,11 @@ func DataSourceIBMPIDatacenter() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeBool,
 				},
+			},
+			Attr_DatacenterHref: {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Datacenter href",
 			},
 			Attr_DatacenterLocation: {
 				Type:        schema.TypeMap,

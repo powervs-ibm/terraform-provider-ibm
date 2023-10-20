@@ -15,6 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+const (
+	Workspaces = "workspaces"
+)
+
 func DatasourceIBMPIWorkspaces() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIWorkspacesRead,
@@ -24,7 +28,7 @@ func DatasourceIBMPIWorkspaces() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"workspaces": {
+			Workspaces: {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -87,8 +91,8 @@ func dataSourceIBMPIWorkspacesRead(ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	workspaces := make([]map[string]interface{}, 0, len(wsData.Workspace))
-	for _, ws := range wsData.Workspace {
+	workspaces := make([]map[string]interface{}, 0, len(wsData.Workspaces))
+	for _, ws := range wsData.Workspaces {
 		if ws != nil {
 			workspace := map[string]interface{}{
 				Attr_WorkspaceName:         ws.Name,
@@ -102,8 +106,8 @@ func dataSourceIBMPIWorkspacesRead(ctx context.Context, d *schema.ResourceData, 
 				},
 				Attr_WorkspaceLocation: map[string]interface{}{
 					WorkspaceRegion: *ws.Location.Region,
-					WorkspaceType:   *ws.Location.Type,
-					WorkspaceUrl:    *ws.Location.URL,
+					WorkspaceType:   ws.Location.Type,
+					WorkspaceUrl:    ws.Location.URL,
 				},
 			}
 			workspaces = append(workspaces, workspace)
@@ -111,6 +115,6 @@ func dataSourceIBMPIWorkspacesRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	var clientgenU, _ = uuid.GenerateUUID()
 	d.SetId(clientgenU)
-	d.Set("workspaces", workspaces)
+	d.Set(Workspaces, workspaces)
 	return nil
 }

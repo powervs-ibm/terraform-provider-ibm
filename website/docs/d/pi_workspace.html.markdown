@@ -15,7 +15,7 @@ Retrieve information about your Power Systems account workspace.
 
 ```terraform
 data "ibm_pi_workspace" "workspace" {
-  pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
+  pi_cloud_instance_id = "99fba9c9-66f9-99bc-9999-aca999ee9d9b"
 }
 ```
   
@@ -29,6 +29,7 @@ Review the argument references that you can specify for your data source.
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
+- `id - (String) Workspace ID.
 - `pi_workspace_capabilities` - (Map) Workspace Capabilities.
 
     Nested schema for `pi_workspace_capabilities`:
@@ -37,7 +38,7 @@ In addition to all argument reference list, you can access the following attribu
   - `power-edge-router` - (Bool) Power edge router capability.
   - `transit-gateway-connection` - (Bool) Transit gateway connection capability.
   - `vpn-connections`- (Bool) VPN-connections capability.
-  
+
 - `pi_workspace_details` - (Map) Workspace information.
 
     Nested schema for `pi_workspace_details`:

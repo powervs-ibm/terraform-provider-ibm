@@ -4,7 +4,7 @@ subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: pi_datacenters"
 description: |-
-  Manages  Datacenters in the Power Virtual Server cloud.
+  Manages Datacenters in the Power Virtual Server cloud.
 ---
 
 # ibm_pi_Datacenter
@@ -37,7 +37,7 @@ In addition to all argument reference list, you can access the following attribu
 
   - `pi_datacenter_location` - (Map) Datacenter location.
 
-    Nested schema for `Datacenter location`:
+    Nested schema for `pi_datacenter_location`:
     - `region` - (String) The Datacenter location region zone.
     - `type` - (String) The Datacenter location region type.
     - `url`- (String) The Datacenter location region url.
