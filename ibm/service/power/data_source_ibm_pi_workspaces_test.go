@@ -19,7 +19,7 @@ func TestAccIBMPIWorkspacesDataSourceBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIWorkspacesDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.ibm_pi_workspaces.test", "pi_workspace_name"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_workspaces.test", "id"),
 				),
 			},
 		},
