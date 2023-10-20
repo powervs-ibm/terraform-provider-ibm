@@ -82,12 +82,12 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	workspaceClient := instance.NewIBMPIWorkspacesClient(ctx, sess, cloudInstanceID)
-	wsData, err := workspaceClient.Get()
+	client := instance.NewIBMPIWorkspacesClient(ctx, sess, cloudInstanceID)
+	wsData, err := client.Get(cloudInstanceID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(*wsData.ID)
+
 	d.Set(Attr_WorkspaceName, wsData.Name)
 	d.Set(Attr_WorkspaceID, wsData.ID)
 	d.Set(Attr_WorkspaceStatus, wsData.Status)
@@ -104,6 +104,6 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 		WorkspaceUrl:    *wsData.Location.URL,
 	}
 	d.Set(Attr_WorkspaceLocation, flex.Flatten(wslocation))
-
+	d.SetId(*wsData.ID)
 	return nil
 }

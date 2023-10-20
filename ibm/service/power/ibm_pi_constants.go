@@ -164,4 +164,5 @@ const (
 	Attr_DatacenterLocation     = "pi_datacenter_location"
 	Attr_DatacenterStatus       = "pi_datacenter_status"
 	Attr_DatacenterType         = "pi_datacenter_type"
+	Attr_DatacenterHref         = "pi_datacenter_href"
 )

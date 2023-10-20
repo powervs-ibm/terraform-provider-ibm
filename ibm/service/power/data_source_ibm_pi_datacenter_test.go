@@ -11,25 +11,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccIBMPIWorkspacesDataSourceBasic(t *testing.T) {
+func TestAccIBMPIDatacenterDataSourceBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIWorkspaceDataSourceConfig(),
+				Config: testAccCheckIBMPIDatacenterDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.ibm_pi_workspace.test", "pi_workspace_name"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_datacenter.test", "id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckIBMPIWorkspacesDataSourceConfig() string {
+func testAccCheckIBMPIDatacenterDataSourceConfig() string {
 	return fmt.Sprintf(`
-		data "ibm_pi_workspaces" "test" {
-			pi_cloud_instance_id = "%s"
+		data "ibm_pi_datacenter" "test" {
+			pi_datacenter_zone = "dal12"
 		}
-	`, acc.Pi_cloud_instance_id)
+	`)
 }

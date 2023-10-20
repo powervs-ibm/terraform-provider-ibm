@@ -23,13 +23,12 @@ data "ibm_pi_workspace" "workspace" {
 
 Review the argument references that you can specify for your data source.
 
-- `pi_cloud_instance_id` - (Required, String) Cloud Instance ID of a PCloud Instance.
+- `pi_cloud_instance_id` - (Required, String) Cloud Instance ID of a PCloud Instance under your account.
 
 ## Attribute reference
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
-- `id` - (String) Workspace ID.
 - `pi_workspace_capabilities` - (Map) Workspace Capabilities.
 
     Nested schema for `pi_workspace_capabilities`:
