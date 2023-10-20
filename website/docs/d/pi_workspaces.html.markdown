@@ -35,10 +35,11 @@ In addition to all argument reference list, you can access the following attribu
 
     Nested schema for `pi_workspace_capabilities`; are (Bool) `true` or `false`:
     - `cloud-connections` - (Bool) Cloud-connections capability.
-    - `power-edge-router` - (Bool) Power edge router capability.
-    - `vpn-connections`- (Bool) VPN-connections capability.
-    - `transit-gateway-connection` - (Bool) Transit gateway connection capability.
     - `custom-virtual-cores`- (Bool) Custom virtual cores capability.
+    - `power-edge-router` - (Bool) Power edge router capability.
+    - `transit-gateway-connection` - (Bool) Transit gateway connection capability.
+    - `vpn-connections`- (Bool) VPN-connections capability.
+
   - `pi_workspace_details` - (Map) Workspace information.
 
      Nested schema for `pi_workspace_details`:

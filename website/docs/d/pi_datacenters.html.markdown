@@ -41,8 +41,8 @@ In addition to all argument reference list, you can access the following attribu
     - `region` - (String) The Datacenter location region zone.
     - `type` - (String) The Datacenter location region type.
     - `url`- (String) The Datacenter location region url.
-  - `pi_Datacenter_status` - (String) The Datacenter status, `ACTIVE`,`MAINTENANCE` or `DOWN`.
-  - `pi_Datacenter_type` - (String) The Datacenter type, `Public Cloud` or `Private Cloud`.
+  - `pi_datacenter_status` - (String) The Datacenter status, `ACTIVE`,`MAINTENANCE` or `DOWN`.
+  - `pi_datacenter_type` - (String) The Datacenter type, `Public Cloud` or `Private Cloud`.
 
 ## Notes
 
