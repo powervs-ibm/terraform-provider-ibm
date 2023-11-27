@@ -260,9 +260,10 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description:   "Memory size",
 			},
 			PIInstanceDeploymentType: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Custom Deployment Type Information",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"EPIC", "VMNoStorage"}),
+				Description:  "Custom Deployment Type Information",
 			},
 			PISAPInstanceProfileID: {
 				Type:          schema.TypeString,
