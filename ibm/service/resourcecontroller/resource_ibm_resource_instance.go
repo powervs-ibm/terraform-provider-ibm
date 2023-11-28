@@ -419,13 +419,14 @@ func ResourceIBMResourceInstanceCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
 	}
-
-	if metadata, ok := serviceOff[0].Metadata.(*models.ServiceResourceMetadata); ok {
-		if !metadata.Service.RCProvisionable {
-			return fmt.Errorf("%s cannot be provisioned by resource controller", serviceName)
+	if !strings.Contains(serviceName, "power-iaas") {
+		if metadata, ok := serviceOff[0].Metadata.(*models.ServiceResourceMetadata); ok {
+			if !metadata.Service.RCProvisionable {
+				return fmt.Errorf("%s cannot be provisioned by resource controller", serviceName)
+			}
+		} else {
+			return fmt.Errorf("[ERROR] Cannot create instance of resource %s\nUse 'ibm_service_instance' if the resource is a Cloud Foundry service", serviceName)
 		}
-	} else {
-		return fmt.Errorf("[ERROR] Cannot create instance of resource %s\nUse 'ibm_service_instance' if the resource is a Cloud Foundry service", serviceName)
 	}
 
 	servicePlan, err := rsCatRepo.GetServicePlanID(serviceOff[0], plan)
