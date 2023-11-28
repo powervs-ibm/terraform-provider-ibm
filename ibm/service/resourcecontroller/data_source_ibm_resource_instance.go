@@ -179,10 +179,8 @@ func DataSourceIBMResourceInstanceRead(d *schema.ResourceData, meta interface{})
 
 	if service, ok := d.GetOk("service"); ok {
 		if strings.Contains(service.(string), "power-iaas") {
-
-			resourceId := ""
+			resourceId := "abd259f0-9990-11e8-acc8-b9f54a8f1661"
 			resourceInstanceListOptions.ResourceID = &resourceId
-
 		} else {
 			serviceOff, err := rsCatRepo.FindByName(service.(string), true)
 			if err != nil {
