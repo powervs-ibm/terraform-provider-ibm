@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"reflect"
+	"strings"
 
 	rc "github.com/IBM/platform-services-go-sdk/resourcecontrollerv2"
 	rg "github.com/IBM/platform-services-go-sdk/resourcemanagerv2"
@@ -176,14 +177,30 @@ func DataSourceIBMResourceInstanceRead(d *schema.ResourceData, meta interface{})
 	}
 	rsCatRepo := rsCatClient.ResourceCatalog()
 
-	if service, ok := d.GetOk("service"); ok {
+	// if service, ok := d.GetOk("service"); ok {
 
-		serviceOff, err := rsCatRepo.FindByName(service.(string), true)
-		if err != nil {
-			return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
+	// 	serviceOff, err := rsCatRepo.FindByName(service.(string), true)
+	// 	if err != nil {
+	// 		return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
+	// 	}
+	// 	resourceId := serviceOff[0].ID
+	// 	resourceInstanceListOptions.ResourceID = &resourceId
+	// }
+	if service, ok := d.GetOk("service"); ok {
+		if strings.Contains(service.(string), "power-iaas") {
+
+			resourceId := ""
+			resourceInstanceListOptions.ResourceID = &resourceId
+
+		} else {
+			serviceOff, err := rsCatRepo.FindByName(service.(string), true)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
+			}
+			resourceId := serviceOff[0].ID
+			resourceInstanceListOptions.ResourceID = &resourceId
 		}
-		resourceId := serviceOff[0].ID
-		resourceInstanceListOptions.ResourceID = &resourceId
+
 	}
 
 	next_url := ""
@@ -236,9 +253,12 @@ func DataSourceIBMResourceInstanceRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", instance.State)
 	d.Set("resource_group_id", instance.ResourceGroupID)
 	d.Set("location", instance.RegionID)
-	serviceOff, err := rsCatRepo.GetServiceName(*instance.ResourceID)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
+	serviceOff := ""
+	if !strings.Contains(*instance.Type, "composite_instance") {
+		serviceOff, err = rsCatRepo.GetServiceName(*instance.ResourceID)
+		if err != nil {
+			return fmt.Errorf("[ERROR] Error retrieving service offering: %s", err)
+		}
 	}
 
 	d.Set("service", serviceOff)
