@@ -101,6 +101,7 @@ Review the argument references that you can specify for your resource.
   - Supported SAP system types are (e880/e980).
 - `pi_user_data` - (Optional, String) The base64 encoded form of the user data `cloud-init` to pass to the instance during creation. 
 - `pi_virtual_cores_assigned`  - (Optional, Integer) Specify the number of virtual cores to be assigned.
+- `pi_virtual_optical_device` - (Optional, String) Virtual Machine's Cloud Initialization Virtual Optical Device.
 - `pi_volume_ids` - (Optional, List of String) The list of volume IDs that you want to attach to the instance during creation.
 ## Attribute reference
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.

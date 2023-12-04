@@ -276,6 +276,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Description: "Custom SAP Deployment Type Information",
 			},
+			PIVirtualOpticalDevice: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"attach"}),
+				Description:  "Virtual Machine's Cloud Initialization Virtual Optical Device",
+			},
 			helpers.PIInstanceSystemType: {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -755,7 +761,21 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 	}
-
+	if vod, ok := d.GetOk(PIVirtualOpticalDevice); ok {
+		body := &models.PVMInstanceUpdate{
+			CloudInitialization: &models.CloudInitialization{
+				VirtualOpticalDevice: vod.(string),
+			},
+		}
+		_, err = client.Update(instanceID, body)
+		if err != nil {
+			return diag.Errorf("failed to update the VirtualOpticalDevice with the change %v with: %v", vod, err)
+		}
+		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, "OK")
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
 
 }
