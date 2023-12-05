@@ -769,7 +769,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 		_, err = client.Update(instanceID, body)
 		if err != nil {
-			return diag.Errorf("failed to update the VirtualOpticalDevice with the change %v with: %v", vod, err)
+			return diag.Errorf("failed to update the VirtualOpticalDevice with the change %v with: %v", vod.(string), err)
 		}
 		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, "OK")
 		if err != nil {
