@@ -447,7 +447,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	d.Set("min_processors", powervmdata.Minproc)
 	d.Set(helpers.PIInstanceProgress, powervmdata.Progress)
-	if powervmdata.StorageType != nil {
+	if powervmdata.StorageType != nil && *powervmdata.StorageType != "" {
 		d.Set(helpers.PIInstanceStorageType, powervmdata.StorageType)
 	}
 	d.Set(PIInstanceStoragePool, powervmdata.StoragePool)
@@ -502,7 +502,10 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		d.Set("min_virtual_cores", powervmdata.VirtualCores.Min)
 	}
 	d.Set(helpers.PIInstanceLicenseRepositoryCapacity, powervmdata.LicenseRepositoryCapacity)
-	d.Set(PIInstanceDeploymentType, powervmdata.DeploymentType)
+	if powervmdata.DeploymentType != "" {
+		d.Set(PIInstanceDeploymentType, powervmdata.DeploymentType)
+	}
+
 	return nil
 }
 
@@ -843,7 +846,7 @@ func isWaitForPIInstanceAvailable(ctx context.Context, client *st.IBMPIInstanceC
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"PENDING", helpers.PIInstanceBuilding, helpers.PIInstanceHealthWarning},
-		Target:     []string{helpers.PIInstanceAvailable, helpers.PIInstanceHealthOk, "ERROR", ""},
+		Target:     []string{helpers.PIInstanceAvailable, helpers.PIInstanceHealthOk, "ERROR", "", "SHUTOFF"},
 		Refresh:    isPIInstanceRefreshFunc(client, id, instanceReadyStatus),
 		Delay:      30 * time.Second,
 		MinTimeout: queryTimeOut,
@@ -861,7 +864,7 @@ func isPIInstanceRefreshFunc(client *st.IBMPIInstanceClient, id, instanceReadySt
 			return nil, "", err
 		}
 		// Check for `instanceReadyStatus` health status and also the final health status "OK"
-		if *pvm.Status == helpers.PIInstanceAvailable && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
+		if (*pvm.Status == helpers.PIInstanceAvailable || *pvm.Status == "SHUTOFF") && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
 			return pvm, helpers.PIInstanceAvailable, nil
 		}
 		if *pvm.Status == "ERROR" {
