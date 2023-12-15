@@ -397,16 +397,21 @@ func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 			return diag.FromErr(err)
 		}
 	}
-
+	body := &models.PVMInstanceUpdate{}
+	if vod, ok := d.GetOk(PIVirtualOpticalDevice); ok {
+		body.CloudInitialization.VirtualOpticalDevice = vod.(string)
+	}
 	// If Storage Pool Affinity is given as false we need to update the vm instance.
 	// Default value is true which indicates that all volumes attached to the server
 	// must reside in the same storage pool.
 	storagePoolAffinity := d.Get(PIInstanceStoragePoolAffinity).(bool)
 	if !storagePoolAffinity {
+		body.StoragePoolAffinity = &storagePoolAffinity
+	}
+
+	if !storagePoolAffinity || body.CloudInitialization.VirtualOpticalDevice != "" {
 		for _, s := range *pvmList {
-			body := &models.PVMInstanceUpdate{
-				StoragePoolAffinity: &storagePoolAffinity,
-			}
+
 			// This is a synchronous process hence no need to check for health status
 			_, err = client.Update(*s.PvmInstanceID, body)
 			if err != nil {
@@ -541,13 +546,19 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 	cores_enabled := checkCloudInstanceCapability(cloudInstance, CUSTOM_VIRTUAL_CORES)
 
-	if d.HasChange(helpers.PIInstanceName) {
-		body := &models.PVMInstanceUpdate{
-			ServerName: name,
+	if d.HasChanges(helpers.PIInstanceName, PIVirtualOpticalDevice) {
+		body := &models.PVMInstanceUpdate{}
+		if d.HasChange(helpers.PIInstanceName) {
+			body.ServerName = name
+		}
+		if d.HasChange(PIVirtualOpticalDevice) {
+			if vod, ok := d.GetOk(PIVirtualOpticalDevice); ok {
+				body.CloudInitialization.VirtualOpticalDevice = vod.(string)
+			}
 		}
 		_, err = client.Update(instanceID, body)
 		if err != nil {
-			return diag.Errorf("failed to update the lpar with the change for name: %v", err)
+			return diag.Errorf("failed to update the lpar with the change: %v", err)
 		}
 		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, "OK")
 		if err != nil {
@@ -764,21 +775,6 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 	}
-	if vod, ok := d.GetOk(PIVirtualOpticalDevice); ok {
-		body := &models.PVMInstanceUpdate{
-			CloudInitialization: &models.CloudInitialization{
-				VirtualOpticalDevice: vod.(string),
-			},
-		}
-		_, err = client.Update(instanceID, body)
-		if err != nil {
-			return diag.Errorf("failed to update the VirtualOpticalDevice with the change %v with: %v", vod.(string), err)
-		}
-		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, "OK")
-		if err != nil {
-			return diag.FromErr(err)
-		}
-	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
 
 }
@@ -863,8 +859,11 @@ func isPIInstanceRefreshFunc(client *st.IBMPIInstanceClient, id, instanceReadySt
 		if err != nil {
 			return nil, "", err
 		}
+		if (*pvm.Status == "SHUTOFF") && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
+			return pvm, helpers.PIInstanceAvailable, nil
+		}
 		// Check for `instanceReadyStatus` health status and also the final health status "OK"
-		if (*pvm.Status == helpers.PIInstanceAvailable || *pvm.Status == "SHUTOFF") && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
+		if (*pvm.Status == helpers.PIInstanceAvailable) && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
 			return pvm, helpers.PIInstanceAvailable, nil
 		}
 		if *pvm.Status == "ERROR" {
