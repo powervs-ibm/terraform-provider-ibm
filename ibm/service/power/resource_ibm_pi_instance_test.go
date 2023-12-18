@@ -309,7 +309,7 @@ func TestAccIBMPIInstanceDeploymentType(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceDeploymentTypeConfig(name, "OK", "EPIC", "e980"),
+				Config: testAccCheckIBMPIInstanceDeploymentTypeConfig(name, helpers.PIInstanceHealthOk, "EPIC", "e980"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
@@ -656,7 +656,7 @@ func TestAccIBMPIInstanceDeploymentTypeNoStorage(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceDeploymentTypeConfig(name, "OK", "VMNoStorage", "s922"),
+				Config: testAccCheckIBMPIInstanceDeploymentTypeConfig(name, helpers.PIInstanceHealthOk, "VMNoStorage", "s922"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
