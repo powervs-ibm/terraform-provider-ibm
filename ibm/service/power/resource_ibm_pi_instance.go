@@ -494,9 +494,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set("max_memory", powervmdata.Maxmem)
 	d.Set("pin_policy", powervmdata.PinPolicy)
 	d.Set("operating_system", powervmdata.OperatingSystem)
-	if powervmdata.OsType != nil {
-		d.Set("os_type", powervmdata.OsType)
-	}
+	d.Set("os_type", powervmdata.OsType)
 
 	if powervmdata.Health != nil {
 		d.Set("health_status", powervmdata.Health.Status)
@@ -507,9 +505,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		d.Set("min_virtual_cores", powervmdata.VirtualCores.Min)
 	}
 	d.Set(helpers.PIInstanceLicenseRepositoryCapacity, powervmdata.LicenseRepositoryCapacity)
-	if powervmdata.DeploymentType != "" {
-		d.Set(PIInstanceDeploymentType, powervmdata.DeploymentType)
-	}
+	d.Set(PIInstanceDeploymentType, powervmdata.DeploymentType)
 
 	return nil
 }
@@ -558,7 +554,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 		_, err = client.Update(instanceID, body)
 		if err != nil {
-			return diag.Errorf("failed to update the lpar with the change: %v", err)
+			return diag.Errorf("failed to update the lpar: %v", err)
 		}
 		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, "OK")
 		if err != nil {
@@ -859,11 +855,11 @@ func isPIInstanceRefreshFunc(client *st.IBMPIInstanceClient, id, instanceReadySt
 		if err != nil {
 			return nil, "", err
 		}
-		if (*pvm.Status == "SHUTOFF") && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
-			return pvm, helpers.PIInstanceAvailable, nil
+		if *pvm.Status == "SHUTOFF" && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
+			return pvm, StatusShutoff, nil
 		}
 		// Check for `instanceReadyStatus` health status and also the final health status "OK"
-		if (*pvm.Status == helpers.PIInstanceAvailable) && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
+		if *pvm.Status == helpers.PIInstanceAvailable && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == helpers.PIInstanceHealthOk) {
 			return pvm, helpers.PIInstanceAvailable, nil
 		}
 		if *pvm.Status == "ERROR" {
