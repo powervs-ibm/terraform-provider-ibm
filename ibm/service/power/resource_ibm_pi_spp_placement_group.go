@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	models "github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -48,7 +47,7 @@ func ResourceIBMPISPPPlacementGroup() *schema.Resource {
 				Description:  "Policy of the SPP placement group",
 			},
 
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -77,7 +76,7 @@ func resourceIBMPISPPPlacementGroupCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	name := d.Get(Arg_SPPPlacementGroupName).(string)
 	policy := d.Get(Arg_SPPPlacementGroupPolicy).(string)
 	client := st.NewIBMPISPPPlacementGroupClient(ctx, sess, cloudInstanceID)

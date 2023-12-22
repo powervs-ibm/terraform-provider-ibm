@@ -35,7 +35,7 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Cloud Instance ID - This is the service_instance_id.",
@@ -61,6 +61,41 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			},
 
 			// Computed Attributes
+			"consistency_group_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Consistency Group Name if volume is a part of volume group",
+			},
+			"replication_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Volume Group Replication Status",
+			},
+			Attr_StatusDescriptionErrors: {
+				Computed:    true,
+				Description: "The status details of the volume group.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Key: {
+							Computed:    true,
+							Description: "The volume group error key.",
+							Type:        schema.TypeString,
+						},
+						Attr_Message: {
+							Computed:    true,
+							Description: "The failure message providing more details about the error key.",
+							Type:        schema.TypeString,
+						},
+						Attr_VolumeIDs: {
+							Computed:    true,
+							Description: "List of volume IDs, which failed to be added/removed to/from the volume group, with the given error.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeList,
+						},
+					},
+				},
+				Type: schema.TypeSet,
+			},
 			"volume_group_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -70,17 +105,6 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Volume Group Status",
-			},
-			"replication_status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Volume Group Replication Status",
-			},
-			"status_description_errors": vgStatusDescriptionErrors(),
-			"consistency_group_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Consistency Group Name if volume is a part of volume group",
 			},
 		},
 	}
@@ -93,7 +117,7 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	vgName := d.Get(PIVolumeGroupName).(string)
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	body := &models.VolumeGroupCreate{
 		Name: vgName,
 	}

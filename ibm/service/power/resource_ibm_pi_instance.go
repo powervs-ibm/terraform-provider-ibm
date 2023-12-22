@@ -39,13 +39,13 @@ func ResourceIBMPIInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				ForceNew:    true,
 				Required:    true,
 				Description: "This is the Power Instance id that is assigned to the account",
 			},
-			helpers.PIInstanceLicenseRepositoryCapacity: {
+			PIInstanceLicenseRepositoryCapacity: {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Computed:    true,
@@ -56,7 +56,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "PI instance status",
 			},
-			"pi_migratable": {
+			PIInstanceMigratable: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Computed:    true,
@@ -82,7 +82,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "Maximum memory size",
 			},
-			helpers.PIInstanceVolumeIds: {
+			PIInstanceVolumeIds: {
 				Type:             schema.TypeSet,
 				Optional:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
@@ -90,14 +90,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "List of PI volumes",
 			},
-
-			helpers.PIInstanceUserData: {
+			PIInstanceUserData: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Base64 encoded data to be passed in for invoking a cloud init script",
 			},
-
-			helpers.PIInstanceStorageType: {
+			PIInstanceStorageType: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
@@ -141,7 +139,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description:   "List of pvmInstances to base storage anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_volumes is not provided",
 				ConflictsWith: []string{PIAntiAffinityVolumes},
 			},
-			helpers.PIInstanceStorageConnection: {
+			PIInstanceStorageConnection: {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"vSCSI"}),
@@ -193,7 +191,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Description: "Placement group ID",
 			},
-			Arg_PIInstanceSharedProcessorPool: {
+			PIInstanceSharedProcessorPool: {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
@@ -362,7 +360,7 @@ func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := st.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 	sapClient := st.NewIBMPISAPInstanceClient(ctx, sess, cloudInstanceID)
 	imageClient := st.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
@@ -436,23 +434,23 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	d.Set(helpers.PIInstanceProcType, powervmdata.ProcType)
 	if powervmdata.Migratable != nil {
-		d.Set("pi_migratable", powervmdata.Migratable)
+		d.Set(PIInstanceMigratable, powervmdata.Migratable)
 	}
 	d.Set("min_processors", powervmdata.Minproc)
 	d.Set(helpers.PIInstanceProgress, powervmdata.Progress)
 	if powervmdata.StorageType != nil {
-		d.Set(helpers.PIInstanceStorageType, powervmdata.StorageType)
+		d.Set(PIInstanceStorageType, powervmdata.StorageType)
 	}
 	d.Set(PIInstanceStoragePool, powervmdata.StoragePool)
 	d.Set(PIInstanceStoragePoolAffinity, powervmdata.StoragePoolAffinity)
-	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set("instance_id", powervmdata.PvmInstanceID)
 	d.Set(helpers.PIInstanceName, powervmdata.ServerName)
 	d.Set(helpers.PIInstanceImageId, powervmdata.ImageID)
 	if *powervmdata.PlacementGroup != "none" {
 		d.Set(helpers.PIPlacementGroupID, powervmdata.PlacementGroup)
 	}
-	d.Set(Arg_PIInstanceSharedProcessorPool, powervmdata.SharedProcessorPool)
+	d.Set(PIInstanceSharedProcessorPool, powervmdata.SharedProcessorPool)
 	d.Set(Attr_PIInstanceSharedProcessorPoolID, powervmdata.SharedProcessorPoolID)
 
 	networksMap := []map[string]interface{}{}
@@ -598,7 +596,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// Start of the change for Memory and Processors
-	if d.HasChange(helpers.PIInstanceMemory) || d.HasChange(helpers.PIInstanceProcessors) || d.HasChange("pi_migratable") {
+	if d.HasChange(helpers.PIInstanceMemory) || d.HasChange(helpers.PIInstanceProcessors) || d.HasChange(PIInstanceMigratable) {
 
 		maxMemLpar := d.Get("max_memory").(float64)
 		maxCPULpar := d.Get("max_processors").(float64)
@@ -627,7 +625,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				Memory:     mem,
 				Processors: procs,
 			}
-			if m, ok := d.GetOk("pi_migratable"); ok {
+			if m, ok := d.GetOk(PIInstanceMigratable); ok {
 				migratable := m.(bool)
 				body.Migratable = &migratable
 			}
@@ -1063,7 +1061,7 @@ func createSAPInstance(d *schema.ResourceData, sapClient *st.IBMPISAPInstanceCli
 	if v, ok := d.GetOk(PISAPInstanceDeploymentType); ok {
 		body.DeploymentType = v.(string)
 	}
-	if v, ok := d.GetOk(helpers.PIInstanceVolumeIds); ok {
+	if v, ok := d.GetOk(PIInstanceVolumeIds); ok {
 		volids := flex.ExpandStringList((v.(*schema.Set)).List())
 		if len(volids) > 0 {
 			body.VolumeIDs = volids
@@ -1080,7 +1078,7 @@ func createSAPInstance(d *schema.ResourceData, sapClient *st.IBMPISAPInstanceCli
 		sshkey := v.(string)
 		body.SSHKeyName = sshkey
 	}
-	if u, ok := d.GetOk(helpers.PIInstanceUserData); ok {
+	if u, ok := d.GetOk(PIInstanceUserData); ok {
 		userData := u.(string)
 		body.UserData = encodeBase64(userData)
 	}
@@ -1088,7 +1086,7 @@ func createSAPInstance(d *schema.ResourceData, sapClient *st.IBMPISAPInstanceCli
 		body.SysType = sys.(string)
 	}
 
-	if st, ok := d.GetOk(helpers.PIInstanceStorageType); ok {
+	if st, ok := d.GetOk(PIInstanceStorageType); ok {
 		body.StorageType = st.(string)
 	}
 	if sp, ok := d.GetOk(PIInstanceStoragePool); ok {
@@ -1169,7 +1167,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 	pvmNetworks := expandPVMNetworks(d.Get(PIInstanceNetwork).([]interface{}))
 
 	var volids []string
-	if v, ok := d.GetOk(helpers.PIInstanceVolumeIds); ok {
+	if v, ok := d.GetOk(PIInstanceVolumeIds); ok {
 		volids = flex.ExpandStringList((v.(*schema.Set)).List())
 	}
 	var replicants float64
@@ -1185,7 +1183,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 		replicationNamingScheme = r.(string)
 	}
 	var migratable bool
-	if m, ok := d.GetOk("pi_migratable"); ok {
+	if m, ok := d.GetOk(PIInstanceMigratable); ok {
 		migratable = m.(bool)
 	}
 
@@ -1198,7 +1196,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 	}
 
 	var userData string
-	if u, ok := d.GetOk(helpers.PIInstanceUserData); ok {
+	if u, ok := d.GetOk(PIInstanceUserData); ok {
 		userData = u.(string)
 	}
 
@@ -1235,7 +1233,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 		body.VirtualCores = &models.VirtualCores{Assigned: &assignedVirtualCores}
 	}
 
-	if st, ok := d.GetOk(helpers.PIInstanceStorageType); ok {
+	if st, ok := d.GetOk(PIInstanceStorageType); ok {
 		body.StorageType = st.(string)
 	}
 	if sp, ok := d.GetOk(PIInstanceStoragePool); ok {
@@ -1274,7 +1272,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 		body.StorageAffinity = affinity
 	}
 
-	if sc, ok := d.GetOk(helpers.PIInstanceStorageConnection); ok {
+	if sc, ok := d.GetOk(PIInstanceStorageConnection); ok {
 		body.StorageConnection = sc.(string)
 	}
 
@@ -1282,7 +1280,7 @@ func createPVMInstance(d *schema.ResourceData, client *st.IBMPIInstanceClient, i
 		body.PlacementGroup = pg.(string)
 	}
 
-	if spp, ok := d.GetOk(Arg_PIInstanceSharedProcessorPool); ok {
+	if spp, ok := d.GetOk(PIInstanceSharedProcessorPool); ok {
 		body.SharedProcessorPool = spp.(string)
 	}
 

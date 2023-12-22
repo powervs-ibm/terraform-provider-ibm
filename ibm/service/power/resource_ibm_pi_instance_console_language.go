@@ -36,7 +36,7 @@ func ResourceIBMPIInstanceConsoleLanguage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required Attributes
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
@@ -61,7 +61,7 @@ func resourceIBMPIInstanceConsoleLanguageCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	instanceName := d.Get(helpers.PIInstanceName).(string)
 	code := d.Get(PIConsoleLanguageCode).(string)
 
@@ -93,8 +93,8 @@ func resourceIBMPIInstanceConsoleLanguageUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange(ConsoleLanguageCode) {
-		cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	if d.HasChange(Attr_ConsoleLanguages) {
+		cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 		instanceName := d.Get(helpers.PIInstanceName).(string)
 		code := d.Get(PIConsoleLanguageCode).(string)
 

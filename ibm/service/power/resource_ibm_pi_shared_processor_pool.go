@@ -10,9 +10,8 @@ import (
 	"strings"
 	"time"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
-	models "github.com/IBM-Cloud/power-go-client/power/models"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -75,19 +74,19 @@ func ResourceIBMPISharedProcessorPool() *schema.Resource {
 				Description: "Shared processor pool ID",
 			},
 
-			Attr_SharedProcessorPoolAvailableCores: {
+			Attr_AvailableCores: {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "Shared processor pool available cores",
 			},
 
-			Attr_SharedProcessorPoolAllocatedCores: {
+			Attr_AllocatedCores: {
 				Type:        schema.TypeFloat,
 				Computed:    true,
 				Description: "Shared processor pool allocated cores",
 			},
 
-			Attr_SharedProcessorPoolHostID: {
+			Attr_HostID: {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The host ID where the shared processor pool resides",
@@ -99,7 +98,7 @@ func ResourceIBMPISharedProcessorPool() *schema.Resource {
 				Description: "The status of the shared processor pool",
 			},
 
-			Attr_SharedProcessorPoolStatusDetail: {
+			Attr_StatusDetail: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status details of the shared processor pool",
@@ -112,48 +111,48 @@ func ResourceIBMPISharedProcessorPool() *schema.Resource {
 				Description: "SPP placement groups the shared processor pool are in",
 			},
 
-			Attr_SharedProcessorPoolInstances: {
+			Attr_Instances: {
 				Type:        schema.TypeList,
 				Computed:    true,
 				Description: "List of server instances deployed in the shared processor pool",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_SharedProcessorPoolInstanceCpus: {
+						Attr_CPUs: {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "The amount of cpus for the server instance",
 						},
-						Attr_SharedProcessorPoolInstanceUncapped: {
+						Attr_Uncapped: {
 							Type:        schema.TypeBool,
 							Computed:    true,
 							Description: "Identifies if uncapped or not",
 						},
-						Attr_SharedProcessorPoolInstanceAvailabilityZone: {
+						Attr_AvailabilityZone: {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Availability zone for the server instances",
 						},
-						Attr_SharedProcessorPoolInstanceId: {
+						Attr_ID: {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The server instance ID",
 						},
-						Attr_SharedProcessorPoolInstanceMemory: {
+						Attr_Memory: {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "The amount of memory for the server instance",
 						},
-						Attr_SharedProcessorPoolInstanceName: {
+						Attr_Name: {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The server instance name",
 						},
-						Attr_SharedProcessorPoolInstanceStatus: {
+						Attr_Status: {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "Status of the server",
 						},
-						Attr_SharedProcessorPoolInstanceVcpus: {
+						Attr_VCPUs: {
 							Type:        schema.TypeFloat,
 							Computed:    true,
 							Description: "The amout of vcpus for the server instance",
@@ -171,12 +170,12 @@ func resourceIBMPISharedProcessorPoolCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	name := d.Get(Arg_SharedProcessorPoolName).(string)
 	hostGroup := d.Get(Arg_SharedProcessorPoolHostGroup).(string)
 	reservedCores := d.Get(Arg_SharedProcessorPoolReservedCores).(int)
 	cores := int64(reservedCores)
-	client := st.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
 	body := &models.SharedProcessorPoolCreate{
 		Name:          &name,
 		HostGroup:     &hostGroup,
@@ -203,7 +202,7 @@ func resourceIBMPISharedProcessorPoolCreate(ctx context.Context, d *schema.Resou
 
 }
 
-func isWaitForPISharedProcessorPoolAvailable(ctx context.Context, d *schema.ResourceData, client *st.IBMPISharedProcessorPoolClient, id string, sharedProcessorPoolReadyStatus string) (interface{}, error) {
+func isWaitForPISharedProcessorPoolAvailable(ctx context.Context, d *schema.ResourceData, client *instance.IBMPISharedProcessorPoolClient, id string, sharedProcessorPoolReadyStatus string) (interface{}, error) {
 	log.Printf("Waiting for PISharedProcessorPool (%s) to be active ", id)
 
 	stateConf := &resource.StateChangeConf{
@@ -218,7 +217,7 @@ func isWaitForPISharedProcessorPoolAvailable(ctx context.Context, d *schema.Reso
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isPISharedProcessorPoolRefreshFunc(client *st.IBMPISharedProcessorPoolClient, id, sharedProcessorPoolReadyStatus string) resource.StateRefreshFunc {
+func isPISharedProcessorPoolRefreshFunc(client *instance.IBMPISharedProcessorPoolClient, id, sharedProcessorPoolReadyStatus string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 
 		pool, err := client.Get(id)
@@ -250,7 +249,7 @@ func resourceIBMPISharedProcessorPoolRead(ctx context.Context, d *schema.Resourc
 	}
 
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
 
 	response, err := client.Get(parts[1])
 	if err != nil || response == nil {
@@ -270,13 +269,10 @@ func resourceIBMPISharedProcessorPoolRead(ctx context.Context, d *schema.Resourc
 		d.Set(Arg_SharedProcessorPoolReservedCores, response.SharedProcessorPool.ReservedCores)
 	}
 	if response.SharedProcessorPool.AllocatedCores != nil {
-		d.Set(Attr_SharedProcessorPoolAllocatedCores, response.SharedProcessorPool.AllocatedCores)
+		d.Set(Attr_AllocatedCores, response.SharedProcessorPool.AllocatedCores)
 	}
 	if response.SharedProcessorPool.AvailableCores != nil {
-		d.Set(Attr_SharedProcessorPoolAvailableCores, response.SharedProcessorPool.AvailableCores)
-	}
-	if response.SharedProcessorPool.AvailableCores != nil {
-		d.Set(Attr_SharedProcessorPoolAvailableCores, response.SharedProcessorPool.AvailableCores)
+		d.Set(Attr_AvailableCores, response.SharedProcessorPool.AvailableCores)
 	}
 	if response.SharedProcessorPool.SharedProcessorPoolPlacementGroups != nil {
 		pgIDs := make([]string, len(response.SharedProcessorPool.SharedProcessorPoolPlacementGroups))
@@ -285,29 +281,29 @@ func resourceIBMPISharedProcessorPoolRead(ctx context.Context, d *schema.Resourc
 		}
 		d.Set(Attr_SharedProcessorPoolPlacementGroups, pgIDs)
 	}
-	d.Set(Attr_SharedProcessorPoolHostID, response.SharedProcessorPool.HostID)
+	d.Set(Attr_HostID, response.SharedProcessorPool.HostID)
 	d.Set(Attr_SharedProcessorPoolStatus, response.SharedProcessorPool.Status)
-	d.Set(Attr_SharedProcessorPoolStatusDetail, response.SharedProcessorPool.StatusDetail)
+	d.Set(Attr_StatusDetail, response.SharedProcessorPool.StatusDetail)
 
 	serversMap := []map[string]interface{}{}
 	if response.Servers != nil {
 		for _, s := range response.Servers {
 			if s != nil {
 				v := map[string]interface{}{
-					Attr_SharedProcessorPoolInstanceCpus:             s.Cpus,
-					Attr_SharedProcessorPoolInstanceUncapped:         s.Uncapped,
-					Attr_SharedProcessorPoolInstanceAvailabilityZone: s.AvailabilityZone,
-					Attr_SharedProcessorPoolInstanceId:               s.ID,
-					Attr_SharedProcessorPoolInstanceMemory:           s.Memory,
-					Attr_SharedProcessorPoolInstanceName:             s.Name,
-					Attr_SharedProcessorPoolInstanceStatus:           s.Status,
-					Attr_SharedProcessorPoolInstanceVcpus:            s.Vcpus,
+					Attr_CPUs:             s.Cpus,
+					Attr_Uncapped:         s.Uncapped,
+					Attr_AvailabilityZone: s.AvailabilityZone,
+					Attr_ID:               s.ID,
+					Attr_Memory:           s.Memory,
+					Attr_Name:             s.Name,
+					Attr_Status:           s.Status,
+					Attr_VCPUs:            s.Vcpus,
 				}
 				serversMap = append(serversMap, v)
 			}
 		}
 	}
-	d.Set(Attr_SharedProcessorPoolInstances, serversMap)
+	d.Set(Attr_Instances, serversMap)
 
 	return nil
 }
@@ -323,7 +319,7 @@ func resourceIBMPISharedProcessorPoolUpdate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
 	body := &models.SharedProcessorPoolUpdate{}
 
 	if d.HasChange(Arg_SharedProcessorPoolName) {
@@ -342,7 +338,7 @@ func resourceIBMPISharedProcessorPoolUpdate(ctx context.Context, d *schema.Resou
 
 	if d.HasChange(Attr_SharedProcessorPoolPlacementGroups) {
 
-		pgClient := st.NewIBMPISPPPlacementGroupClient(ctx, sess, cloudInstanceID)
+		pgClient := instance.NewIBMPISPPPlacementGroupClient(ctx, sess, cloudInstanceID)
 
 		oldRaw, newRaw := d.GetChange(Attr_SharedProcessorPoolPlacementGroups)
 		old := oldRaw.([]interface{})
@@ -416,7 +412,7 @@ func resourceIBMPISharedProcessorPoolDelete(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPISharedProcessorPoolClient(ctx, sess, cloudInstanceID)
 	err = client.Delete(parts[1])
 
 	if err != nil {
