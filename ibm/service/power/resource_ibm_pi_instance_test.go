@@ -224,7 +224,31 @@ func testAccCheckIBMPIInstanceReplicantConfig(name string) string {
 	  }
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, acc.Pi_volume_name)
 }
-
+func testAccCheckIBMPIInstanceStorageConnectionConfig(name, instanceHealthStatus string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_volume" "power_volume" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_volume_size       = 1
+		pi_volume_name       = "%[2]s"
+		pi_volume_type        = "tier3"
+	  }
+	resource "ibm_pi_instance" "power_instance" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_memory            = "2"
+		pi_processors        = "1"
+		pi_instance_name     = "%[2]s"
+		pi_proc_type         = "shared"
+		pi_image_id          = "%[3]s"
+		pi_sys_type          = "s922"
+		pi_network {
+		  network_id = "%[4]s"
+		}
+		pi_storage_connection = "%[5]s"
+		pi_health_status      = "%[6]s"
+		pi_volume_ids         = [ibm_pi_volume.power_volume.volume_id]
+	  }
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, acc.Pi_storage_connection, instanceHealthStatus)
+}
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -305,7 +329,25 @@ func TestAccIBMPIInstanceBasic(t *testing.T) {
 		},
 	})
 }
-
+func TestAccIBMPIInstanceStorageConnection(t *testing.T) {
+	instanceRes := "ibm_pi_instance.power_instance"
+	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIInstanceStorageConnectionConfig(name, helpers.PIInstanceHealthOk),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttr(instanceRes, "pi_storage_connection", acc.Pi_storage_connection),
+				),
+			},
+		},
+	})
+}
 func TestAccIBMPIInstanceDeploymentType(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
