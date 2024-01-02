@@ -157,6 +157,7 @@ const (
 	Attr_WorkspaceName         = "pi_workspace_name"
 	Attr_WorkspaceStatus       = "pi_workspace_status"
 	Attr_WorkspaceType         = "pi_workspace_type"
+	Attr_powerEdgeRouter       = "pi_workspace_power_edge_router_details"
 
 	// Datacenter
 	Arg_DatacenterZone          = "pi_datacenter_zone"
