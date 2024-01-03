@@ -25,6 +25,7 @@ func TestAccIBMPIWorkspaceDataSourceBasic(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckIBMPIWorkspaceDataSourceConfig() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_workspace" "test" {
