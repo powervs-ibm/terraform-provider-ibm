@@ -182,6 +182,8 @@ const (
 	Attr_Default                  = "default"
 	Attr_Max                      = "max"
 	Attr_Min                      = "min"
+	Arg_StorageType               = "pi_storage_type"
+	Attr_StorageTypesCapacity     = "storage_types_capacity"
 
 	// Datacenter
 	Arg_DatacenterZone          = "pi_datacenter_zone"
