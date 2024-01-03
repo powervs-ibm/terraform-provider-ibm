@@ -40,6 +40,12 @@ const (
 	Attr_RemoteCopyID                    = "remote_copy_id"
 	Attr_State                           = "state"
 	Attr_Synchronized                    = "synchronized"
+	Attr_CreationDate                    = "creation_date"
+	Attr_CRN                             = "crn"
+	Attr_Region                          = "region"
+	Attr_Type                            = "type"
+	Attr_URL                             = "url"
+	Attr_Workspaces                      = "workspaces"
 
 	// SAP Profile
 	PISAPProfiles         = "profiles"
