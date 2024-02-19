@@ -35,13 +35,13 @@ func ResourceIBMPICloudConnectionNetworkAttach() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required Attributes
-			Arg_CloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "PI cloud instance ID",
 			},
-			Attr_CloudConnectionId: {
+			Attr_CloudConnectionID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -63,8 +63,8 @@ func resourceIBMPICloudConnectionNetworkAttachCreate(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(Arg_CloudInstanceId).(string)
-	cloudConnectionID := d.Get(Attr_CloudConnectionId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	cloudConnectionID := d.Get(Attr_CloudConnectionID).(string)
 	networkID := d.Get(Attr_CloudConnectionNetworkId).(string)
 
 	client := st.NewIBMPICloudConnectionClient(ctx, sess, cloudInstanceID)
@@ -96,8 +96,8 @@ func resourceIBMPICloudConnectionNetworkAttachRead(ctx context.Context, d *schem
 	cloudConnectionID := parts[1]
 	networkID := parts[2]
 
-	d.Set(Arg_CloudInstanceId, cloudInstanceID)
-	d.Set(Attr_CloudConnectionId, cloudConnectionID)
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
+	d.Set(Attr_CloudConnectionID, cloudConnectionID)
 	d.Set(Attr_CloudConnectionNetworkId, networkID)
 
 	return nil
