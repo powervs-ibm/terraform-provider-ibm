@@ -13,13 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 )
 
 const (
-	PICloudConnectionNetworkId = "pi_network_id"
+	Attr_CloudConnectionNetworkId = "pi_network_id"
 )
 
 func ResourceIBMPICloudConnectionNetworkAttach() *schema.Resource {
@@ -36,19 +35,19 @@ func ResourceIBMPICloudConnectionNetworkAttach() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required Attributes
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "PI cloud instance ID",
 			},
-			helpers.PICloudConnectionId: {
+			Attr_CloudConnectionId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Cloud Connection ID",
 			},
-			PICloudConnectionNetworkId: {
+			Attr_CloudConnectionNetworkId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -64,9 +63,9 @@ func resourceIBMPICloudConnectionNetworkAttachCreate(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	cloudConnectionID := d.Get(helpers.PICloudConnectionId).(string)
-	networkID := d.Get(PICloudConnectionNetworkId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceId).(string)
+	cloudConnectionID := d.Get(Attr_CloudConnectionId).(string)
+	networkID := d.Get(Attr_CloudConnectionNetworkId).(string)
 
 	client := st.NewIBMPICloudConnectionClient(ctx, sess, cloudInstanceID)
 	jobClient := st.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
@@ -97,9 +96,9 @@ func resourceIBMPICloudConnectionNetworkAttachRead(ctx context.Context, d *schem
 	cloudConnectionID := parts[1]
 	networkID := parts[2]
 
-	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
-	d.Set(helpers.PICloudConnectionId, cloudConnectionID)
-	d.Set(PICloudConnectionNetworkId, networkID)
+	d.Set(Arg_CloudInstanceId, cloudInstanceID)
+	d.Set(Attr_CloudConnectionId, cloudConnectionID)
+	d.Set(Attr_CloudConnectionNetworkId, networkID)
 
 	return nil
 }

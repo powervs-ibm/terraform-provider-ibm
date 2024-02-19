@@ -8,6 +8,7 @@ description: |-
 ---
 
 # ibm_pi_network_port_attach
+
 Attaches network port in the Power Virtual Server Cloud. For more information, about network in IBM power virutal server, see [adding or removing a public network
 ](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-modifying-server#adding-removing-network)..
 
@@ -24,13 +25,13 @@ resource "ibm_pi_network_port_attach" "test-network-port-attach" {
 }
 ```
 
-**Note**
-* Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
-* If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
-  * `region` - `lon`
-  * `zone` - `lon04`
+**Notes**
+- Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
+- If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
+  - `region` - `lon`
+  - `zone` - `lon04`
   
-  Example usage:
+Example usage:
 
   ```terraform
     provider "ibm" {
