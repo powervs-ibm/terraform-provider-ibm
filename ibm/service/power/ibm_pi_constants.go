@@ -29,6 +29,7 @@ const (
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_CloudConnectionID                   = "pi_cloud_connection_id"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"

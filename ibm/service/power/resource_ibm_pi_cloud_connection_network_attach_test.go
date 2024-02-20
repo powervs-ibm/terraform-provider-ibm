@@ -55,6 +55,5 @@ func testAccCheckIBMPICloudConnectionNetworkAttachConfig(name string) string {
 		depends_on					= [ibm_pi_cloud_connection_network_attach.example]
 		pi_cloud_instance_id		= "%[1]s"
 		pi_cloud_connection_name	= "%[2]s"
-	  }
-	`, acc.Pi_cloud_instance_id, name)
+	  }`, acc.Pi_cloud_instance_id, name)
 }
