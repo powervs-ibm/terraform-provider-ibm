@@ -52,6 +52,7 @@ Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_instance_id` - (Required, String) The ID of the pvm instance to attach the network port to.
+- `cloud_connection_id` - (String) The cloud connection ID.
 - `pi_network_name` - (Required, String) The network ID or name.
 - `pi_network_port_description` - (Optional, String) The description for the Network Port.
 - `pi_network_port_ipaddress` - (Optional, String) The requested ip address of this port.
