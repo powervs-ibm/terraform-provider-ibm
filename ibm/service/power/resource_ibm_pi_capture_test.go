@@ -162,8 +162,7 @@ func testAccCheckIBMPICaptureWithVolumeConfig(name string, healthStatus string) 
 		pi_instance_name = ibm_pi_instance.power_instance.pi_instance_name
 		pi_capture_destination = "image-catalog"
 		pi_capture_volume_ids = [ibm_pi_volume.power_volume.volume_id]
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPICaptureConfigBasic(name string) string {
@@ -173,8 +172,7 @@ func testAccCheckIBMPICaptureConfigBasic(name string) string {
 		pi_capture_name = "%s"
 		pi_instance_name = "%s"
 		pi_capture_destination = "image-catalog"
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name)
 }
 
 func testAccCheckIBMPICaptureCloudStorageConfig(name string) string {
@@ -188,8 +186,7 @@ func testAccCheckIBMPICaptureCloudStorageConfig(name string) string {
 		pi_capture_cloud_storage_access_key = "%s"
 		pi_capture_cloud_storage_secret_key = "%s"
 		pi_capture_storage_image_path = "%s"
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name, acc.Pi_capture_cloud_storage_access_key, acc.Pi_capture_cloud_storage_secret_key, acc.Pi_capture_storage_image_path)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name, acc.Pi_capture_cloud_storage_access_key, acc.Pi_capture_cloud_storage_secret_key, acc.Pi_capture_storage_image_path)
 }
 
 func testAccCheckIBMPICaptureBothConfig(name string) string {
@@ -203,6 +200,5 @@ func testAccCheckIBMPICaptureBothConfig(name string) string {
 		pi_capture_cloud_storage_access_key = "%s"
 		pi_capture_cloud_storage_secret_key = "%s"
 		pi_capture_storage_image_path = "%s"
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name, acc.Pi_capture_cloud_storage_access_key, acc.Pi_capture_cloud_storage_secret_key, acc.Pi_capture_storage_image_path)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_instance_name, acc.Pi_capture_cloud_storage_access_key, acc.Pi_capture_cloud_storage_secret_key, acc.Pi_capture_storage_image_path)
 }
