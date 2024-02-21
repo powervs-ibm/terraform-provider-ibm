@@ -148,6 +148,7 @@ const (
 	Attr_NumberOfVolumes                             = "number_of_volumes"
 	Attr_Onboardings                                 = "onboardings"
 	Attr_OperatingSystem                             = "operating_system"
+	Attr_PowerEdgeRouterStatus                       = "pi_power_edge_router_status"
 	Attr_PVMInstanceID                               = "pvm_instance_id"
 	Attr_PVMInstances                                = "pvm_instances"
 	Attr_PVMSnapshots                                = "pvm_snapshots"
@@ -388,7 +389,6 @@ const (
 	Attr_WorkspaceName         = "pi_workspace_name"
 	Attr_WorkspaceStatus       = "pi_workspace_status"
 	Attr_WorkspaceType         = "pi_workspace_type"
-	Attr_powerEdgeRouterStatus = "pi_powerEdgeRouterStatus"
 
 	// Datacenter
 	Arg_DatacenterZone          = "pi_datacenter_zone"

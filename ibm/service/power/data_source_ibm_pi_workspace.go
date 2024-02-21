@@ -40,7 +40,7 @@ func DatasourceIBMPIWorkspace() *schema.Resource {
 				Description: "Workspace information.",
 				Type:        schema.TypeMap,
 			},
-			Attr_powerEdgeRouterStatus: {
+			Attr_PowerEdgeRouterStatus: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PER status",
@@ -86,7 +86,7 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set(Attr_WorkspaceStatus, wsData.Status)
 	d.Set(Attr_WorkspaceType, wsData.Type)
 	d.Set(Attr_WorkspaceCapabilities, wsData.Capabilities)
-	d.Set(Attr_powerEdgeRouterStatus, wsData.Status)
+	d.Set(Attr_PowerEdgeRouterStatus, wsData.Status)
 	wsdetails := map[string]interface{}{
 		Attr_CreationDate: wsData.Details.CreationDate.String(),
 		Attr_CRN:          *wsData.Details.Crn,
