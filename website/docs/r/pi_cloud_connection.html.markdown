@@ -10,7 +10,7 @@ description: |-
 
 Create, update, or delete for a Power Systems Virtual Server cloud connection. For more information, about IBM power virtual server cloud, see [getting started with IBM Power Systems Virtual Servers](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-getting-started).
 
-**Note**
+**Notes**
 
 `Cloud connection are not supported in new workspaces in DAL10 data center.`
 ## Example usage
@@ -25,7 +25,7 @@ resource "ibm_pi_cloud_connection" "cloud_connection" {
 }
 ```
 
-**Note**
+**Notes**
 
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 - If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
