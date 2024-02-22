@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/errors"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_service_d_h_c_p"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -74,7 +75,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 			// Attributes
 			Attr_DhcpID: {
 				Computed:    true,
-				Deprecated:  "The field is deprecated,use mtu instead.",
+				Deprecated:  "The field is deprecated,use id instead.",
 				Description: "The ID of the DHCP Server",
 				Type:        schema.TypeString,
 			},
@@ -149,7 +150,7 @@ func resourceIBMPIDhcpCreate(ctx context.Context, d *schema.ResourceData, meta i
 	body.SnatEnabled = &snatEnabled
 
 	// create dhcp
-	client := st.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
 	dhcpServer, err := client.Create(body)
 	if err != nil {
 		log.Printf("[DEBUG] create DHCP failed %v", err)
@@ -182,7 +183,7 @@ func resourceIBMPIDhcpRead(ctx context.Context, d *schema.ResourceData, meta int
 	}
 
 	// get dhcp
-	client := st.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
 	dhcpServer, err := client.Get(dhcpID)
 	if err != nil {
 		uErr := errors.Unwrap(err)
@@ -239,7 +240,7 @@ func resourceIBMPIDhcpDelete(ctx context.Context, d *schema.ResourceData, meta i
 	}
 
 	// delete dhcp
-	client := st.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIDhcpClient(ctx, sess, cloudInstanceID)
 	err = client.Delete(dhcpID)
 	if err != nil {
 		uErr := errors.Unwrap(err)
@@ -263,7 +264,7 @@ func resourceIBMPIDhcpDelete(ctx context.Context, d *schema.ResourceData, meta i
 	return nil
 }
 
-func waitForIBMPIDhcpStatus(ctx context.Context, client *st.IBMPIDhcpClient, dhcpID string, timeout time.Duration) (interface{}, error) {
+func waitForIBMPIDhcpStatus(ctx context.Context, client *instance.IBMPIDhcpClient, dhcpID string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"building"},
 		Target:  []string{"active"},
@@ -285,7 +286,7 @@ func waitForIBMPIDhcpStatus(ctx context.Context, client *st.IBMPIDhcpClient, dhc
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func waitForIBMPIDhcpDeleted(ctx context.Context, client *st.IBMPIDhcpClient, dhcpID string, timeout time.Duration) (interface{}, error) {
+func waitForIBMPIDhcpDeleted(ctx context.Context, client *instance.IBMPIDhcpClient, dhcpID string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted"},
