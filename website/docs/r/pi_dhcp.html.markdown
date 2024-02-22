@@ -34,7 +34,7 @@ Review the argument references that you can specify for your resource.
 
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
-- `dhcp_id` - (String) The ID of the DHCP Server.
+- `dhcp_id` - (Deprecated,String) The ID of the DHCP Server.
 - `id` - (String) The unique identifier of the DHCP Server. The ID is composed of `<power_instance_id>/<dhcp_id>`.
 - `leases` - (List) The list of DHCP Server PVM Instance leases.
   Nested scheme for `leases`:
@@ -51,7 +51,7 @@ The `ibm_pi_dhcp` provides the following [timeouts](https://www.terraform.io/doc
 - **create** - (Default 30 minutes) Used for creating a DHCP Server.
 - **delete** - (Default 10 minutes) Used for deleting a DHCP Server.
 
-**Note**
+**Notes**
 
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:

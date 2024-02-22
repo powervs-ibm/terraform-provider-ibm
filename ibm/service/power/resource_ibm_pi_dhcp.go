@@ -9,15 +9,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/errors"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_service_d_h_c_p"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ResourceIBMPIDhcp() *schema.Resource {
@@ -34,50 +32,51 @@ func ResourceIBMPIDhcp() *schema.Resource {
 
 			// Required Arguments
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PI cloud instance ID",
 				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			// Optional Arguments
 			Arg_DhcpCidr: {
-				Type:        schema.TypeString,
-				Optional:    true,
 				Description: "Optional cidr for DHCP private network",
 				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_DhcpCloudConnectionID: {
-				Type:        schema.TypeString,
-				Optional:    true,
 				Description: "Optional cloud connection uuid to connect with DHCP private network",
 				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_DhcpDnsServer: {
-				Type:        schema.TypeString,
-				Optional:    true,
 				Description: "Optional DNS Server for DHCP service",
 				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_DhcpName: {
-				Type:        schema.TypeString,
-				Optional:    true,
 				Description: "Optional name of DHCP Service (will be prefixed by DHCP identifier)",
 				ForceNew:    true,
+				Type:        schema.TypeString,
+				Optional:    true,
 			},
 			Arg_DhcpSnatEnabled: {
-				Type:        schema.TypeBool,
-				Optional:    true,
 				Default:     true,
 				Description: "Indicates if SNAT will be enabled for the DHCP service",
 				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeBool,
 			},
 
 			// Attributes
 			Attr_DhcpID: {
-				Type:        schema.TypeString,
 				Computed:    true,
+				Deprecated :"The field is deprecated,use mtu instead."
 				Description: "The ID of the DHCP Server",
+				Type:        schema.TypeString,
 			},
 			Attr_DhcpLeases: {
 				Type:        schema.TypeList,

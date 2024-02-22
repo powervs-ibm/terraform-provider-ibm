@@ -157,6 +157,5 @@ func testAccCheckIBMPIDhcpConfigWithSNATDisabled() string {
 	resource "ibm_pi_dhcp" "dhcp_service" {
 		pi_cloud_instance_id = "%s"
 		pi_dhcp_snat_enabled = false
-	}
-	`, acc.Pi_cloud_instance_id)
+	}`, acc.Pi_cloud_instance_id)
 }
