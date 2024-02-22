@@ -74,7 +74,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 			// Attributes
 			Attr_DhcpID: {
 				Computed:    true,
-				Deprecated :"The field is deprecated,use mtu instead."
+				Deprecated:  "The field is deprecated,use mtu instead.",
 				Description: "The ID of the DHCP Server",
 				Type:        schema.TypeString,
 			},
