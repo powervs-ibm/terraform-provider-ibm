@@ -41,7 +41,7 @@ func DatasourceIBMPIWorkspace() *schema.Resource {
 				Type:        schema.TypeMap,
 			},
 			Attr_PowerEdgeRouterStatus: {
-				Type:        schema.TypeString,
+				Type:        schema.TypeMap,
 				Computed:    true,
 				Description: "PER status",
 			},
