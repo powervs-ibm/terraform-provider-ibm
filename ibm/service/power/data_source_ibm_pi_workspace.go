@@ -86,7 +86,7 @@ func dataSourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set(Attr_WorkspaceStatus, wsData.Status)
 	d.Set(Attr_WorkspaceType, wsData.Type)
 	d.Set(Attr_WorkspaceCapabilities, wsData.Capabilities)
-	d.Set(Attr_PowerEdgeRouterStatus, wsData.Status)
+	d.Set(Attr_PowerEdgeRouterStatus, wsData.Details.PowerEdgeRouter.MigrationStatus)
 	wsdetails := map[string]interface{}{
 		Attr_CreationDate: wsData.Details.CreationDate.String(),
 		Attr_CRN:          *wsData.Details.Crn,
