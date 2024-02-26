@@ -96,8 +96,8 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "Cloud Object Storage region",
-				ConflictsWith: []string{helpers.IImageId},
-				RequiredWith:  []string{helpers.PIImageBucketName},
+				ConflictsWith: []string{Attr_ImageId},
+				RequiredWith:  []string{Arg_ImageBucketName},
 				ForceNew:      true,
 			},
 			Arg_ImageBucketFileName: {
@@ -175,12 +175,12 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	imageName := d.Get(helpers.PIImageName).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	imageName := d.Get(Arg_ImageName).(string)
 
 	client := st.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
 	// image copy
-	if v, ok := d.GetOk(helpers.PIImageId); ok {
+	if v, ok := d.GetOk(Arg_ImageId); ok {
 		imageid := v.(string)
 		source := "root-project"
 		var body = &models.CreateImage{
@@ -204,11 +204,11 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	// COS image import
-	if v, ok := d.GetOk(helpers.PIImageBucketName); ok {
+	if v, ok := d.GetOk(Arg_ImageBucketName); ok {
 		bucketName := v.(string)
-		bucketImageFileName := d.Get(helpers.PIImageBucketFileName).(string)
-		bucketRegion := d.Get(helpers.PIImageBucketRegion).(string)
-		bucketAccess := d.Get(helpers.PIImageBucketAccess).(string)
+		bucketImageFileName := d.Get(Arg_ImageBucketFileName).(string)
+		bucketRegion := d.Get(Arg_ImageBucketRegion).(string)
+		bucketAccess := d.Get(Arg_ImageBucketAccess).(string)
 
 		body := &models.CreateCosImageImportJob{
 			ImageName:     &imageName,
@@ -218,17 +218,17 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			Region:        &bucketRegion,
 		}
 
-		if v, ok := d.GetOk(helpers.PIImageAccessKey); ok {
+		if v, ok := d.GetOk(Arg_ImageAccessKey); ok {
 			body.AccessKey = v.(string)
 		}
-		if v, ok := d.GetOk(helpers.PIImageSecretKey); ok {
+		if v, ok := d.GetOk(Arg_ImageSecretKey); ok {
 			body.SecretKey = v.(string)
 		}
 
-		if v, ok := d.GetOk(helpers.PIImageStorageType); ok {
+		if v, ok := d.GetOk(Arg_ImageStorageType); ok {
 			body.StorageType = v.(string)
 		}
-		if v, ok := d.GetOk(helpers.PIImageStoragePool); ok {
+		if v, ok := d.GetOk(Arg_ImageStoragePool); ok {
 			body.StoragePool = v.(string)
 		}
 		if ap, ok := d.GetOk(PIAffinityPolicy); ok {
@@ -307,7 +307,7 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 
 	imageid := *imagedata.ImageID
 	d.Set("image_id", imageid)
-	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
+	d.Set(Arg_CloudInstanceId, cloudInstanceID)
 
 	return nil
 }
@@ -333,12 +333,12 @@ func resourceIBMPIImageDelete(ctx context.Context, d *schema.ResourceData, meta 
 	return nil
 }
 
-func isWaitForIBMPIImageAvailable(ctx context.Context, client *st.IBMPIImageClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIImageAvailable(ctx context.Context, client *instance.IBMPIImageClient, id string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for Power Image (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIImageQueStatus},
-		Target:     []string{helpers.PIImageActiveStatus},
+		Pending:    []string{"retry", Arg_ImageQueStatus},
+		Target:     []string{Arg_ImageActiveStatus},
 		Refresh:    isIBMPIImageRefreshFunc(ctx, client, id),
 		Timeout:    timeout,
 		Delay:      20 * time.Second,
@@ -348,7 +348,7 @@ func isWaitForIBMPIImageAvailable(ctx context.Context, client *st.IBMPIImageClie
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIImageRefreshFunc(ctx context.Context, client *st.IBMPIImageClient, id string) resource.StateRefreshFunc {
+func isIBMPIImageRefreshFunc(ctx context.Context, client *instance.IBMPIImageClient, id string) resource.StateRefreshFunc {
 
 	log.Printf("Calling the isIBMPIImageRefreshFunc Refresh Function....")
 	return func() (interface{}, string, error) {
@@ -358,14 +358,14 @@ func isIBMPIImageRefreshFunc(ctx context.Context, client *st.IBMPIImageClient, i
 		}
 
 		if image.State == "active" {
-			return image, helpers.PIImageActiveStatus, nil
+			return image, Arg_ImageActiveStatus, nil
 		}
 
-		return image, helpers.PIImageQueStatus, nil
+		return image, Arg_ImageQueStatus, nil
 	}
 }
 
-func waitForIBMPIJobCompleted(ctx context.Context, client *st.IBMPIJobClient, jobID string, timeout time.Duration) (interface{}, error) {
+func waitForIBMPIJobCompleted(ctx context.Context, client *instance.IBMPIJobClient, jobID string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{helpers.JobStatusQueued, helpers.JobStatusReadyForProcessing, helpers.JobStatusInProgress, helpers.JobStatusRunning, helpers.JobStatusWaiting},
 		Target:  []string{helpers.JobStatusCompleted, helpers.JobStatusFailed},
