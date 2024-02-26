@@ -337,8 +337,8 @@ func isWaitForIBMPIImageAvailable(ctx context.Context, client *instance.IBMPIIma
 	log.Printf("Waiting for Power Image (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIImageQueStatus},
-		Target:     []string{helpers.PIImageActiveStatus},
+		Pending:    []string{"retry", Arg_ImageQueStatus},
+		Target:     []string{Arg_ImageActiveStatus},
 		Refresh:    isIBMPIImageRefreshFunc(ctx, client, id),
 		Timeout:    timeout,
 		Delay:      20 * time.Second,
@@ -358,17 +358,17 @@ func isIBMPIImageRefreshFunc(ctx context.Context, client *instance.IBMPIImageCli
 		}
 
 		if image.State == "active" {
-			return image, helpers.PIImageActiveStatus, nil
+			return image, Arg_ImageActiveStatus, nil
 		}
 
-		return image, helpers.PIImageQueStatus, nil
+		return image, Arg_ImageQueStatus, nil
 	}
 }
 
 func waitForIBMPIJobCompleted(ctx context.Context, client *instance.IBMPIJobClient, jobID string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{helpers.JobStatusQueued, helpers.JobStatusReadyForProcessing, helpers.JobStatusInProgress, helpers.JobStatusRunning, helpers.JobStatusWaiting},
-		Target:  []string{helpers.JobStatusCompleted, helpers.JobStatusFailed},
+		Pending: []string{Arg_JobStatusQueued, Arg_JobStatusReadyForProcessing, Arg_JobStatusInProgress, Arg_JobStatusRunning, Arg_JobStatusWaiting},
+		Target:  []string{Arg_JobStatusCompleted, Arg_JobStatusFailed},
 		Refresh: func() (interface{}, string, error) {
 			job, err := client.Get(jobID)
 			if err != nil {
@@ -379,9 +379,9 @@ func waitForIBMPIJobCompleted(ctx context.Context, client *instance.IBMPIJobClie
 				log.Printf("[DEBUG] get job failed with empty response")
 				return nil, "", fmt.Errorf("failed to get job status for job id %s", jobID)
 			}
-			if *job.Status.State == helpers.JobStatusFailed {
+			if *job.Status.State == Arg_JobStatusFailed {
 				log.Printf("[DEBUG] job status failed with message: %v", job.Status.Message)
-				return nil, helpers.JobStatusFailed, fmt.Errorf("job status failed for job id %s with message: %v", jobID, job.Status.Message)
+				return nil, Arg_JobStatusFailed, fmt.Errorf("job status failed for job id %s with message: %v", jobID, job.Status.Message)
 			}
 			return job, *job.Status.State, nil
 		},
