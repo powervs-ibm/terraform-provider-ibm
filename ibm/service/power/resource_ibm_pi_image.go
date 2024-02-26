@@ -96,7 +96,7 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "Cloud Object Storage region",
-				ConflictsWith: []string{Attr_ImageId},
+				ConflictsWith: []string{Arg_ImageId},
 				RequiredWith:  []string{Arg_ImageBucketName},
 				ForceNew:      true,
 			},
@@ -178,7 +178,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	imageName := d.Get(Arg_ImageName).(string)
 
-	client := st.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
 	// image copy
 	if v, ok := d.GetOk(Arg_ImageId); ok {
 		imageid := v.(string)
@@ -307,7 +307,7 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 
 	imageid := *imagedata.ImageID
 	d.Set("image_id", imageid)
-	d.Set(Arg_CloudInstanceId, cloudInstanceID)
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 
 	return nil
 }
@@ -323,7 +323,7 @@ func resourceIBMPIImageDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	imageC := st.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
+	imageC := instance.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
 	err = imageC.Delete(imageID)
 	if err != nil {
 		return diag.FromErr(err)
@@ -337,8 +337,8 @@ func isWaitForIBMPIImageAvailable(ctx context.Context, client *instance.IBMPIIma
 	log.Printf("Waiting for Power Image (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", Arg_ImageQueStatus},
-		Target:     []string{Arg_ImageActiveStatus},
+		Pending:    []string{"retry", helpers.PIImageQueStatus},
+		Target:     []string{helpers.PIImageActiveStatus},
 		Refresh:    isIBMPIImageRefreshFunc(ctx, client, id),
 		Timeout:    timeout,
 		Delay:      20 * time.Second,
@@ -358,10 +358,10 @@ func isIBMPIImageRefreshFunc(ctx context.Context, client *instance.IBMPIImageCli
 		}
 
 		if image.State == "active" {
-			return image, Arg_ImageActiveStatus, nil
+			return image, helpers.PIImageActiveStatus, nil
 		}
 
-		return image, Arg_ImageQueStatus, nil
+		return image, helpers.PIImageQueStatus, nil
 	}
 }
 
