@@ -24,14 +24,14 @@ resource "ibm_pi_image_export" "testacc_image_export"{
 }
 ```
 
-**Note**
+**Notes**
 * Ensure the exported file is cleaned up manually from the Cloud Object Storage when no longer needed. Power Systems Virtual Server does not support deleting the exported image. Updating any attribute will result in creating a new Export job.
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   * `region` - `lon`
   * `zone` - `lon04`
   
-  Example usage:
+Example usage:
   
   ```terraform
     provider "ibm" {

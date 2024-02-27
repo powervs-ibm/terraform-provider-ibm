@@ -39,6 +39,5 @@ func testAccCheckIBMPIImageExportConfig() string {
 		pi_image_access_key = "%[3]s"
 		pi_image_secret_key = "%[4]s"
 		pi_image_bucket_region = "%[5]s"
-	  }
-	`, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region, acc.Pi_image)
+	  }`, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region, acc.Pi_image)
 }

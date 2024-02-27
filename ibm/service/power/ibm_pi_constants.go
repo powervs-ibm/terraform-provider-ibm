@@ -6,7 +6,11 @@ const (
 	// Arguments
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_ImageAccessKey                      = "pi_image_access_key"
+	Arg_ImageBucketName                     = "pi_image_bucket_name"
+	Arg_ImageBucketRegion                   = "pi_image_bucket_region"
 	Arg_ImageName                           = "pi_image_name"
+	Arg_ImageSecretKey                      = "pi_image_secret_key"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_Key                                 = "pi_ssh_key"
 	Arg_KeyName                             = "pi_key_name"
