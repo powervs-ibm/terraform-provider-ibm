@@ -9,13 +9,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ResourceIBMPIInstanceConsoleLanguage() *schema.Resource {
@@ -32,12 +30,12 @@ func ResourceIBMPIInstanceConsoleLanguage() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required Attributes
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
 			},
-			helpers.PIInstanceName: {
+			Arg_InstanceName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The unique identifier or name of the instance",
@@ -57,8 +55,8 @@ func resourceIBMPIInstanceConsoleLanguageCreate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	instanceName := d.Get(helpers.PIInstanceName).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	instanceName := d.Get(Arg_InstanceName).(string)
 	code := d.Get(PIConsoleLanguageCode).(string)
 
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
@@ -90,8 +88,8 @@ func resourceIBMPIInstanceConsoleLanguageUpdate(ctx context.Context, d *schema.R
 	}
 
 	if d.HasChange(PIConsoleLanguageCode) {
-		cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-		instanceName := d.Get(helpers.PIInstanceName).(string)
+		cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+		instanceName := d.Get(Arg_InstanceName).(string)
 		code := d.Get(PIConsoleLanguageCode).(string)
 
 		client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
