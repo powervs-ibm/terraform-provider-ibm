@@ -22,13 +22,13 @@ resource "ibm_pi_instance_action" "example" {
 
 ```
 
-**Note**
+**Notes**
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   * `region` - `lon`
   * `zone` - `lon04`
 
-  Example usage:
+Example usage:
 
   ```terraform
     provider "ibm" {

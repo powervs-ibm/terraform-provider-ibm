@@ -7,8 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
@@ -105,7 +104,7 @@ func resourceIBMPIInstanceActionRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIInstanceClient(context.Background(), sess, cloudInstanceID)
+	client := instance.NewIBMPIInstanceClient(context.Background(), sess, cloudInstanceID)
 	powervmdata, err := client.Get(id)
 	if err != nil {
 		return diag.FromErr(err)
@@ -160,7 +159,7 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta interf
 		targetStatus = "ACTIVE"
 	}
 
-	client := st.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
 	// special case for action "start", "stop", "immediate-shutdown"
 	// skip calling action if instance is already in desired state
@@ -196,7 +195,7 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta interf
 	return nil
 }
 
-func isWaitForPIInstanceActionStatus(ctx context.Context, client *st.IBMPIInstanceClient, id string, timeout time.Duration, targetStatus, targetHealthStatus string) (interface{}, error) {
+func isWaitForPIInstanceActionStatus(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration, targetStatus, targetHealthStatus string) (interface{}, error) {
 	log.Printf("Waiting for the action to be performed on the instance %s", id)
 
 	stateConf := &resource.StateChangeConf{
@@ -211,7 +210,7 @@ func isWaitForPIInstanceActionStatus(ctx context.Context, client *st.IBMPIInstan
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isPIActionRefreshFunc(client *st.IBMPIInstanceClient, id, targetStatus, targetHealthStatus string) resource.StateRefreshFunc {
+func isPIActionRefreshFunc(client *instance.IBMPIInstanceClient, id, targetStatus, targetHealthStatus string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("Waiting for the target status to be [ %s ]", targetStatus)
 		pvm, err := client.Get(id)
