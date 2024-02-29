@@ -45,11 +45,6 @@ func DatasourceIBMPIWorkspaces() *schema.Resource {
 							Description: "Workspace information.",
 							Type:        schema.TypeMap,
 						},
-						Attr_PowerEdgeRouter: {
-							Computed:    true,
-							Description: "PER status",
-							Type:        schema.TypeMap,
-						},
 						Attr_WorkspaceID: {
 							Computed:    true,
 							Description: "Workspace ID.",
