@@ -6,6 +6,7 @@ const (
 	// Arguments
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_ConsoleLanguageCode                 = "pi_language_code"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_Key                                 = "pi_ssh_key"
@@ -300,7 +301,6 @@ const (
 	// power service instance capabilities
 	CUSTOM_VIRTUAL_CORES = "custom-virtualcores"
 
-	PIConsoleLanguageCode               = "pi_language_code"
 	PICloudConnectionId                 = "cloud_connection_id"
 	PICloudConnectionStatus             = "status"
 	PICloudConnectionIBMIPAddress       = "ibm_ip_address"
