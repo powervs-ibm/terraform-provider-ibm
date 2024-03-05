@@ -29,21 +29,21 @@ func ResourceIBMPIInstanceConsoleLanguage() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			// Required Attributes
+			// Arguments
 			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
 			},
-			Arg_InstanceName: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The unique identifier or name of the instance",
-			},
 			Arg_ConsoleLanguageCode: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Language code",
+			},
+			Arg_InstanceName: {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The unique identifier or name of the instance",
 			},
 		},
 	}
