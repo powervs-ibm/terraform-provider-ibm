@@ -53,6 +53,14 @@ func DataSourceIBMPISAPProfiles() *schema.Resource {
 							Description: "SAP Profile ID.",
 							Type:        schema.TypeString,
 						},
+						Attr_SupportedSystems: {
+							Computed:    true,
+							Description: "List of supported systems.",
+							Type:        schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						Attr_Type: {
 							Computed:    true,
 							Description: "Type of profile.",
@@ -84,11 +92,12 @@ func dataSourceIBMPISAPProfilesRead(ctx context.Context, d *schema.ResourceData,
 	result := make([]map[string]interface{}, 0, len(sapProfiles.Profiles))
 	for _, sapProfile := range sapProfiles.Profiles {
 		profile := map[string]interface{}{
-			Attr_Certified: *sapProfile.Certified,
-			Attr_Cores:     *sapProfile.Cores,
-			Attr_Memory:    *sapProfile.Memory,
-			Attr_ProfileID: *sapProfile.ProfileID,
-			Attr_Type:      *sapProfile.Type,
+			Attr_Certified:        *sapProfile.Certified,
+			Attr_Cores:            *sapProfile.Cores,
+			Attr_Memory:           *sapProfile.Memory,
+			Attr_ProfileID:        *sapProfile.ProfileID,
+			Attr_Type:             *sapProfile.Type,
+			Attr_SupportedSystems: sapProfile.SupportedSystems,
 		}
 		result = append(result, profile)
 	}

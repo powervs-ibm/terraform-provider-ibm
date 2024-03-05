@@ -45,4 +45,5 @@ In addition to all argument reference list, you can access the following attribu
   - `cores` - (Integer) Amount of cores.
   - `memory` - (Integer) Amount of memory (in GB).
   - `profile_id` - (String) SAP Profile ID.
+  - `supported_systems` - (List) List of supported systems.
   - `type` - (String) Type of profile.

@@ -48,6 +48,14 @@ func DataSourceIBMPISAPProfile() *schema.Resource {
 				Description: "Amount of memory (in GB).",
 				Type:        schema.TypeInt,
 			},
+			Attr_SupportedSystems: {
+				Computed:    true,
+				Description: "List of supported systems.",
+				Type:        schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			Attr_Type: {
 				Computed:    true,
 				Description: "Type of profile.",
@@ -78,6 +86,7 @@ func dataSourceIBMPISAPProfileRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set(Attr_Cores, *sapProfile.Cores)
 	d.Set(Attr_Memory, *sapProfile.Memory)
 	d.Set(Attr_Type, *sapProfile.Type)
+	d.Set(Attr_SupportedSystems, sapProfile.SupportedSystems)
 
 	return nil
 }
