@@ -7,7 +7,6 @@ description: |-
 ---
 
 # ibm_pi_image
-
 Import the details of an existing IBM Power Virtual Server Cloud image as a read-only data source. For more information, about IBM power virtual server cloud, see [getting started with IBM Power Systems Virtual Servers](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-getting-started).
 
 ## Example usage
