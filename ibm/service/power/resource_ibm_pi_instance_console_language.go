@@ -31,19 +31,19 @@ func ResourceIBMPIInstanceConsoleLanguage() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
+				Description: "The GUID of the service instance associated with an account.",
 				Required:    true,
-				Description: "PI cloud instance ID",
-			},
-			Arg_ConsoleLanguageCode: {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Language code",
 			},
 			Arg_InstanceName: {
-				Type:        schema.TypeString,
+				Description: "The unique identifier or name of the instance.",
 				Required:    true,
-				Description: "The unique identifier or name of the instance",
+				Type:        schema.TypeString,
+			},
+			Arg_LanguageCode: {
+				Description: "Language code.",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -57,7 +57,7 @@ func resourceIBMPIInstanceConsoleLanguageCreate(ctx context.Context, d *schema.R
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	instanceName := d.Get(Arg_InstanceName).(string)
-	code := d.Get(Arg_ConsoleLanguageCode).(string)
+	code := d.Get(Arg_LanguageCode).(string)
 
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
@@ -87,10 +87,10 @@ func resourceIBMPIInstanceConsoleLanguageUpdate(ctx context.Context, d *schema.R
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange(Arg_ConsoleLanguageCode) {
+	if d.HasChange(Arg_LanguageCode) {
 		cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 		instanceName := d.Get(Arg_InstanceName).(string)
-		code := d.Get(Arg_ConsoleLanguageCode).(string)
+		code := d.Get(Arg_LanguageCode).(string)
 
 		client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 

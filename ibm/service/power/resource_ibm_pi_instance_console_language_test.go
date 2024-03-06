@@ -37,9 +37,9 @@ func TestAccIBMPIInstanceConsoleLanguage(t *testing.T) {
 
 func testAccCheckIBMPIInstanceConsoleLanguageConfig(code string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_console_language" "example" {
-		pi_cloud_instance_id	= "%s"
-		pi_instance_name		= "%s"
-		pi_language_code		= "%s"
-	}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, code)
+		resource "ibm_pi_console_language" "example" {
+			pi_cloud_instance_id	= "%s"
+			pi_instance_name		= "%s"
+			pi_language_code		= "%s"
+		}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, code)
 }
