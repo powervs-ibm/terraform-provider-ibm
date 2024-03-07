@@ -95,10 +95,10 @@ func testAccCheckIBMPIImageExists(n string) resource.TestCheckFunc {
 
 func testAccCheckIBMPIImageConfig(name string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_image" "power_image" {
-		pi_image_name       = "%s"
-		pi_image_id         = "IBMi-74-01-001"
-		pi_cloud_instance_id = "%s"
+		   resource "ibm_pi_image" "power_image" {
+		   pi_image_name       = "%s"
+		   pi_image_id         = "IBMi-74-01-001"
+		   pi_cloud_instance_id = "%s"
 	  }`, name, acc.Pi_cloud_instance_id)
 }
 
@@ -124,13 +124,13 @@ func TestAccIBMPIImageCOSPublicImport(t *testing.T) {
 
 func testAccCheckIBMPIImageCOSPublicConfig(name string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_image" "cos_image" {
-		pi_image_name       = "%[1]s"
-		pi_cloud_instance_id = "%[2]s"
-		pi_image_bucket_name = "%[3]s"
-		pi_image_bucket_access = "public"
-		pi_image_bucket_region = "us-south"
-		pi_image_bucket_file_name = "%[4]s"
-		pi_image_storage_type = "tier1"
+	       resource "ibm_pi_image" "cos_image" {
+		   pi_image_name       = "%[1]s"
+		   pi_cloud_instance_id = "%[2]s"
+		   pi_image_bucket_name = "%[3]s"
+		   pi_image_bucket_access = "public"
+		   pi_image_bucket_region = "us-south"
+		   pi_image_bucket_file_name = "%[4]s"
+		   pi_image_storage_type = "tier1"
 	}`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name)
 }
