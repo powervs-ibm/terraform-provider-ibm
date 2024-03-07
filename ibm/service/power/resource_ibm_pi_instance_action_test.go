@@ -89,19 +89,19 @@ func TestAccIBMPIInstanceActionResetState(t *testing.T) {
 
 func testAccCheckIBMPIInstanceActionConfig(action string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_instance_action" "example" {
-		pi_cloud_instance_id	= "%s"
-		pi_instance_id			= "%s"
-		pi_action				= "%s"
+	       resource "ibm_pi_instance_action" "example" {
+		   pi_cloud_instance_id	= "%s"
+		   pi_instance_id			= "%s"
+		   pi_action				= "%s"
 	}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, action)
 }
 
 func testAccCheckIBMPIInstanceActionWithHealthStatusConfig(action string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_instance_action" "example" {
-		pi_cloud_instance_id	= "%s"
-		pi_instance_id			= "%s"
-		pi_action				= "%s"
-		pi_health_status		= "WARNING"
+	       resource "ibm_pi_instance_action" "example" {
+		   pi_cloud_instance_id	= "%s"
+		   pi_instance_id			= "%s"
+		   pi_action				= "%s"
+		   pi_health_status		= "WARNING"
 	}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, action)
 }

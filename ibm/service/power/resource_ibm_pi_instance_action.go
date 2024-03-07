@@ -36,44 +36,44 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PI Cloud instance id",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_PVMInstanceId: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PVM instance ID",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_PVMInstanceActionType: {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{"start", "stop", "hard-reboot", "soft-reboot", "immediate-shutdown", "reset-state"}),
 				Description:  "PVM instance action type",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"start", "stop", "hard-reboot", "soft-reboot", "immediate-shutdown", "reset-state"}),
 			},
 			Arg_PVMInstanceHealthStatus: {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{PVMInstanceHealthOk, PVMInstanceHealthWarning}),
 				Default:      PVMInstanceHealthOk,
 				Description:  "Set the health status of the PVM instance to connect it faster",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{PVMInstanceHealthOk, PVMInstanceHealthWarning}),
 			},
 
 			// Computed
 			Attr_Status: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the PVM instance",
+				Type:        schema.TypeString,
 			},
 			Attr_Progress: {
-				Type:        schema.TypeFloat,
 				Computed:    true,
 				Description: "The progress of an operation",
+				Type:        schema.TypeFloat,
 			},
 			Attr_HealthStatus: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The PVM's health status value",
+				Type:        schema.TypeString,
 			},
 		},
 	}
