@@ -29,46 +29,45 @@ func ResourceIBMPIImageExport() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			//required attributes
+			//Argumeents
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PI cloud instance ID",
 				ForceNew:    true,
-			},
-			Attr_ImageID: {
-				Type:             schema.TypeString,
-				Required:         true,
-				Description:      "Instance image id",
-				DiffSuppressFunc: flex.ApplyOnce,
-				ForceNew:         true,
-			},
-			Arg_ImageBucketName: {
-				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Cloud Object Storage bucket name; bucket-name[/optional/folder]",
-				ForceNew:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_ImageAccessKey: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "Cloud Object Storage access key; required for buckets with private access",
-				Sensitive:   true,
 				ForceNew:    true,
+				Required:    true,
+				Sensitive:   true,
+				Type:        schema.TypeString,
 			},
-
-			Arg_ImageSecretKey: {
+			Arg_ImageBucketName: {
+				Description: "Cloud Object Storage bucket name; bucket-name[/optional/folder]",
+				ForceNew:    true,
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Cloud Object Storage secret key; required for buckets with private access",
-				Sensitive:   true,
-				ForceNew:    true,
 			},
 			Arg_ImageBucketRegion: {
-				Type:        schema.TypeString,
 				Description: "Cloud Object Storage region",
 				ForceNew:    true,
 				Required:    true,
+				Type:        schema.TypeString,
+			},
+			Attr_ImageID: {
+				Description:      "Instance image id",
+				DiffSuppressFunc: flex.ApplyOnce,
+				ForceNew:         true,
+				Required:         true,
+				Type:             schema.TypeString,
+			},
+			Arg_ImageSecretKey: {
+				Description: "Cloud Object Storage secret key; required for buckets with private access",
+				ForceNew:    true,
+				Required:    true,
+				Sensitive:   true,
+				Type:        schema.TypeString,
 			},
 		},
 	}
