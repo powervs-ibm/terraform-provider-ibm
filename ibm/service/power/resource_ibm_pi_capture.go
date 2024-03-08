@@ -45,20 +45,6 @@ func ResourceIBMPICapture() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 
-			Arg_InstanceName: {
-				Description: "The name of the instance",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-
-			Arg_InstanceCaptureName: {
-				Description: "Name of the deployable image created for the captured PVMInstance",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-
 			Arg_InstanceCaptureDestination: {
 				Description:  "Destination for the deployable image",
 				ForceNew:     true,
@@ -104,6 +90,20 @@ func ResourceIBMPICapture() *schema.Resource {
 				Description: "Cloud Storage Image Path (bucket-name [/folder/../..])",
 				ForceNew:    true,
 				Optional:    true,
+				Type:        schema.TypeString,
+			},
+
+			Arg_InstanceCaptureName: {
+				Description: "Name of the deployable image created for the captured PVMInstance",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
+			},
+
+			Arg_InstanceName: {
+				Description: "The name of the instance",
+				ForceNew:    true,
+				Required:    true,
 				Type:        schema.TypeString,
 			},
 			// Computed Attribute
