@@ -11,12 +11,9 @@ import (
 
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPIDhcpbasic(t *testing.T) {
@@ -52,7 +49,7 @@ func testAccCheckIBMPIDhcpDestroy(s *terraform.State) error {
 			return err
 		}
 
-		client := st.NewIBMPIDhcpClient(context.Background(), sess, cloudInstanceID)
+		client := instanceNewIBMPIDhcpClient(context.Background(), sess, cloudInstanceID)
 		_, err = client.Get(dhcpID)
 		if err == nil {
 			return fmt.Errorf("PI DHCP still exists: %s", rs.Primary.ID)
@@ -80,7 +77,7 @@ func testAccCheckIBMPIDhcpExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPIDhcpClient(context.Background(), sess, cloudInstanceID)
+		client := instanceNewIBMPIDhcpClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(dhcpID)
 		if err != nil {
@@ -94,13 +91,13 @@ func testAccCheckIBMPIDhcpExists(n string) resource.TestCheckFunc {
 func testAccCheckIBMPIDhcpConfig() string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_dhcp" "dhcp_service" {
-		pi_cloud_instance_id = "%s"
+		   pi_cloud_instance_id = "%s"
 	}
 	`, acc.Pi_cloud_instance_id)
 }
 
 func TestAccIBMPIDhcpWithCidrName(t *testing.T) {
-	name := fmt.Sprintf("tf-dhcp-%d", acctest.RandIntRange(10, 100))
+	name := fmt.Sprintf("tf-dhcp-%d", accteinstanceRandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -127,9 +124,9 @@ func TestAccIBMPIDhcpWithCidrName(t *testing.T) {
 func testAccCheckIBMPIDhcpWithCidrNameConfig(name string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_dhcp" "dhcp_service" {
-			pi_cloud_instance_id 	= "%[1]s"
-			pi_dhcp_name = "%[2]s"
-			pi_cidr = "192.168.103.0/24"
+		   pi_cloud_instance_id 	= "%[1]s"
+		   pi_dhcp_name = "%[2]s"
+		   pi_cidr = "192.168.103.0/24"
 		}
 	`, acc.Pi_cloud_instance_id, name)
 }
@@ -155,7 +152,7 @@ func TestAccIBMPIDhcpSNAT(t *testing.T) {
 func testAccCheckIBMPIDhcpConfigWithSNATDisabled() string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_dhcp" "dhcp_service" {
-		pi_cloud_instance_id = "%s"
-		pi_dhcp_snat_enabled = false
+		   pi_cloud_instance_id = "%s"
+		   pi_dhcp_snat_enabled = false
 	}`, acc.Pi_cloud_instance_id)
 }
