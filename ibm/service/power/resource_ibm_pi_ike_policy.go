@@ -36,61 +36,61 @@ func ResourceIBMPIIKEPolicy() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			// Required Attributes
+			// Arguments
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PI cloud instance ID",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_VPNPolicyName: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "Name of the IKE Policy",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			Arg_VPNPolicyDhGroup: {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedIntValues([]int{1, 2, 5, 14, 19, 20, 24}),
 				Description:  "DH group of the IKE Policy",
+				Required:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validate.ValidateAllowedIntValues([]int{1, 2, 5, 14, 19, 20, 24}),
 			},
 			Arg_VPNPolicyEncryption: {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{"aes-256-cbc", "aes-192-cbc", "aes-128-cbc", "aes-256-gcm", "aes-128-gcm", "3des-cbc"}),
 				Description:  "Encryption of the IKE Policy",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"aes-256-cbc", "aes-192-cbc", "aes-128-cbc", "aes-256-gcm", "aes-128-gcm", "3des-cbc"}),
 			},
 			Arg_VPNPolicyKeyLifetime: {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedRangeInt(180, 86400),
 				Description:  "Policy key lifetime",
+				Required:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validate.ValidateAllowedRangeInt(180, 86400),
 			},
 			Arg_VPNPolicyVersion: {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedRangeInt(1, 2),
 				Description:  "Version of the IKE Policy",
+				Required:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validate.ValidateAllowedRangeInt(1, 2),
 			},
 			Arg_VPNPolicyPresharedKey: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "Preshared key used in this IKE Policy (length of preshared key must be even)",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			// Optional Attributes
 			Arg_VPNPolicyAuthentication: {
-				Type:         schema.TypeString,
-				Optional:     true,
 				Default:      "none",
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{"sha-256", "sha-384", "sha1", "none"}),
 				Description:  "Authentication for the IKE Policy",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"sha-256", "sha-384", "sha1", "none"}),
 			},
 
 			//Computed Attributes
 			Attr_PolicyId: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "IKE Policy ID",
+				Type:        schema.TypeString,
 			},
 		},
 	}
