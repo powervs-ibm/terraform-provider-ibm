@@ -18,16 +18,15 @@ resource "ibm_pi_instance_action" "example" {
   pi_instance_id        = "cea6651a-bc0a-4438-9f8a-a0770b112ebb"
   pi_action             = "hard-reboot"
 }
-
 ```
+
 **Notes**
-* Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
-* If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
-  * `region` - `lon`
-  * `zone` - `lon04`
+- Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
+- If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
+  - `region` - `lon`
+  - `zone` - `lon04`
 
 Example usage:
-
   ```terraform
     provider "ibm" {
       region    =   "lon"
