@@ -54,7 +54,7 @@ func testAccCheckIBMPICloudConnectionDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		client := instanceNewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 		_, err = client.Get(cloudConnectionID)
 		if err == nil {
 			return fmt.Errorf("Cloud Connection still exists: %s", rs.Primary.ID)
