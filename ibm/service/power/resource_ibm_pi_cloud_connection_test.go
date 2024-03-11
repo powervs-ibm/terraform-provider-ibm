@@ -13,10 +13,11 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPICloudConnectionbasic(t *testing.T) {
@@ -54,7 +55,7 @@ func testAccCheckIBMPICloudConnectionDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := st.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 		_, err = client.Get(cloudConnectionID)
 		if err == nil {
 			return fmt.Errorf("Cloud Connection still exists: %s", rs.Primary.ID)
@@ -89,7 +90,7 @@ func testAccCheckIBMPICloudConnectionExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := st.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(cloudConnectionID)
 		if err != nil {
@@ -194,7 +195,7 @@ func testAccCheckIBMPICloudConnectionNetworkUpdateConfig(name string) string {
 }
 
 func TestAccIBMPICloudConnectionClassic(t *testing.T) {
-	name := fmt.Sprintf("tf-cloudconnection-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-cloudconnection-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -229,7 +230,7 @@ func testAccCheckIBMPICloudConnectionClassicConfig(name string) string {
 }
 
 func TestAccIBMPICloudConnectionVPC(t *testing.T) {
-	name := fmt.Sprintf("tf-cloudconnection-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-cloudconnection-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -268,7 +269,7 @@ func testAccCheckIBMPICloudConnectionVPCConfig(name string) string {
 }
 
 func TestAccIBMPICloudConnectionTransitGateway(t *testing.T) {
-	name := fmt.Sprintf("tf-cloudconnection-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-cloudconnection-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
