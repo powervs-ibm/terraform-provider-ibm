@@ -33,7 +33,7 @@ func ResourceIBMPICloudConnectionNetworkAttach() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			// Required Attributes
+			// Arguments
 			Arg_CloudInstanceID: {
 				Description: "The GUID of the service instance associated with an account",
 				ForceNew:    true,
