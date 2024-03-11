@@ -29,7 +29,7 @@ func ResourceIBMPIImageExport() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			//Argumeents
+			//Arguments
 			Arg_CloudInstanceID: {
 				Description: "PI cloud instance ID",
 				ForceNew:    true,
