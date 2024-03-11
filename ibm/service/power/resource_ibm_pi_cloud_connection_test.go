@@ -89,7 +89,7 @@ func testAccCheckIBMPICloudConnectionExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := instanceNewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(cloudConnectionID)
 		if err != nil {
