@@ -113,8 +113,7 @@ func testAccCheckIBMPICloudConnectionConfig(name string) string {
 		pi_network_name      = "%[2]s"
 		pi_network_type      = "vlan"
 		pi_cidr              = "192.112.111.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPICloudConnectionNetworks(t *testing.T) {
@@ -167,8 +166,7 @@ func testAccCheckIBMPICloudConnectionNetworkConfig(name string) string {
 		pi_network_name      = "%[2]s_net2"
 		pi_network_type      = "vlan"
 		pi_cidr              = "192.112.113.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPICloudConnectionNetworkUpdateConfig(name string) string {
@@ -190,8 +188,7 @@ func testAccCheckIBMPICloudConnectionNetworkUpdateConfig(name string) string {
 		pi_network_name      = "%[2]s_net2"
 		pi_network_type      = "vlan"
 		pi_cidr              = "192.112.113.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPICloudConnectionClassic(t *testing.T) {
@@ -225,8 +222,7 @@ func testAccCheckIBMPICloudConnectionClassicConfig(name string) string {
 		pi_cloud_connection_name            = "%[2]s"
 		pi_cloud_connection_speed           = 50
 		pi_cloud_connection_classic_enabled = true
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPICloudConnectionVPC(t *testing.T) {
@@ -264,8 +260,7 @@ func testAccCheckIBMPICloudConnectionVPCConfig(name string) string {
 		pi_cloud_connection_speed       = 50
 		pi_cloud_connection_vpc_enabled = true
 		pi_cloud_connection_vpc_crns    = ["crn:v1:bluemix:public:is:us-south:a/d9cec80d0adc400ead8e2076afe26698::vpc:r006-6486cf73-451d-4d44-b90d-83dff504cbed"]
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPICloudConnectionTransitGateway(t *testing.T) {
@@ -307,6 +302,5 @@ func testAccCheckIBMPICloudConnectionConfigTransitGateway(name string) string {
 		pi_network_name      = "%[2]s"
 		pi_network_type      = "vlan"
 		pi_cidr              = "192.112.111.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
