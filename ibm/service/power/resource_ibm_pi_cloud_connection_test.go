@@ -20,7 +20,7 @@ import (
 )
 
 func TestAccIBMPICloudConnectionbasic(t *testing.T) {
-	name := fmt.Sprintf("tf-cloudconnection-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-cloudconnection-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
