@@ -99,7 +99,8 @@ func testAccCheckIBMPIImageConfig(name string) string {
 		pi_image_name       = "%s"
 		pi_image_id         = "IBMi-74-01-001"
 		pi_cloud_instance_id = "%s"
-	  }`, name, acc.Pi_cloud_instance_id)
+	  }
+	`, name, acc.Pi_cloud_instance_id)
 }
 
 func TestAccIBMPIImageCOSPublicImport(t *testing.T) {
@@ -132,5 +133,6 @@ func testAccCheckIBMPIImageCOSPublicConfig(name string) string {
 		pi_image_bucket_region = "us-south"
 		pi_image_bucket_file_name = "%[4]s"
 		pi_image_storage_type = "tier1"
-	}`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name)
+	}
+	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name)
 }
