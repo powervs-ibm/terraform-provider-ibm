@@ -95,8 +95,7 @@ func testAccCheckIBMPIDhcpConfig() string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_dhcp" "dhcp_service" {
 		pi_cloud_instance_id = "%s"
-	}
-	`, acc.Pi_cloud_instance_id)
+	}`, acc.Pi_cloud_instance_id)
 }
 
 func TestAccIBMPIDhcpWithCidrName(t *testing.T) {
@@ -130,8 +129,7 @@ func testAccCheckIBMPIDhcpWithCidrNameConfig(name string) string {
 			pi_cloud_instance_id 	= "%[1]s"
 			pi_dhcp_name = "%[2]s"
 			pi_cidr = "192.168.103.0/24"
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPIDhcpSNAT(t *testing.T) {
