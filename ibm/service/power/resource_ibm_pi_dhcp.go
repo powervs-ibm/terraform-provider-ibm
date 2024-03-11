@@ -30,7 +30,8 @@ func ResourceIBMPIDhcp() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			// Arguments
+
+			// Required Arguments
 			Arg_CloudInstanceID: {
 				Description: "PI cloud instance ID",
 				ForceNew:    true,
@@ -38,6 +39,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 
+			// Optional Arguments
 			Arg_DhcpCidr: {
 				Description: "Optional cidr for DHCP private network",
 				ForceNew:    true,
@@ -78,38 +80,38 @@ func ResourceIBMPIDhcp() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Attr_DhcpLeases: {
+				Type:        schema.TypeList,
 				Computed:    true,
 				Description: "The list of DHCP Server PVM Instance leases",
-				Type:        schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_DhcpLeaseInstanceIP: {
+							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The IP of the PVM Instance",
-							Type:        schema.TypeString,
 						},
 						Attr_DhcpLeaseInstanceMac: {
+							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The MAC Address of the PVM Instance",
-							Type:        schema.TypeString,
 						},
 					},
 				},
 			},
 			Attr_DhcpNetworkID: {
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the DHCP Server private network",
-				Type:        schema.TypeString,
 			},
 			Attr_DhcpNetworkName: {
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The name of the DHCP Server private network",
-				Type:        schema.TypeString,
 			},
 			Attr_DhcpStatus: {
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the DHCP Server",
-				Type:        schema.TypeString,
 			},
 		},
 	}
