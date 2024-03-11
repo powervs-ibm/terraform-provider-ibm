@@ -9,17 +9,19 @@ import (
 	"fmt"
 	"testing"
 
+	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/helpers"
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccIBMPICaptureBasic(t *testing.T) {
 	captureRes := "ibm_pi_capture.capture_instance"
-	name := fmt.Sprintf("tf-pi-capture-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pi-capture-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -38,7 +40,7 @@ func TestAccIBMPICaptureBasic(t *testing.T) {
 }
 func TestAccIBMPICaptureWithVolume(t *testing.T) {
 	captureRes := "ibm_pi_capture.capture_instance"
-	name := fmt.Sprintf("tf-pi-capture-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pi-capture-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -59,7 +61,7 @@ func TestAccIBMPICaptureWithVolume(t *testing.T) {
 
 func TestAccIBMPICaptureCloudStorage(t *testing.T) {
 	captureRes := "ibm_pi_capture.capture_instance"
-	name := fmt.Sprintf("tf-pi-capture-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pi-capture-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
@@ -76,7 +78,7 @@ func TestAccIBMPICaptureCloudStorage(t *testing.T) {
 
 func TestAccIBMPICaptureBoth(t *testing.T) {
 	captureRes := "ibm_pi_capture.capture_instance"
-	name := fmt.Sprintf("tf-pi-capture-%d", accteinstanceRandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pi-capture-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
@@ -115,7 +117,7 @@ func testAccCheckIBMPICaptureExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := instanceNewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
+		client := st.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(captureID)
 		if err != nil {
@@ -141,7 +143,7 @@ func testAccCheckIBMPICaptureDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		imageClient := instanceNewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
+		imageClient := st.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
 		_, err = imageClient.Get(captureID)
 		if err == nil {
 			return fmt.Errorf("PI Image still exists: %s", rs.Primary.ID)
