@@ -123,7 +123,6 @@ func testAccCheckIBMPICaptureExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-
 		return nil
 	}
 }
@@ -149,7 +148,6 @@ func testAccCheckIBMPICaptureDestroy(s *terraform.State) error {
 			return fmt.Errorf("PI Image still exists: %s", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }
 
