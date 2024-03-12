@@ -329,6 +329,8 @@ const (
 
 	// Placement Group
 	PIPlacementGroupID      = "placement_group_id"
+	PIPlacementGroupName    = "group_name"
+	PIPlacementGroupPolicy  = "policy"
 	PIPlacementGroupMembers = "members"
 
 	// Volume
@@ -363,6 +365,12 @@ const (
 	PIVPNConnectionDeadPeerDetectionThreshold = "threshold"
 	PIVPNConnectionLocalGatewayAddress        = "local_gateway_address"
 	PIVPNConnectionVpnGatewayAddress          = "gateway_address"
+	PIVPNPolicyName                           = "policy_name"
+	PIVPNPolicyDhGroup                        = "policy_dh_group"
+	PIVPNPolicyEncryption                     = "policy_encryption"
+	PIVPNPolicyKeyLifetime                    = "key_lifetime"
+	PIVPNPolicyPFS                            = "policy_pfs"
+	PIVPNPolicyAuthentication                 = "policy_authentication"
 
 	// Cloud Connections
 	PICloudConnectionTransitEnabled = "pi_cloud_connection_transit_enabled"

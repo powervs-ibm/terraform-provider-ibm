@@ -11,8 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	models "github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -36,20 +35,20 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			helpers.PIPlacementGroupName: {
+			PIPlacementGroupName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Name of the placement group",
 			},
 
-			helpers.PIPlacementGroupPolicy: {
+			PIPlacementGroupPolicy: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"affinity", "anti-affinity"}),
 				Description:  "Policy of the placement group",
 			},
 
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
@@ -77,10 +76,10 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	name := d.Get(helpers.PIPlacementGroupName).(string)
-	policy := d.Get(helpers.PIPlacementGroupPolicy).(string)
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	name := d.Get(PIPlacementGroupName).(string)
+	policy := d.Get(PIPlacementGroupPolicy).(string)
+	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
 		Name:   &name,
 		Policy: &policy,
@@ -109,7 +108,7 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 
 	response, err := client.Get(parts[1])
 	if err != nil {
@@ -117,9 +116,9 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	d.Set(helpers.PIPlacementGroupName, response.Name)
+	d.Set(PIPlacementGroupName, response.Name)
 	d.Set(PIPlacementGroupID, response.ID)
-	d.Set(helpers.PIPlacementGroupPolicy, response.Policy)
+	d.Set(PIPlacementGroupPolicy, response.Policy)
 	d.Set(PIPlacementGroupMembers, response.Members)
 
 	return nil
@@ -140,7 +139,7 @@ func resourceIBMPIPlacementGroupDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	err = client.Delete(parts[1])
 
 	if err != nil {
