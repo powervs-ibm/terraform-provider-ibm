@@ -55,7 +55,7 @@ func ResourceIBMPIImageExport() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-			Attr_ImageID: {
+			Arg_ImageID: {
 				Description:      "Instance image id",
 				DiffSuppressFunc: flex.ApplyOnce,
 				ForceNew:         true,
@@ -81,7 +81,7 @@ func resourceIBMPIImageExportCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	imageid := d.Get(Attr_ImageID).(string)
+	imageid := d.Get(Arg_ImageID).(string)
 	bucketName := d.Get(Arg_ImageBucketName).(string)
 	accessKey := d.Get(Arg_ImageAccessKey).(string)
 

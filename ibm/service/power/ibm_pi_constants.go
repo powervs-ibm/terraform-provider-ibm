@@ -9,6 +9,7 @@ const (
 	Arg_ImageAccessKey                      = "pi_image_access_key"
 	Arg_ImageBucketName                     = "pi_image_bucket_name"
 	Arg_ImageBucketRegion                   = "pi_image_bucket_region"
+	Arg_ImageID                             = "pi_image_id"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_ImageSecretKey                      = "pi_image_secret_key"
 	Arg_InstanceName                        = "pi_instance_name"
