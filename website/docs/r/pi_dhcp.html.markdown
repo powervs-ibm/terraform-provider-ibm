@@ -33,7 +33,7 @@ Review the argument references that you can specify for your resource.
 
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
-- `dhcp_id` - (Deprecated,String) The ID of the DHCP Server.
+- `dhcp_id` - (Deprecated, String) The ID of the DHCP Server.
 - `id` - (String) The unique identifier of the DHCP Server. The ID is composed of `<power_instance_id>/<dhcp_id>`.
 - `leases` - (List) The list of DHCP Server PVM Instance leases.
   Nested scheme for `leases`:
