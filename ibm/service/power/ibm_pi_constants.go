@@ -29,7 +29,7 @@ const (
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
-	Arg_VPNPolicyDhGroup                    = "pi_policy_dh_group"
+	Arg_VPNPolicyDhGroup                    = "Arg_PolicyDhGroup"
 	Arg_VPNPolicyAuthentication             = "pi_policy_authentication"
 	Arg_VPNPolicyEncryption                 = "pi_policy_encryption"
 	Arg_VPNPolicyKeyLifetime                = "pi_policy_key_lifetime"
