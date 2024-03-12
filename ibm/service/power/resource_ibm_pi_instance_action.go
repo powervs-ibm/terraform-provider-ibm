@@ -59,7 +59,7 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{PVMInstanceHealthOk, PVMInstanceHealthWarning}),
 			},
 
-			// Computed
+			// Attributes
 			Attr_Status: {
 				Computed:    true,
 				Description: "The status of the PVM instance",
