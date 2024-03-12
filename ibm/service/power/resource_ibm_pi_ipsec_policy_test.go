@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPIIPSecPolicyBasic(t *testing.T) {
@@ -52,7 +52,7 @@ func testAccCheckIBMPIIPSecPolicyDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPIVpnPolicyClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVpnPolicyClient(context.Background(), sess, cloudInstanceID)
 		_, err = client.GetIPSecPolicy(policyID)
 		if err == nil {
 			return fmt.Errorf("ipsec policy still exists: %s", rs.Primary.ID)
@@ -78,7 +78,7 @@ func testAccCheckIBMPIIPSecPolicyExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPIVpnPolicyClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVpnPolicyClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.GetIPSecPolicy(policyID)
 		if err != nil {
