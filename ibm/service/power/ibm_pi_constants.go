@@ -355,6 +355,7 @@ const (
 	PIDRLocation = "location"
 
 	// VPN
+	PIPolicyId                                = "policy_id"
 	PIVPNConnectionId                         = "connection_id"
 	PIVPNConnectionStatus                     = "connection_status"
 	PIVPNConnectionDeadPeerDetection          = "dead_peer_detections"

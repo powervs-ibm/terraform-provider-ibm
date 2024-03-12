@@ -92,7 +92,7 @@ func resourceIBMPIIPSecPolicyCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	cloudInstanceID := d.Get(PICloudInstanceId).(string)
 	name := d.Get(PIVPNPolicyName).(string)
 	dhGroup := int64(d.Get(PIVPNPolicyDhGroup).(int))
 	encryption := d.Get(PIVPNPolicyEncryption).(string)
