@@ -1,5 +1,4 @@
 ---
-
 subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: pi_ipsec_policy"
@@ -25,13 +24,13 @@ The following example creates a IPSec Policy.
 	}
 ```
 
-**Note**
+**Notes**
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   * `region` - `lon`
   * `zone` - `lon04`
 
-  Example usage:
+Example usage:
   
   ```terraform
     provider "ibm" {
@@ -66,7 +65,7 @@ In addition to all argument reference list, you can access the following attribu
 
 ## Import
 
-The `ibm_pi_ipsec_policy` resource can be imported by using `power_instance_id` and `policy_id`.
+The `ibm_pi_ipsec_policy` resource can be imported by using `pi_cloud_instance_id` and `policy_id`.
 
 **Example**
 
