@@ -103,6 +103,5 @@ func testAccCheckIBMPIInstanceSnapshotConfig(name, healthStatus string) string {
 		pi_cloud_instance_id = "%s"
 		pi_snap_shot_name       = "%s"
 		pi_volume_ids         = [ibm_pi_volume.power_volume.volume_id]
-	  }
-	`, acc.Pi_cloud_instance_id, name)
+	  }`, acc.Pi_cloud_instance_id, name)
 }
