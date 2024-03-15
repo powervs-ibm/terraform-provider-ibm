@@ -1,0 +1,93 @@
+// Copyright IBM Corp. 2024 All Rights Reserved.
+// Licensed under the Mozilla Public License v2.0
+
+package power
+
+import (
+	"context"
+	"log"
+
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+)
+
+func DataSourceIBMPiHostgroup() *schema.Resource {
+	return &schema.Resource{
+		ReadContext: dataSourceIBMPiHostgroupRead,
+
+		Schema: map[string]*schema.Schema{
+			// Arguments
+			Arg_CloudInstanceID: {
+				Description:  "The GUID of the service instance associated with an account.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			Arg_HostgroupID: {
+				Description: "Hostgroup ID.",
+				Required:    true,
+				Type:        schema.TypeString,
+			},
+			// Attributes
+			Attr_CreationDate: {
+				Computed:    true,
+				Description: "Date/Time of hostgroup creation.",
+				Type:        schema.TypeString,
+			},
+			Attr_Hosts: {
+				Computed:    true,
+				Description: "List of hosts.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Type: schema.TypeList,
+			},
+			Attr_Name: {
+				Computed:    true,
+				Description: "Name of the hostgroup.",
+				Type:        schema.TypeString,
+			},
+			Attr_Primary: {
+				Computed:    true,
+				Description: "Name of the workspace owning the hostgroup.",
+				Type:        schema.TypeString,
+			},
+			Attr_Secondaries: {
+				Computed:    true,
+				Description: "Names of workspaces the hostgroup has been shared with.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Type: schema.TypeList,
+			},
+		},
+	}
+}
+
+func dataSourceIBMPiHostgroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	sess, err := meta.(conns.ClientSession).IBMPISession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	hostgroupID := d.Get(Arg_HostgroupID).(string)
+	client := instance.NewIBMPHostgroupsClient(ctx, sess, cloudInstanceID)
+	hostgroup, err := client.GetHostgroup(hostgroupID)
+	if err != nil {
+		log.Printf("[DEBUG] get hostgroup %v", err)
+		return diag.FromErr(err)
+	}
+
+	d.SetId(hostgroup.ID)
+
+	d.Set(Attr_CreationDate, hostgroup.CreationDate.String())
+	d.Set(Attr_Hosts, hostgroup.Hosts)
+	d.Set(Attr_Name, hostgroup.Name)
+	d.Set(Attr_Primary, hostgroup.Primary)
+	d.Set(Attr_Secondaries, hostgroup.Secondaries)
+	return nil
+}

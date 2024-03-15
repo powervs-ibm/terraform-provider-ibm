@@ -29,8 +29,10 @@ const (
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_HostgroupID                         = "pi_hostgroup_id"
 
 	// Attributes
+	Attr_Hosts                                       = "hosts"
 	Attr_AccessConfig                                = "access_config"
 	Attr_Action                                      = "action"
 	Attr_Addresses                                   = "addresses"
@@ -161,6 +163,7 @@ const (
 	Attr_PoolName                                    = "pool_name"
 	Attr_Port                                        = "port"
 	Attr_PortID                                      = "portid"
+	Attr_Primary                                     = "primary"
 	Attr_PrimaryRole                                 = "primary_role"
 	Attr_ProcType                                    = "proctype"
 	Attr_Processors                                  = "processors"
@@ -181,6 +184,7 @@ const (
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
 	Attr_SPPPlacementGroups                          = "spp_placement_groups"
 	Attr_SSHKey                                      = "ssh_key"
+	Attr_Secondaries                                 = "secondaries"
 	Attr_ServerName                                  = "server_name"
 	Attr_Shareable                                   = "shreable"
 	Attr_SharedCoreRatio                             = "shared_core_ratio"
