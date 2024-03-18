@@ -136,8 +136,7 @@ func testAccCheckIBMPIVPNConnectionConfig(name string) string {
 		pi_network_name			= "%[2]s-net1"
 		pi_network_type         = "vlan"
 		pi_cidr         		= "192.35.161.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPIVPNConnectionNetworkSubnetConfig(name string) string {
@@ -181,6 +180,5 @@ func testAccCheckIBMPIVPNConnectionNetworkSubnetConfig(name string) string {
 		pi_network_name			= "%[2]s-net2"
 		pi_network_type         = "vlan"
 		pi_cidr         		= "192.35.162.0/24"
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }

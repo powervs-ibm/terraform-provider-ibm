@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/errors"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_v_p_n_connections"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -38,46 +37,46 @@ func ResourceIBMPIVPNConnection() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			// Required Attributes
-			helpers.PICloudInstanceId: {
+			// Arguments
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
 			},
-			helpers.PIVPNConnectionName: {
+			Arg_VPNConnectionName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Name of the VPN Connection",
 			},
-			helpers.PIVPNIKEPolicyId: {
+			Arg_VPNIKEPolicyId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Unique identifier of IKE Policy selected for this VPN Connection",
 			},
-			helpers.PIVPNIPSecPolicyId: {
+			Arg_VPNIPSecPolicyId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Unique identifier of IPSec Policy selected for this VPN Connection",
 			},
-			helpers.PIVPNConnectionMode: {
+			Arg_VPNConnectionMode: {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validate.ValidateAllowedStringValues([]string{"policy", "route"}),
 				Description:      "Mode used by this VPN Connection, either 'policy' or 'route'",
 				DiffSuppressFunc: flex.ApplyOnce,
 			},
-			helpers.PIVPNConnectionNetworks: {
+			Arg_VPNConnectionNetworks: {
 				Type:        schema.TypeSet,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Set of network IDs to attach to this VPN connection",
 			},
-			helpers.PIVPNConnectionPeerGatewayAddress: {
+			Arg_VPNConnectionPeerGatewayAddress: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Peer Gateway address",
 			},
-			helpers.PIVPNConnectionPeerSubnets: {
+			Arg_VPNConnectionPeerSubnets: {
 				Type:        schema.TypeSet,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -120,14 +119,14 @@ func resourceIBMPIVPNConnectionCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	name := d.Get(helpers.PIVPNConnectionName).(string)
-	ikePolicyId := d.Get(helpers.PIVPNIKEPolicyId).(string)
-	ipsecPolicyId := d.Get(helpers.PIVPNIPSecPolicyId).(string)
-	mode := d.Get(helpers.PIVPNConnectionMode).(string)
-	networks := d.Get(helpers.PIVPNConnectionNetworks).(*schema.Set)
-	peerSubnets := d.Get(helpers.PIVPNConnectionPeerSubnets).(*schema.Set)
-	peerGatewayAddress := d.Get(helpers.PIVPNConnectionPeerGatewayAddress).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	name := d.Get(Arg_VPNConnectionName).(string)
+	ikePolicyId := d.Get(Arg_VPNIKEPolicyId).(string)
+	ipsecPolicyId := d.Get(Arg_VPNIPSecPolicyId).(string)
+	mode := d.Get(Arg_VPNConnectionMode).(string)
+	networks := d.Get(Arg_VPNConnectionNetworks).(*schema.Set)
+	peerSubnets := d.Get(Arg_VPNConnectionPeerSubnets).(*schema.Set)
+	peerGatewayAddress := d.Get(Arg_VPNConnectionPeerGatewayAddress).(string)
 	pga := models.PeerGatewayAddress(peerGatewayAddress)
 
 	body := &models.VPNConnectionCreate{
@@ -141,16 +140,16 @@ func resourceIBMPIVPNConnectionCreate(ctx context.Context, d *schema.ResourceDat
 	if networks.Len() > 0 {
 		body.Networks = flex.ExpandStringList(networks.List())
 	} else {
-		return diag.Errorf("%s is a required field", helpers.PIVPNConnectionNetworks)
+		return diag.Errorf("%s is a required field", Arg_VPNConnectionNetworks)
 	}
 	// peer subnets
 	if peerSubnets.Len() > 0 {
 		body.PeerSubnets = flex.ExpandStringList(peerSubnets.List())
 	} else {
-		return diag.Errorf("%s is a required field", helpers.PIVPNConnectionPeerSubnets)
+		return diag.Errorf("%s is a required field", Arg_VPNConnectionPeerSubnets)
 	}
 
-	client := st.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
 	vpnConnection, err := client.Create(body)
 	if err != nil {
 		log.Printf("[DEBUG] create VPN connection failed %v", err)
@@ -162,7 +161,7 @@ func resourceIBMPIVPNConnectionCreate(ctx context.Context, d *schema.ResourceDat
 
 	if vpnConnection.JobRef != nil {
 		jobID := *vpnConnection.JobRef.ID
-		jobClient := st.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
+		jobClient := instance.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
 
 		_, err = waitForIBMPIJobCompleted(ctx, jobClient, jobID, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
@@ -184,26 +183,26 @@ func resourceIBMPIVPNConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
-	jobClient := st.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
+	jobClient := instance.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
 
-	if d.HasChangesExcept(helpers.PIVPNConnectionNetworks, helpers.PIVPNConnectionPeerSubnets) {
+	if d.HasChangesExcept(Arg_VPNConnectionNetworks, Arg_VPNConnectionPeerSubnets) {
 		body := &models.VPNConnectionUpdate{}
 
-		if d.HasChanges(helpers.PIVPNConnectionName) {
-			name := d.Get(helpers.PIVPNConnectionName).(string)
+		if d.HasChanges(Arg_VPNConnectionName) {
+			name := d.Get(Arg_VPNConnectionName).(string)
 			body.Name = name
 		}
-		if d.HasChanges(helpers.PIVPNIKEPolicyId) {
-			ikePolicyId := d.Get(helpers.PIVPNIKEPolicyId).(string)
+		if d.HasChanges(Arg_VPNIKEPolicyId) {
+			ikePolicyId := d.Get(Arg_VPNIKEPolicyId).(string)
 			body.IkePolicy = ikePolicyId
 		}
-		if d.HasChanges(helpers.PIVPNIPSecPolicyId) {
-			ipsecPolicyId := d.Get(helpers.PIVPNIPSecPolicyId).(string)
+		if d.HasChanges(Arg_VPNIPSecPolicyId) {
+			ipsecPolicyId := d.Get(Arg_VPNIPSecPolicyId).(string)
 			body.IPSecPolicy = ipsecPolicyId
 		}
-		if d.HasChanges(helpers.PIVPNConnectionPeerGatewayAddress) {
-			peerGatewayAddress := d.Get(helpers.PIVPNConnectionPeerGatewayAddress).(string)
+		if d.HasChanges(Arg_VPNConnectionPeerGatewayAddress) {
+			peerGatewayAddress := d.Get(Arg_VPNConnectionPeerGatewayAddress).(string)
 			body.PeerGatewayAddress = models.PeerGatewayAddress(peerGatewayAddress)
 		}
 
@@ -212,8 +211,8 @@ func resourceIBMPIVPNConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 			return diag.FromErr(err)
 		}
 	}
-	if d.HasChanges(helpers.PIVPNConnectionNetworks) {
-		oldRaw, newRaw := d.GetChange(helpers.PIVPNConnectionNetworks)
+	if d.HasChanges(Arg_VPNConnectionNetworks) {
+		oldRaw, newRaw := d.GetChange(Arg_VPNConnectionNetworks)
 		old := oldRaw.(*schema.Set)
 		new := newRaw.(*schema.Set)
 
@@ -246,8 +245,8 @@ func resourceIBMPIVPNConnectionUpdate(ctx context.Context, d *schema.ResourceDat
 		}
 
 	}
-	if d.HasChanges(helpers.PIVPNConnectionPeerSubnets) {
-		oldRaw, newRaw := d.GetChange(helpers.PIVPNConnectionPeerSubnets)
+	if d.HasChanges(Arg_VPNConnectionPeerSubnets) {
+		oldRaw, newRaw := d.GetChange(Arg_VPNConnectionPeerSubnets)
 		old := oldRaw.(*schema.Set)
 		new := newRaw.(*schema.Set)
 
@@ -281,7 +280,7 @@ func resourceIBMPIVPNConnectionRead(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
 	vpnConnection, err := client.Get(vpnConnectionID)
 	if err != nil {
 		uErr := errors.Unwrap(err)
@@ -296,21 +295,21 @@ func resourceIBMPIVPNConnectionRead(ctx context.Context, d *schema.ResourceData,
 	}
 
 	d.Set(PIVPNConnectionId, vpnConnection.ID)
-	d.Set(helpers.PIVPNConnectionName, vpnConnection.Name)
+	d.Set(Arg_VPNConnectionName, vpnConnection.Name)
 	if vpnConnection.IkePolicy != nil {
-		d.Set(helpers.PIVPNIKEPolicyId, vpnConnection.IkePolicy.ID)
+		d.Set(Arg_VPNIKEPolicyId, vpnConnection.IkePolicy.ID)
 	}
 	if vpnConnection.IPSecPolicy != nil {
-		d.Set(helpers.PIVPNIPSecPolicyId, vpnConnection.IPSecPolicy.ID)
+		d.Set(Arg_VPNIPSecPolicyId, vpnConnection.IPSecPolicy.ID)
 	}
 	d.Set(PIVPNConnectionLocalGatewayAddress, vpnConnection.LocalGatewayAddress)
-	d.Set(helpers.PIVPNConnectionMode, vpnConnection.Mode)
-	d.Set(helpers.PIVPNConnectionPeerGatewayAddress, vpnConnection.PeerGatewayAddress)
+	d.Set(Arg_VPNConnectionMode, vpnConnection.Mode)
+	d.Set(Arg_VPNConnectionPeerGatewayAddress, vpnConnection.PeerGatewayAddress)
 	d.Set(PIVPNConnectionStatus, vpnConnection.Status)
 	d.Set(PIVPNConnectionVpnGatewayAddress, vpnConnection.VpnGatewayAddress)
 
-	d.Set(helpers.PIVPNConnectionNetworks, vpnConnection.NetworkIDs)
-	d.Set(helpers.PIVPNConnectionPeerSubnets, vpnConnection.PeerSubnets)
+	d.Set(Arg_VPNConnectionNetworks, vpnConnection.NetworkIDs)
+	d.Set(Arg_VPNConnectionPeerSubnets, vpnConnection.PeerSubnets)
 
 	if vpnConnection.DeadPeerDetection != nil {
 		dpc := vpnConnection.DeadPeerDetection
@@ -336,8 +335,8 @@ func resourceIBMPIVPNConnectionDelete(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
-	jobClient := st.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVpnConnectionClient(ctx, sess, cloudInstanceID)
+	jobClient := instance.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
 
 	jobRef, err := client.Delete(vpnConnectionID)
 	if err != nil {
