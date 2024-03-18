@@ -34,24 +34,24 @@ func ResourceIBMPIVolumeAttach() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: " Cloud Instance ID - This is the service_instance_id.",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			Arg_VolumeID: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: "Id of the volume to attach. Note these volumes should have been created",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			Arg_InstanceId: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: "PI Instance Id",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			// Computed Attribute
