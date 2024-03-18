@@ -139,8 +139,7 @@ func testAccCheckIBMPIVolumeAttachConfig(name string) string {
 		pi_cloud_instance_id 	= "%[1]s"
 		pi_volume_id			= ibm_pi_volume.power_volume.volume_id
 		pi_instance_id 			= ibm_pi_instance.power_instance.instance_id
-	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name)
 }
 
 func testAccCheckIBMPIShareableVolumeAttachConfig(name string) string {
@@ -171,6 +170,5 @@ func testAccCheckIBMPIShareableVolumeAttachConfig(name string) string {
 		pi_cloud_instance_id 	= "%[1]s"
 		pi_volume_id 			= ibm_pi_volume.power_volume.volume_id
 		pi_instance_id 			= ibm_pi_instance.power_instance[1].instance_id
-	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name)
 }
