@@ -8,8 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
@@ -30,17 +29,17 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 			Delete: schema.DefaultTimeout(15 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			helpers.PICloudInstanceId: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
+			Arg_CloudInstanceID: {
 				Description: "Cloud Instance ID - This is the service_instance_id.",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			PIVolumeGroupID: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: "Volume Group ID",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			PIVolumeGroupAction: {
 				Type:        schema.TypeList,
@@ -51,14 +50,14 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 				Description: "Performs an action (start stop reset ) on a volume group(one at a time).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"start": {
+						SctionStart: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"source": {
+									SctionSource: {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateAllowedStringValues([]string{"master", "aux"}),
@@ -66,21 +65,21 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 								},
 							},
 						},
-						"stop": {
+						SctionStop: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"access": {
+									SctionAccess: {
 										Type:     schema.TypeBool,
 										Required: true,
 									},
 								},
 							},
 						},
-						"reset": {
+						SctionReset: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -100,17 +99,17 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 			},
 
 			// Computed Attributes
-			"volume_group_name": {
+			Attr_VolumeGroupName: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Volume Group ID",
 			},
-			"volume_group_status": {
+			Attr_VolumeGroupStatus: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Volume Group Status",
 			},
-			"replication_status": {
+			Attr_ReplicationStatus: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "Volume Group Replication Status",
@@ -131,10 +130,10 @@ func resourceIBMPIVolumeGroupActionCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	body := vgAction
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 	_, err = client.VolumeGroupAction(vgID, body)
 	if err != nil {
 		return diag.FromErr(err)
@@ -161,7 +160,7 @@ func resourceIBMPIVolumeGroupActionRead(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 
 	vg, err := client.GetDetails(vgID)
 	if err != nil {

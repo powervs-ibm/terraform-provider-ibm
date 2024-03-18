@@ -88,8 +88,7 @@ func testAccCheckIBMPIVolumeGroupStopActionConfig(name string) string {
 				access = true
 			}
 		}
-	  }
-	`, acc.Pi_cloud_instance_id)
+	  }`, acc.Pi_cloud_instance_id)
 }
 
 func testAccCheckIBMPIVolumeGroupStartActionConfig(name string) string {
@@ -102,6 +101,5 @@ func testAccCheckIBMPIVolumeGroupStartActionConfig(name string) string {
 				source = "master"
 			}
 		}
-	  }
-	`, acc.Pi_cloud_instance_id)
+	  }`, acc.Pi_cloud_instance_id)
 }

@@ -243,6 +243,7 @@ const (
 	Attr_VPCEnabled                                  = "vpc_enabled"
 	Attr_VirtualCoresAssigned                        = "virtual_cores_assigned"
 	Attr_VolumeGroupName                             = "volume_group_name"
+	Attr_VolumeGroupStatus                           = "volume_group_status"
 	Attr_VolumeGroups                                = "volume_groups"
 	Attr_VolumeIDs                                   = "volume_ids"
 	Attr_VolumePool                                  = "volume_pool"
@@ -383,8 +384,11 @@ const (
 	StatusError   = "ERROR"
 	StatusBuild   = "BUILD"
 	StatusPending = "PENDING"
+	SctionAccess  = "access"
 	SctionStart   = "start"
+	SctionSource  = "source"
 	SctionStop    = "stop"
+	SctionReset   = "reset"
 
 	// volume clone task status
 	VolumeCloneCompleted = "completed"
