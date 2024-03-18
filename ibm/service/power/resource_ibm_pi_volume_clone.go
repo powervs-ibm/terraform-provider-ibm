@@ -33,59 +33,59 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: "The GUID of the service instance associated with an account.",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			PIVolumeCloneName: {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
 				Description: "The base name of the newly cloned volume(s).",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			PIVolumeIds: {
-				Type:        schema.TypeSet,
-				Required:    true,
-				ForceNew:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Set:         schema.HashString,
 				Description: "List of volumes to be cloned.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Required:    true,
+				Set:         schema.HashString,
+				Type:        schema.TypeSet,
 			},
 			PITargetStorageTier: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
 				Description: "The storage tier for the cloned volume(s).",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
 			},
 			Attr_ReplicationEnabled: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				ForceNew:    true,
 				Description: "Indicates whether the cloned volume should have replication enabled. If no value is provided, it will default to the replication status of the source volume(s).",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeBool,
 			},
 
 			// Computed attributes
 			Attr_TaskID: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the volume clone task.",
+				Type:        schema.TypeString,
 			},
 			Attr_ClonedVolumes: clonedVolumesSchema(),
 			Attr_Failure_Reason: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The reason for the failure of the volume clone task.",
+				Type:        schema.TypeString,
 			},
 			Attr_PercentComplete: {
-				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The completion percentage of the volume clone task.",
+				Type:        schema.TypeInt,
 			},
 			Attr_Status: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the volume clone task.",
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -220,14 +220,14 @@ func clonedVolumesSchema() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"clone_volume_id": {
-					Type:        schema.TypeString,
 					Computed:    true,
 					Description: "The ID of the newly cloned volume.",
+					Type:        schema.TypeString,
 				},
 				"source_volume_id": {
-					Type:        schema.TypeString,
 					Computed:    true,
 					Description: "The ID of the source volume.",
+					Type:        schema.TypeString,
 				},
 			},
 		},
