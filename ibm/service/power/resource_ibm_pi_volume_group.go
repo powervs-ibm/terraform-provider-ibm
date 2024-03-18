@@ -10,8 +10,7 @@ import (
 	"log"
 	"time"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_volume_groups"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -35,51 +34,51 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			helpers.PICloudInstanceId: {
-				Type:        schema.TypeString,
-				Required:    true,
+			Arg_CloudInstanceID: {
 				Description: "Cloud Instance ID - This is the service_instance_id.",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 			PIVolumeGroupName: {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "Volume Group Name to create",
 				ConflictsWith: []string{PIVolumeGroupConsistencyGroupName},
+				Description:   "Volume Group Name to create",
+				Optional:      true,
+				Type:          schema.TypeString,
 			},
 			PIVolumeGroupConsistencyGroupName: {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "The name of consistency group at storage controller level",
 				ConflictsWith: []string{PIVolumeGroupName},
+				Description:   "The name of consistency group at storage controller level",
+				Optional:      true,
+				Type:          schema.TypeString,
 			},
 			PIVolumeIds: {
-				Type:        schema.TypeSet,
-				Required:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Set:         schema.HashString,
 				Description: "List of volumes to add in volume group",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Required:    true,
+				Set:         schema.HashString,
+				Type:        schema.TypeSet,
 			},
 
 			// Computed Attributes
-			"volume_group_id": {
-				Type:        schema.TypeString,
+			Attr_VolumeGroupID: {
 				Computed:    true,
 				Description: "Volume Group ID",
-			},
-			"volume_group_status": {
 				Type:        schema.TypeString,
+			},
+			Attr_VolumeGroupStatus: {
 				Computed:    true,
 				Description: "Volume Group Status",
-			},
-			"replication_status": {
 				Type:        schema.TypeString,
+			},
+			Attr_ReplicationStatus: {
 				Computed:    true,
 				Description: "Volume Group Replication Status",
-			},
-			"consistency_group_name": {
 				Type:        schema.TypeString,
+			},
+			Attr_ConsistencyGroupName: {
 				Computed:    true,
 				Description: "Consistency Group Name if volume is a part of volume group",
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -92,7 +91,7 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	vgName := d.Get(PIVolumeGroupName).(string)
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	body := &models.VolumeGroupCreate{
 		Name: vgName,
 	}
@@ -104,7 +103,7 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 		body.ConsistencyGroupName = v.(string)
 	}
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 	vg, err := client.CreateVolumeGroup(body)
 	if err != nil {
 		return diag.FromErr(err)
@@ -131,7 +130,7 @@ func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 
 	vg, err := client.GetDetails(vgID)
 	if err != nil {
@@ -161,7 +160,7 @@ func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 	if d.HasChanges(PIVolumeIds) {
 		old, new := d.GetChange(PIVolumeIds)
 		oldList := old.(*schema.Set)
@@ -193,7 +192,7 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 
 	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
 	if len(volids) > 0 {
@@ -222,12 +221,12 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 	d.SetId("")
 	return nil
 }
-func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *st.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for Volume Group (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIVolumeProvisioning},
-		Target:     []string{helpers.PIVolumeProvisioningDone},
+		Pending:    []string{"retry", PIVolumeProvisioning},
+		Target:     []string{PIVolumeProvisioningDone},
 		Refresh:    isIBMPIVolumeGroupRefreshFunc(client, id),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
@@ -237,7 +236,7 @@ func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *st.IBMPIVol
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeGroupRefreshFunc(client *st.IBMPIVolumeGroupClient, id string) resource.StateRefreshFunc {
+func isIBMPIVolumeGroupRefreshFunc(client *instance.IBMPIVolumeGroupClient, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		vg, err := client.Get(id)
 		if err != nil {
@@ -245,14 +244,14 @@ func isIBMPIVolumeGroupRefreshFunc(client *st.IBMPIVolumeGroupClient, id string)
 		}
 
 		if vg.Status == "available" {
-			return vg, helpers.PIVolumeProvisioningDone, nil
+			return vg, PIVolumeProvisioningDone, nil
 		}
 
-		return vg, helpers.PIVolumeProvisioning, nil
+		return vg, PIVolumeProvisioning, nil
 	}
 }
 
-func isWaitForIBMPIVolumeGroupDeleted(ctx context.Context, client *st.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeGroupDeleted(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"deleting", "updating"},
 		Target:     []string{"deleted"},
@@ -264,7 +263,7 @@ func isWaitForIBMPIVolumeGroupDeleted(ctx context.Context, client *st.IBMPIVolum
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeGroupDeleteRefreshFunc(client *st.IBMPIVolumeGroupClient, id string) resource.StateRefreshFunc {
+func isIBMPIVolumeGroupDeleteRefreshFunc(client *instance.IBMPIVolumeGroupClient, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		vg, err := client.Get(id)
 		if err != nil {

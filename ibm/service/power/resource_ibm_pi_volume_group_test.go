@@ -115,8 +115,7 @@ func testAccCheckIBMPIVolumeGroupConfig(name string) string {
 		pi_volume_group_name       = "%[1]s"
 		pi_cloud_instance_id 	   = "%[2]s"
 		pi_volume_ids              = [ibm_pi_volume.power_volume[0].volume_id,ibm_pi_volume.power_volume[1].volume_id]
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 func testAccCheckIBMPIVolumeGroupUpdateConfig(name string) string {
@@ -125,8 +124,7 @@ func testAccCheckIBMPIVolumeGroupUpdateConfig(name string) string {
 		pi_volume_group_name       = "%[1]s"
 		pi_cloud_instance_id 	   = "%[2]s"
 		pi_volume_ids              = [ibm_pi_volume.power_volume[2].volume_id]
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 func testAccCheckIBMPIVolumeGroupEmptyVolumeConfig(name string) string {
@@ -135,8 +133,7 @@ func testAccCheckIBMPIVolumeGroupEmptyVolumeConfig(name string) string {
 		pi_volume_group_name       = "%[1]s"
 		pi_cloud_instance_id 	   = "%[2]s"
 		pi_volume_ids              = []
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 func volumeConfig(name, cloud_instance_id string) string {
@@ -149,6 +146,5 @@ func volumeConfig(name, cloud_instance_id string) string {
 	pi_volume_pool         = "%[3]s"
 	pi_cloud_instance_id   = "%[2]s"
 	pi_replication_enabled = true
-	 }
-	`, name, cloud_instance_id, acc.PiStoragePool)
+	 }`, name, cloud_instance_id, acc.PiStoragePool)
 }

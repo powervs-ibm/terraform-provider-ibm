@@ -243,6 +243,8 @@ const (
 	Attr_VPCEnabled                                  = "vpc_enabled"
 	Attr_VirtualCoresAssigned                        = "virtual_cores_assigned"
 	Attr_VolumeGroupName                             = "volume_group_name"
+	Attr_VolumeGroupID                               = "volume_group_id"
+	Attr_VolumeGroupStatus                           = "volume_group_status"
 	Attr_VolumeGroups                                = "volume_groups"
 	Attr_VolumeIDs                                   = "volume_ids"
 	Attr_VolumePool                                  = "volume_pool"
@@ -333,12 +335,14 @@ const (
 	PIPlacementGroupMembers = "members"
 
 	// Volume
-	PIVolumeIds             = "pi_volume_ids"
-	PIAffinityPolicy        = "pi_affinity_policy"
-	PIAffinityVolume        = "pi_affinity_volume"
-	PIAffinityInstance      = "pi_affinity_instance"
-	PIAntiAffinityInstances = "pi_anti_affinity_instances"
-	PIAntiAffinityVolumes   = "pi_anti_affinity_volumes"
+	PIVolumeIds              = "pi_volume_ids"
+	PIVolumeProvisioning     = "pi_volume_provisioning"
+	PIVolumeProvisioningDone = "pi_volume_provisioning_done"
+	PIAffinityPolicy         = "pi_affinity_policy"
+	PIAffinityVolume         = "pi_affinity_volume"
+	PIAffinityInstance       = "pi_affinity_instance"
+	PIAntiAffinityInstances  = "pi_anti_affinity_instances"
+	PIAntiAffinityVolumes    = "pi_anti_affinity_volumes"
 
 	// Volume Clone
 	PIVolumeCloneName   = "pi_volume_clone_name"
