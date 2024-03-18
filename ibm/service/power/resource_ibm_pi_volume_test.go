@@ -112,8 +112,7 @@ func testAccCheckIBMPIVolumeConfig(name string) string {
 		pi_volume_type       = "tier1"
 		pi_volume_shareable  = true
 		pi_cloud_instance_id = "%s"
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 func testAccCheckIBMPIVolumeSizeConfig(name string) string {
@@ -124,8 +123,7 @@ func testAccCheckIBMPIVolumeSizeConfig(name string) string {
 		pi_volume_type       = "tier1"
 		pi_volume_shareable  = true
 		pi_cloud_instance_id = "%s"
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 func TestAccIBMPIVolumePool(t *testing.T) {
@@ -157,8 +155,7 @@ func testAccCheckIBMPIVolumePoolConfig(name string) string {
 		pi_volume_pool       = "Tier3-Flash-1"
 		pi_volume_shareable  = true
 		pi_cloud_instance_id = "%s"
-	  }
-	`, name, acc.Pi_cloud_instance_id)
+	  }`, name, acc.Pi_cloud_instance_id)
 }
 
 // TestAccIBMPIVolumeGRS test the volume replication feature which is part of global replication service(GRS)
@@ -215,8 +212,7 @@ func testAccCheckIBMPIVolumeGRSBasicConfig(name, piCloudInstanceId, piStoragePoo
 		pi_cloud_instance_id   = "%[2]s"
 		pi_replication_enabled = %[4]v
 		pi_volume_type       = "tier3"
-	  }
-	`, name, piCloudInstanceId, piStoragePool, replicationEnabled)
+	  }`, name, piCloudInstanceId, piStoragePool, replicationEnabled)
 }
 
 // TestAccIBMPIVolumeUpdate test the volume update
@@ -263,6 +259,5 @@ func testAccCheckIBMPIVolumeUpdateBasicConfig(name, piCloudInstanceId, piStorage
 		pi_volume_shareable    = true
 		pi_cloud_instance_id   = "%[2]s"
 		pi_volume_type = "%[4]v"
-	  }
-	`, name, piCloudInstanceId, piStoragePool, piStorageType)
+	  }`, name, piCloudInstanceId, piStoragePool, piStorageType)
 }

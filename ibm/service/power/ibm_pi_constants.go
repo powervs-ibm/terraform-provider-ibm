@@ -28,7 +28,12 @@ const (
 	Arg_VTL                                 = "vtl"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
+	Arg_VolumeName                          = "pi_volume_name"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_VolumeSize                          = "pi_volume_size"
+	Arg_VolumeShareable                     = "pi_volume_shareable"
+	Arg_VolumePool                          = "pi_volume_pool"
+	Arg_VolumeType                          = "pi_volume_type"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"
@@ -106,6 +111,7 @@ const (
 	Attr_InstanceSnapshots                           = "instance_snapshots"
 	Attr_InstanceVolumes                             = "instance_volumes"
 	Attr_Instances                                   = "instances"
+	Attr_IoThrottleRate                              = "io_throttle_rate"
 	Attr_IsActive                                    = "is_active"
 	Attr_Jumbo                                       = "jumbo"
 	Attr_Key                                         = "key"
@@ -248,6 +254,8 @@ const (
 	Attr_VolumePool                                  = "volume_pool"
 	Attr_VolumeSnapshots                             = "volume_snapshots"
 	Attr_Volumes                                     = "volumes"
+	Attr_VolumeStatus                                = "volume_status"
+	Attr_DeleteOnTermination                         = "delete_on_termination"
 	Attr_WWN                                         = "wwn"
 	Attr_Workspaces                                  = "workspaces"
 
@@ -351,6 +359,8 @@ const (
 	PIVolumeGroupID                   = "pi_volume_group_id"
 	PIVolumeGroupAction               = "pi_volume_group_action"
 	PIVolumeOnboardingID              = "pi_volume_onboarding_id"
+	PIVolumeProvisioning              = "pi_volume_provisioning"
+	PIVolumeProvisioningDone          = "pi_volume_provisioning_done"
 
 	// Disaster Recovery Location
 	PIDRLocation = "location"
