@@ -148,6 +148,7 @@ const (
 	Attr_Networks                                    = "networks"
 	Attr_NumberOfVolumes                             = "number_of_volumes"
 	Attr_Onboardings                                 = "onboardings"
+	Attr_OnboardingId                                = "onboarding_id"
 	Attr_OperatingSystem                             = "operating_system"
 	Attr_PVMInstanceID                               = "pvm_instance_id"
 	Attr_PVMInstances                                = "pvm_instances"
