@@ -9,7 +9,7 @@ import (
 	"log"
 	"time"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -58,7 +58,7 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				ForceNew:    true,
 				Description: "The storage tier for the cloned volume(s).",
 			},
-			helpers.PIReplicationEnabled: {
+			Attr_ReplicationEnabled: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
@@ -66,23 +66,23 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 			},
 
 			// Computed attributes
-			"task_id": {
+			Attr_TaskID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the volume clone task.",
 			},
-			"cloned_volumes": clonedVolumesSchema(),
-			"failure_reason": {
+			Attr_ClonedVolumes: clonedVolumesSchema(),
+			Attr_Failure_Reason: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The reason for the failure of the volume clone task.",
 			},
-			"percent_complete": {
+			Attr_PercentComplete: {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The completion percentage of the volume clone task.",
 			},
-			"status": {
+			Attr_Status: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the volume clone task.",
@@ -110,11 +110,11 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 		body.TargetStorageTier = v.(string)
 	}
 
-	if !d.GetRawConfig().GetAttr(helpers.PIReplicationEnabled).IsNull() {
+	if !d.GetRawConfig().GetAttr(Attr_ReplicationEnabled).IsNull() {
 		body.TargetReplicationEnabled = flex.PtrToBool(d.Get(helpers.PIReplicationEnabled).(bool))
 	}
 
-	client := st.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
 	volClone, err := client.Create(body)
 	if err != nil {
 		return diag.FromErr(err)
@@ -142,7 +142,7 @@ func resourceIBMPIVolumeCloneRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
 	volCloneTask, err := client.Get(vcTaskID)
 	if err != nil {
 		return diag.FromErr(err)
@@ -182,7 +182,7 @@ func flattenClonedVolumes(list []*models.ClonedVolume) (cloneVolumes []map[strin
 	return
 }
 
-func isWaitForIBMPIVolumeCloneCompletion(ctx context.Context, client *st.IBMPICloneVolumeClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeCloneCompletion(ctx context.Context, client *instance.IBMPICloneVolumeClient, id string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for Volume clone (%s) to be completed.", id)
 
 	stateConf := &resource.StateChangeConf{
@@ -197,7 +197,7 @@ func isWaitForIBMPIVolumeCloneCompletion(ctx context.Context, client *st.IBMPICl
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeCloneRefreshFunc(client *st.IBMPICloneVolumeClient, id string) resource.StateRefreshFunc {
+func isIBMPIVolumeCloneRefreshFunc(client *instance.IBMPICloneVolumeClient, id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		volClone, err := client.Get(id)
 		if err != nil {

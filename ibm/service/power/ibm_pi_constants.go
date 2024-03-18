@@ -374,6 +374,9 @@ const (
 	Attr_SPPPlacementGroupMembers = "members"
 	Attr_SPPPlacementGroupPolicy  = "policy"
 	Attr_SPPPlacementGroupName    = "name"
+	Attr_TaskID                   = "task_id"
+	Attr_ClonedVolumes            = "cloned_volumes"
+	Attr_Failure_Reason           = "failure_reason"
 
 	// status
 	// common status states

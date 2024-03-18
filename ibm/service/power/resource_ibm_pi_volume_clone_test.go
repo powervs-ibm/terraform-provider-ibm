@@ -81,8 +81,7 @@ func testAccCheckIBMPIVolumeCloneConfig(name string) string {
 		pi_volume_ids 					= ibm_pi_volume.power_volume.*.volume_id
 		pi_target_storage_tier 			= "%[3]s"
 		pi_replication_enabled 			= %[4]v
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_target_storage_tier, false)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_target_storage_tier, false)
 }
 
 func volumesCloneConfig(name string, volumeReplicationEnabled bool) string {
@@ -94,6 +93,5 @@ func volumesCloneConfig(name string, volumeReplicationEnabled bool) string {
 		pi_volume_pool         = "%[3]s"
 		pi_cloud_instance_id   = "%[2]s"
 		pi_replication_enabled = %[4]v
-	}
-	`, name, acc.Pi_cloud_instance_id, acc.PiStoragePool, volumeReplicationEnabled)
+	}`, name, acc.Pi_cloud_instance_id, acc.PiStoragePool, volumeReplicationEnabled)
 }
