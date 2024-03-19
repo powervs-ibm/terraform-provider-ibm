@@ -60,8 +60,7 @@ func testAccCheckIBMPIInstanceConfig(name, instanceHealthStatus string) string {
 		pi_network {
 			network_id = data.ibm_pi_network.power_networks.id
 		}
-	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType)
 }
 
 func testAccCheckIBMPIInstanceDeploymentTypeConfig(name, instanceHealthStatus, epic, systype string) string {
@@ -94,8 +93,7 @@ func testAccCheckIBMPIInstanceDeploymentTypeConfig(name, instanceHealthStatus, e
 			network_id = data.ibm_pi_network.power_networks.id
 		}
 		pi_deployment_type          = "%[6]s"
-	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, epic, systype, acc.PiStorageType)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, epic, systype, acc.PiStorageType)
 }
 
 func testAccIBMPIInstanceNetworkConfig(name, privateNetIP string) string {
@@ -131,8 +129,7 @@ func testAccIBMPIInstanceNetworkConfig(name, privateNetIP string) string {
 			network_id = resource.ibm_pi_network.power_networks.id
 			ip_address = "%[3]s"
 		}
-	}
-	`, acc.Pi_cloud_instance_id, name, privateNetIP)
+	}`, acc.Pi_cloud_instance_id, name, privateNetIP)
 }
 
 func testAccIBMPIInstanceVTLConfig(name string) string {
@@ -163,9 +160,7 @@ func testAccIBMPIInstanceVTLConfig(name string) string {
 		pi_network {
 			network_id = ibm_pi_network.vtl_network.network_id
 		}
-	  }
-	
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_image)
 }
 
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
@@ -348,8 +343,7 @@ func testAccIBMPISAPInstanceConfig(name, sapProfile string) string {
 			network_id = ibm_pi_network.power_network.network_id
 		}
 		pi_health_status		= "OK"
-	}
-	`, acc.Pi_cloud_instance_id, name, sapProfile, acc.Pi_sap_image)
+	}`, acc.Pi_cloud_instance_id, name, sapProfile, acc.Pi_sap_image)
 }
 
 func TestAccIBMPIInstanceMixedStorage(t *testing.T) {
@@ -410,8 +404,7 @@ func testAccIBMPIInstanceMixedStorage(name string) string {
 		pi_cloud_instance_id = "%[1]s"
 		pi_volume_id         = ibm_pi_volume.power_volume.volume_id
 		pi_instance_id       = ibm_pi_instance.instance.instance_id
-	}
-	`, acc.Pi_cloud_instance_id, name)
+	}`, acc.Pi_cloud_instance_id, name)
 }
 
 func TestAccIBMPIInstanceUpdateActiveState(t *testing.T) {
@@ -503,8 +496,7 @@ func testAccCheckIBMPIActiveInstanceConfigUpdate(name, instanceHealthStatus, pro
 		pi_network {
 			network_id = data.ibm_pi_network.power_networks.id
 		}
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory)
 }
 
 func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, proc, memory, action string) string {
@@ -545,8 +537,7 @@ func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, pr
   		pi_instance_id       = ibm_pi_instance.power_instance.instance_id
   		pi_action            = "%[8]s"
   		pi_health_status     = "%[5]s"
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory, action)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory, action)
 }
 
 func testAccCheckIBMPIInstanceStatus(n, status string) resource.TestCheckFunc {
