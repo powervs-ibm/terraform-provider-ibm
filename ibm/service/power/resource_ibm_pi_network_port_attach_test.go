@@ -129,8 +129,7 @@ func testAccCheckIBMPINetworkPortAttachConfig(name string) string {
 		pi_network_name       = ibm_pi_network.power_networks.pi_network_name
 		pi_network_port_description = "IP Reserved for Test UAT"
 		pi_instance_id = "%s"
-	}
-	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
+	}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
 }
 
 func testAccCheckIBMPINetworkPortAttachVlanConfig(name string) string {
@@ -140,6 +139,5 @@ func testAccCheckIBMPINetworkPortAttachVlanConfig(name string) string {
 		pi_network_name       = ibm_pi_network.power_networks.pi_network_name
 		pi_network_port_description = "IP Reserved for Test UAT"
 		pi_instance_id = "%s"
-	}
-	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
+	}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
 }
