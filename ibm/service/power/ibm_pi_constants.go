@@ -100,6 +100,7 @@ const (
 	Attr_HypervisorType                              = "hypervisor_type"
 	Attr_IBMIPAddress                                = "ibm_ip_address"
 	Attr_ID                                          = "id"
+	Attr_IOThrottleRate                              = "io_throttle_rate"
 	Attr_IP                                          = "ip"
 	Attr_IPAddress                                   = "ipaddress"
 	Attr_IPOctet                                     = "ipoctet"
