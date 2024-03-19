@@ -40,8 +40,7 @@ func testAccCheckIBMPIWorkspaceConfig(name string) string {
 		pi_datacenter        = "dal"
 		pi_resource_group_id = "%[2]s"
 		pi_plan              = "public"
-	  }
-	`, name, acc.Pi_resource_group_id)
+	  }`, name, acc.Pi_resource_group_id)
 }
 
 func testAccIBMPIWorkspaceDestroy(s *terraform.State) error {
