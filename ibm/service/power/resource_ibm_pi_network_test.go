@@ -185,8 +185,7 @@ func testAccCheckIBMPINetworkConfig(name string) string {
 			pi_cloud_instance_id = "%s"
 			pi_network_name      = "%s"
 			pi_network_type      = "pub-vlan"
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPINetworkConfigUpdateDNS(name string) string {
@@ -196,8 +195,7 @@ func testAccCheckIBMPINetworkConfigUpdateDNS(name string) string {
 			pi_network_name      = "%s"
 			pi_network_type      = "pub-vlan"
 			pi_dns               = ["127.0.0.1"]
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPINetworkGatewayConfig(name string) string {
@@ -207,8 +205,7 @@ func testAccCheckIBMPINetworkGatewayConfig(name string) string {
 			pi_network_name      = "%s"
 			pi_network_type      = "vlan"
 			pi_cidr              = "192.168.17.0/24"
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPINetworkConfigGatewayUpdateDNS(name string) string {
@@ -224,8 +221,7 @@ func testAccCheckIBMPINetworkConfigGatewayUpdateDNS(name string) string {
 				pi_ending_ip_address = "192.168.17.254"
 				pi_starting_ip_address = "192.168.17.3"
 			}
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }
 
 func testAccCheckIBMPINetworkGatewayConfigSatellite(name string) string {
@@ -237,6 +233,5 @@ func testAccCheckIBMPINetworkGatewayConfigSatellite(name string) string {
 			pi_cidr              		= "192.168.17.0/24"
 			pi_network_mtu		 		= 6500
 			pi_network_access_config	= "outbound-only"
-		}
-	`, acc.Pi_cloud_instance_id, name)
+		}`, acc.Pi_cloud_instance_id, name)
 }

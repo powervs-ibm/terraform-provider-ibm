@@ -30,7 +30,7 @@ resource "ibm_pi_network" "power_networks" {
 }
 ```
 
-**Note**
+**Notes**
 
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 - If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
