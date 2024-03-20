@@ -229,6 +229,7 @@ var (
 	Pi_target_storage_tier          string
 	Pi_volume_clone_task_id         string
 	Pi_resource_group_id            string
+	Pi_host_group_id                string
 )
 
 var (
@@ -1179,7 +1180,11 @@ func init() {
 		Pi_resource_group_id = ""
 		fmt.Println("[WARN] Set the environment variable PI_RESOURCE_GROUP_ID for testing ibm_pi_workspace resource else it is set to default value ''")
 	}
-
+	Pi_host_group_id = os.Getenv("PI_HOST_GROUP_ID")
+	if Pi_host_group_id == "" {
+		Pi_host_group_id = ""
+		fmt.Println("[WARN] Set the environment variable PI_HOST_GROUP_ID for testing ibm_pi_host resource else it is set to default value ''")
+	}
 	WorkspaceID = os.Getenv("SCHEMATICS_WORKSPACE_ID")
 	if WorkspaceID == "" {
 		WorkspaceID = "us-south.workspace.tf-acc-test-schematics-state-test.392cd99f"
