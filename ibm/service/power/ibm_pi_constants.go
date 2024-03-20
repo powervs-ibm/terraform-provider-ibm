@@ -23,6 +23,7 @@ const (
 	Arg_IBMiCSS                             = "pi_ibmi_css"
 	Arg_IBMiPHA                             = "pi_ibmi_pha"
 	Arg_IBMiRDSUsers                        = "pi_ibmi_rds_users"
+	Arg_ImageImportDetails                  = "pi_image_import_details"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
@@ -176,6 +177,7 @@ const (
 	Attr_LastUpdatedDate                             = "last_updated_date"
 	Attr_Leases                                      = "leases"
 	Attr_LicenseRepositoryCapacity                   = "license_repository_capacity"
+	Attr_LicenseType                                 = "license_type"
 	Attr_Location                                    = "location"
 	Attr_MacAddress                                  = "macaddress"
 	Attr_MasterChangedVolumeName                     = "master_changed_volume_name"
@@ -223,6 +225,7 @@ const (
 	Attr_PrimaryRole                                 = "primary_role"
 	Attr_Processors                                  = "processors"
 	Attr_ProcType                                    = "proctype"
+	Attr_Product                                     = "product"
 	Attr_ProfileID                                   = "profile_id"
 	Attr_Profiles                                    = "profiles"
 	Attr_Progress                                    = "progress"
@@ -305,6 +308,7 @@ const (
 	Attr_UsedIPPercent                               = "used_ip_percent"
 	Attr_UserIPAddress                               = "user_ip_address"
 	Attr_VCPUs                                       = "vcpus"
+	Attr_Vendor                                      = "vendor"
 	Attr_VirtualCoresAssigned                        = "virtual_cores_assigned"
 	Attr_VLanID                                      = "vlan_id"
 	Attr_VolumeGroupName                             = "volume_group_name"
@@ -326,7 +330,9 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-	OS_IBMI                                          = "ibmi"
+
+	// OS Type
+	OS_IBMI = "ibmi"
 
 	// Affinty Values
 	Affinity     = "affinity"
@@ -355,6 +361,11 @@ const (
 	State_Removed            = "removed"
 	State_Retry              = "retry"
 
+	// Allowed Values
+	BYOL      = "byol"
+	Hana      = "Hana"
+	Netweaver = "Netweaver"
+	SAP       = "SAP"
 	// Health
 	Health_OK = "OK"
 
