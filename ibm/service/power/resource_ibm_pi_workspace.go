@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIWorkspace() *schema.Resource {
@@ -29,28 +30,32 @@ func ResourceIBMPIWorkspace() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_Datacenter: {
-				Description: "Target location or environment to create the resource instance.",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "Target location or environment to create the resource instance.",
+				ForceNew:     true,
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_Name: {
-				Description: "A descriptive name used to identify the workspace.",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "A descriptive name used to identify the workspace.",
+				ForceNew:     true,
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_Plan: {
-				Description: "Plan associated with the offering; Valid values are public or private.",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "Plan associated with the offering; Valid values are public or private.",
+				ForceNew:     true,
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_ResourceGroupID: {
-				Description: "The ID of the resource group where you want to create the workspace. You can retrieve the value from data source ibm_resource_group.",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "The ID of the resource group where you want to create the workspace. You can retrieve the value from data source ibm_resource_group.",
+				ForceNew:     true,
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			// Attributes
