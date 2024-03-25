@@ -7,9 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
+
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/service/power"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -53,10 +55,10 @@ func testAccIBMPIWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 		cloudInstanceID := rs.Primary.ID
-		client := st.NewIBMPIWorkspacesClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIWorkspacesClient(context.Background(), sess, cloudInstanceID)
 		workspace, resp, err := client.GetRC(cloudInstanceID)
 		if err == nil {
-			if *workspace.State == "active" {
+			if *workspace.State == power.State_Active {
 				return fmt.Errorf("Resource Instance still exists: %s", rs.Primary.ID)
 			}
 		} else {
@@ -87,7 +89,7 @@ func testAccCheckIBMPIWorkspaceExists(n string) resource.TestCheckFunc {
 		}
 
 		cloudInstanceID := rs.Primary.ID
-		client := st.NewIBMPIWorkspacesClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIWorkspacesClient(context.Background(), sess, cloudInstanceID)
 		_, _, err = client.GetRC(cloudInstanceID)
 		if err != nil {
 			return err

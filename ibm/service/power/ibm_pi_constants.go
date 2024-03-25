@@ -6,29 +6,34 @@ const (
 	// Arguments
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_Datacenter                          = "pi_datacenter"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_Key                                 = "pi_ssh_key"
 	Arg_KeyName                             = "pi_key_name"
+	Arg_Name                                = "pi_name"
 	Arg_NetworkName                         = "pi_network_name"
 	Arg_PlacementGroupName                  = "pi_placement_group_name"
+	Arg_Plan                                = "pi_plan"
+	Arg_ResourceGroupID                     = "pi_resource_group_id"
 	Arg_SAP                                 = "sap"
 	Arg_SAPProfileID                        = "pi_sap_profile_id"
-	Arg_SPPPlacementGroupID                 = "pi_spp_placement_group_id"
-	Arg_SPPPlacementGroupName               = "pi_spp_placement_group_name"
-	Arg_SPPPlacementGroupPolicy             = "pi_spp_placement_group_policy"
 	Arg_SharedProcessorPoolHostGroup        = "pi_shared_processor_pool_host_group"
 	Arg_SharedProcessorPoolID               = "pi_shared_processor_pool_id"
 	Arg_SharedProcessorPoolName             = "pi_shared_processor_pool_name"
 	Arg_SharedProcessorPoolPlacementGroupID = "pi_shared_processor_pool_placement_group_id"
 	Arg_SharedProcessorPoolReservedCores    = "pi_shared_processor_pool_reserved_cores"
 	Arg_SnapshotID                          = "pi_snapshot_id"
+	Arg_SPPPlacementGroupID                 = "pi_spp_placement_group_id"
+	Arg_SPPPlacementGroupName               = "pi_spp_placement_group_name"
+	Arg_SPPPlacementGroupPolicy             = "pi_spp_placement_group_policy"
 	Arg_StoragePool                         = "pi_storage_pool"
 	Arg_StorageType                         = "pi_storage_type"
-	Arg_VTL                                 = "vtl"
+	Arg_VirtualOpticalDevice                = "pi_virtual_optical_device"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_VTL                                 = "vtl"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"
@@ -251,6 +256,15 @@ const (
 	Attr_WWN                                         = "wwn"
 	Attr_Workspaces                                  = "workspaces"
 
+	// States
+	State_Active              = "active"
+	State_Failed              = "failed"
+	State_Inactive            = "inactive"
+	State_InProgress          = "in progress"
+	State_PendingReclaimation = "pending_reclamation"
+	State_Provisioning        = "provisioning"
+	State_Removed             = "removed"
+
 	// TODO: Second Half Cleanup, remove extra variables
 
 	// SAP Profile
@@ -407,10 +421,5 @@ const (
 	Attr_DatacenterType         = "pi_datacenter_type"
 	Attr_DatacenterHref         = "pi_datacenter_href"
 
-	// IBM PI Workspace
-	PIWorkspaceName          = "pi_name"
-	PIWorkspaceDatacenter    = "pi_datacenter"
-	PIWorkspaceResourceGroup = "pi_resource_group_id"
-	PIWorkspacePlan          = "pi_plan"
-	PIVirtualOpticalDevice   = "pi_virtual_optical_device"
+	PIVirtualOpticalDevice = "pi_virtual_optical_device"
 )
