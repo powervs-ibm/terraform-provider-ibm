@@ -50,14 +50,14 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 				Description: "Performs an action (start stop reset ) on a volume group(one at a time).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						SctionStart: {
+						ActionStart: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									SctionSource: {
+									ActionSource: {
 										Type:         schema.TypeString,
 										Required:     true,
 										ValidateFunc: validate.ValidateAllowedStringValues([]string{"master", "aux"}),
@@ -65,21 +65,21 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 								},
 							},
 						},
-						SctionStop: {
+						ActionStop: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									SctionAccess: {
+									ActionAccess: {
 										Type:     schema.TypeBool,
 										Required: true,
 									},
 								},
 							},
 						},
-						SctionReset: {
+						ActionReset: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,

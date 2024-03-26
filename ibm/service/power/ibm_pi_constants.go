@@ -293,6 +293,13 @@ const (
 	Attr_IBMiRDSUsers           = "ibmi_rds_users"
 	OS_IBMI                     = "ibmi"
 
+	//Status/State
+	ActionAccess = "access"
+	ActionStart  = "start"
+	ActionSource = "source"
+	ActionStop   = "stop"
+	ActionReset  = "reset"
+
 	PVMInstanceHealthOk      = "OK"
 	PVMInstanceHealthWarning = "WARNING"
 
@@ -384,11 +391,6 @@ const (
 	StatusError   = "ERROR"
 	StatusBuild   = "BUILD"
 	StatusPending = "PENDING"
-	SctionAccess  = "access"
-	SctionStart   = "start"
-	SctionSource  = "source"
-	SctionStop    = "stop"
-	SctionReset   = "reset"
 
 	// volume clone task status
 	VolumeCloneCompleted = "completed"
