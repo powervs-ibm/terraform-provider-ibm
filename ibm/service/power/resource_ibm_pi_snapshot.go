@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -34,7 +33,7 @@ func ResourceIBMPISnapshot() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			Arg_SnapshotName: {
+			Attr_SnapshotName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Unique name of the snapshot",
@@ -44,7 +43,7 @@ func ResourceIBMPISnapshot() *schema.Resource {
 				Required:    true,
 				Description: "Instance name / id of the pvm",
 			},
-			Arg_InstanceVolumeIds: {
+			Arg_VolumeIDs: {
 				Type:             schema.TypeSet,
 				Optional:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
@@ -97,11 +96,11 @@ func resourceIBMPISnapshotCreate(ctx context.Context, d *schema.ResourceData, me
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	instanceid := d.Get(Arg_InstanceName).(string)
-	volids := flex.ExpandStringList((d.Get(Arg_InstanceVolumeIds).(*schema.Set)).List())
-	name := d.Get(Arg_SnapshotName).(string)
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIDs).(*schema.Set)).List())
+	name := d.Get(Attr_SnapshotName).(string)
 
 	var description string
-	if v, ok := d.GetOk(Attr_Description); ok {
+	if v, ok := d.GetOk(Arg_Description); ok {
 		description = v.(string)
 	}
 
@@ -150,8 +149,8 @@ func resourceIBMPISnapshotRead(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	d.Set(Arg_SnapshotName, snapshotdata.Name)
-	d.Set(Arg_SnapshotID, *snapshotdata.SnapshotID)
+	d.Set(Attr_SnapshotName, snapshotdata.Name)
+	d.Set(Attr_SnapshotID, *snapshotdata.SnapshotID)
 	d.Set(Attr_Status, snapshotdata.Status)
 	d.Set(Attr_CreationDate, snapshotdata.CreationDate.String())
 	d.Set(Attr_VolumeSnapshots, snapshotdata.VolumeSnapshots)
@@ -175,8 +174,8 @@ func resourceIBMPISnapshotUpdate(ctx context.Context, d *schema.ResourceData, me
 
 	client := instance.NewIBMPISnapshotClient(ctx, sess, cloudInstanceID)
 
-	if d.HasChange(Arg_SnapshotName) || d.HasChange("description") {
-		name := d.Get(Arg_SnapshotName).(string)
+	if d.HasChange(Attr_SnapshotName) || d.HasChange(Arg_Description)g {
+		name := d.Get(Attr_SnapshotName).(string)
 		description := d.Get("description").(string)
 		snapshotBody := &models.SnapshotUpdate{Name: name, Description: description}
 
@@ -269,7 +268,7 @@ func isWaitForPIInstanceSnapshotDeleted(ctx context.Context, client *instance.IB
 	log.Printf("Waiting for (%s) to be deleted.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIInstanceDeleting},
+		Pending:    []string{"retry", State_Delete},
 		Target:     []string{"Not Found"},
 		Refresh:    isPIInstanceSnapshotDeleteRefreshFunc(client, id),
 		Delay:      10 * time.Second,
@@ -285,9 +284,9 @@ func isPIInstanceSnapshotDeleteRefreshFunc(client *instance.IBMPISnapshotClient,
 		snapshot, err := client.Get(id)
 		if err != nil {
 			log.Printf("The snapshot is not found.")
-			return snapshot, helpers.PIInstanceNotFound, nil
+			return snapshot, State_NotFound, nil
 		}
-		return snapshot, helpers.PIInstanceNotFound, nil
+		return snapshot, State_NotFound, nil
 
 	}
 }
