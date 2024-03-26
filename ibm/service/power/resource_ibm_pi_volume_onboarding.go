@@ -8,21 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
-const (
-	piOnboardingVolumes   = "pi_onboarding_volumes"
-	piAuxiliaryVolumes    = "pi_auxiliary_volumes"
-	piAuxiliaryVolumeName = "pi_auxiliary_volume_name"
-	piSourceCRN           = "pi_source_crn"
-	piDisplayName         = "pi_display_name"
-	piDescription         = "pi_description"
 )
 
 func ResourceIBMPIVolumeOnboarding() *schema.Resource {
@@ -39,7 +29,6 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-// Arguments
 			Arg_CloudInstanceID: {
 				Description: "Cloud Instance ID - This is the service_instance_id.",
 				ForceNew:    true,
@@ -47,30 +36,30 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 
-			piOnboardingVolumes: {
+			Arg_OnboardingVolumes: {
 				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						piSourceCRN: {
+						Arg_SourceCRN: {
 							Description: "CRN of source ServiceBroker instance from where auxiliary volumes need to be onboarded",
 							Required:    true,
 							Type:        schema.TypeString,
 						},
-						piAuxiliaryVolumes: {
+						Arg_AuxiliaryVolumes: {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									piAuxiliaryVolumeName: {
+									Arg_AuxiliaryVolumeName: {
 										Description: "Auxiliary volume name at storage host level",
 										Required:    true,
 										Type:        schema.TypeString,
 									},
-									piDisplayName: {
+									Arg_DisplayName: {
 										Description: "Display name of auxVolumeName once onboarded,auxVolumeName will be set to display name if not provided.",
 										Optional:    true,
 										Type:        schema.TypeString,
@@ -81,7 +70,7 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 					},
 				},
 			},
-			piDescription: {
+			Arg_Description: {
 				Computed:    true,
 				Description: "Description of the volume onboarding operation",
 				Optional:    true,
@@ -148,10 +137,10 @@ func resourceIBMPIVolumeOnboardingCreate(ctx context.Context, d *schema.Resource
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	client := st.NewIBMPIVolumeOnboardingClient(ctx, sess, cloudInstanceID)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	client := instance.NewIBMPIVolumeOnboardingClient(ctx, sess, cloudInstanceID)
 
-	vol, err := expandCreateVolumeOnboarding(d.Get(piOnboardingVolumes).([]interface{}))
+	vol, err := expandCreateVolumeOnboarding(d.Get(Arg_OnboardingVolumes).([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -160,7 +149,7 @@ func resourceIBMPIVolumeOnboardingCreate(ctx context.Context, d *schema.Resource
 		Volumes: vol,
 	}
 
-	if v, ok := d.GetOk(piDescription); ok {
+	if v, ok := d.GetOk(Arg_Description); ok {
 		body.Description = v.(string)
 	}
 
@@ -185,21 +174,21 @@ func resourceIBMPIVolumeOnboardingRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	client := st.NewIBMPIVolumeOnboardingClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIVolumeOnboardingClient(ctx, sess, cloudInstanceID)
 
 	onboardingData, err := client.Get(onboardingID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.Set("onboarding_id", *onboardingData.ID)
-	d.Set("create_time", onboardingData.CreationTimestamp.String())
-	d.Set(piDescription, onboardingData.Description)
-	d.Set("input_volumes", onboardingData.InputVolumes)
-	d.Set("progress", onboardingData.Progress)
-	d.Set("status", onboardingData.Status)
-	d.Set("results_onboarded_volumes", onboardingData.Results.OnboardedVolumes)
-	d.Set("results_volume_onboarding_failures", flattenVolumeOnboardingFailures(onboardingData.Results.VolumeOnboardingFailures))
+	d.Set(Attr_OnboardingId, *onboardingData.ID)
+	d.Set(Attr_CreateTime, onboardingData.CreationTimestamp.String())
+	d.Set(Arg_Description, onboardingData.Description)
+	d.Set(Attr_InputVolumes, onboardingData.InputVolumes)
+	d.Set(Attr_Progress, onboardingData.Progress)
+	d.Set(Attr_Status, onboardingData.Status)
+	d.Set(Attr_ResultsOnboardedVolumes, onboardingData.Results.OnboardedVolumes)
+	d.Set(Attr_ResultsVolumeOnboardingFailures, flattenVolumeOnboardingFailures(onboardingData.Results.VolumeOnboardingFailures))
 	return nil
 }
 
@@ -248,12 +237,12 @@ func expandAuxiliaryVolumeForOnboarding(data []interface{}) []*models.AuxiliaryV
 		var auxVolumeName, displayName string
 		resource := d.(map[string]interface{})
 
-		if v, ok := resource["pi_auxiliary_volume_name"]; ok && v != "" {
-			auxVolumeName = resource["pi_auxiliary_volume_name"].(string)
+		if v, ok := resource[Arg_AuxiliaryVolumeName]; ok && v != "" {
+			auxVolumeName = resource[Arg_AuxiliaryVolumeName].(string)
 		}
 
-		if v, ok := resource["pi_display_name"]; ok && v != "" {
-			displayName = resource["pi_display_name"].(string)
+		if v, ok := resource[Arg_DisplayName]; ok && v != "" {
+			displayName = resource[Arg_DisplayName].(string)
 		}
 
 		auxVolumeForOnboarding = append(auxVolumeForOnboarding, &models.AuxiliaryVolumeForOnboarding{
