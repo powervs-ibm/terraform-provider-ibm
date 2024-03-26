@@ -39,6 +39,7 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
+// Arguments
 			Arg_CloudInstanceID: {
 				Description: "Cloud Instance ID - This is the service_instance_id.",
 				ForceNew:    true,
