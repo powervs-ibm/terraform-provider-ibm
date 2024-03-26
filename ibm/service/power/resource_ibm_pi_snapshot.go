@@ -174,7 +174,7 @@ func resourceIBMPISnapshotUpdate(ctx context.Context, d *schema.ResourceData, me
 
 	client := instance.NewIBMPISnapshotClient(ctx, sess, cloudInstanceID)
 
-	if d.HasChange(Attr_SnapshotName) || d.HasChange(Arg_Description)g {
+	if d.HasChange(Attr_SnapshotName) || d.HasChange(Arg_Description) {
 		name := d.Get(Attr_SnapshotName).(string)
 		description := d.Get("description").(string)
 		snapshotBody := &models.SnapshotUpdate{Name: name, Description: description}
