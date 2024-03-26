@@ -72,44 +72,43 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Optional:         true,
 				Type:             schema.TypeString,
 			},
-			PIAffinityPolicy: {
+			Arg_AffinityPolicy: {
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Affinity policy for data volume being created; ignored if pi_volume_pool provided; for policy affinity requires one of pi_affinity_instance or pi_affinity_volume to be specified; for policy anti-affinity requires one of pi_anti_affinity_instances or pi_anti_affinity_volumes to be specified",
 				Optional:         true,
-				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", PIAffinityPolicy),
+				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", Arg_AffinityPolicy),
 				Type:             schema.TypeString,
 			},
-			PIAffinityVolume: {
-				ConflictsWith:    []string{PIAffinityInstance},
+			Arg_AffinityVolume: {
+				ConflictsWith:    []string{Arg_AffinityInstance},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Volume (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_instance is not provided",
 				Optional:         true,
 				Type:             schema.TypeString,
 			},
-			PIAffinityInstance: {
-				ConflictsWith:    []string{PIAffinityVolume},
+			Arg_AffinityInstance: {
+				ConflictsWith:    []string{Arg_AffinityVolume},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "PVM Instance (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_volume is not provided",
 				Optional:         true,
 				Type:             schema.TypeString,
 			},
-			PIAntiAffinityVolumes: {
-				ConflictsWith:    []string{PIAntiAffinityInstances},
+			Arg_AntiAffinityVolumes: {
+				ConflictsWith:    []string{Arg_AntiAffinityInstances},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "List of volumes to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_instances is not provided",
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				Optional:         true,
 				Type:             schema.TypeList,
 			},
-			PIAntiAffinityInstances: {
-				ConflictsWith:    []string{PIAntiAffinityVolumes},
+			Arg_AntiAffinityInstances: {
+				ConflictsWith:    []string{Arg_AntiAffinityVolumes},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "List of pvmInstances to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_volumes is not provided",
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				Optional:         true,
 				Type:             schema.TypeList,
 			},
-// Attributes
 			Attr_ReplicationEnabled: {
 				Computed:    true,
 				Description: "Indicates if the volume should be replication enabled or not",
@@ -117,7 +116,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 
-		
+			// Computed Attributes
 			Attr_VolumeIDs: {
 				Computed:    true,
 				Description: "Volume ID",
@@ -239,25 +238,25 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		replicationEnabled := v.(bool)
 		body.ReplicationEnabled = &replicationEnabled
 	}
-	if ap, ok := d.GetOk(PIAffinityPolicy); ok {
+	if ap, ok := d.GetOk(Arg_AffinityPolicy); ok {
 		policy := ap.(string)
 		body.AffinityPolicy = &policy
 
 		if policy == "affinity" {
-			if av, ok := d.GetOk(PIAffinityVolume); ok {
+			if av, ok := d.GetOk(Arg_AffinityVolume); ok {
 				afvol := av.(string)
 				body.AffinityVolume = &afvol
 			}
-			if ai, ok := d.GetOk(PIAffinityInstance); ok {
+			if ai, ok := d.GetOk(Arg_AffinityInstance); ok {
 				afins := ai.(string)
 				body.AffinityPVMInstance = &afins
 			}
 		} else {
-			if avs, ok := d.GetOk(PIAntiAffinityVolumes); ok {
+			if avs, ok := d.GetOk(Arg_AntiAffinityVolumes); ok {
 				afvols := flex.ExpandStringList(avs.([]interface{}))
 				body.AntiAffinityVolumes = afvols
 			}
-			if ais, ok := d.GetOk(PIAntiAffinityInstances); ok {
+			if ais, ok := d.GetOk(Arg_AntiAffinityInstances); ok {
 				afinss := flex.ExpandStringList(ais.([]interface{}))
 				body.AntiAffinityPVMInstances = afinss
 			}
@@ -306,26 +305,26 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	}
 	d.Set(Arg_VolumeType, vol.DiskType)
 	d.Set(Arg_VolumePool, vol.VolumePool)
-	d.Set("volume_status", vol.State)
+	d.Set(Attr_VolumeStatus, vol.State)
 	if vol.VolumeID != nil {
-		d.Set("volume_id", vol.VolumeID)
+		d.Set(Attr_VolumeIDs, vol.VolumeID)
 	}
 	d.Set(Attr_ReplicationEnabled, vol.ReplicationEnabled)
-	d.Set("auxiliary", vol.Auxiliary)
-	d.Set("consistency_group_name", vol.ConsistencyGroupName)
-	d.Set("group_id", vol.GroupID)
-	d.Set("replication_type", vol.ReplicationType)
-	d.Set("replication_status", vol.ReplicationStatus)
-	d.Set("mirroring_state", vol.MirroringState)
-	d.Set("primary_role", vol.PrimaryRole)
-	d.Set("master_volume_name", vol.MasterVolumeName)
-	d.Set("auxiliary_volume_name", vol.AuxVolumeName)
+	d.Set(Attr_Auxiliary, vol.Auxiliary)
+	d.Set(Attr_ConsistencyGroupName, vol.ConsistencyGroupName)
+	d.Set(Attr_GroupID, vol.GroupID)
+	d.Set(Attr_ReplicationType, vol.ReplicationType)
+	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
+	d.Set(Attr_MirroringState, vol.MirroringState)
+	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
+	d.Set(Attr_MasterVolumeName, vol.MasterVolumeName)
+	d.Set(Attr_AuxiliaryVolumeName, vol.AuxVolumeName)
 	if vol.DeleteOnTermination != nil {
-		d.Set("delete_on_termination", vol.DeleteOnTermination)
+		d.Set(Attr_DeleteOnTermination, vol.DeleteOnTermination)
 	}
-	d.Set("wwn", vol.Wwn)
+	d.Set(Attr_WWN, vol.Wwn)
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
-	d.Set("io_throttle_rate", vol.IoThrottleRate)
+	d.Set(Attr_IOThrottleRate, vol.IoThrottleRate)
 
 	return nil
 }

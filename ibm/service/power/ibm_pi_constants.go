@@ -4,6 +4,11 @@ import "time"
 
 const (
 	// Arguments
+	Arg_AffinityPolicy                      = "pi_affinity_policy"
+	Arg_AffinityVolume                      = "pi_affinity_volume"
+	Arg_AffinityInstance                    = "pi_affinity_instance"
+	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
+	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
 	Arg_ImageName                           = "pi_image_name"
@@ -179,10 +184,10 @@ const (
 	Attr_RemoteCopyID                                = "remote_copy_id"
 	Attr_RemoteCopyRelationshipNames                 = "remote_copy_relationship_names"
 	Attr_RemoteCopyRelationships                     = "remote_copy_relationships"
-	Attr_ReplicationEnabled                          = "replication_enabled"
 	Attr_ReplicationSites                            = "replication_sites"
 	Attr_ReplicationStatus                           = "replication_status"
 	Attr_ReplicationType                             = "replication_type"
+	Attr_ReplicationEnabled                          = "pi_replication_enabled"
 	Attr_ReservedCores                               = "reserved_cores"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
@@ -342,12 +347,7 @@ const (
 	PIPlacementGroupMembers = "members"
 
 	// Volume
-	PIVolumeIds             = "pi_volume_ids"
-	PIAffinityPolicy        = "pi_affinity_policy"
-	PIAffinityVolume        = "pi_affinity_volume"
-	PIAffinityInstance      = "pi_affinity_instance"
-	PIAntiAffinityInstances = "pi_anti_affinity_instances"
-	PIAntiAffinityVolumes   = "pi_anti_affinity_volumes"
+	PIVolumeIds = "pi_volume_ids"
 
 	// Volume Clone
 	PIVolumeCloneName   = "pi_volume_clone_name"
@@ -388,6 +388,7 @@ const (
 
 	// status
 	// common status states
+
 	StatusShutoff = "SHUTOFF"
 	StatusActive  = "ACTIVE"
 	StatusResize  = "RESIZE"
