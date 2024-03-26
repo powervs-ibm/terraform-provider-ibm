@@ -44,68 +44,68 @@ func ResourceIBMPINetwork() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			PINetworkType: {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{"vlan", "pub-vlan"}),
+			Arg_NetworkType: {
 				Description:  "PI network type",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"vlan", "pub-vlan"}),
 			},
-			PINetworkName: {
-				Type:        schema.TypeString,
-				Required:    true,
+			Arg_NetworkName: {
 				Description: "PI network name",
-			},
-			PINetworkDNS: {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "List of PI network DNS name",
-			},
-			PINetworkCidr: {
+				Required:    true,
 				Type:        schema.TypeString,
+			},
+			Arg_NetworkDNS: {
+				Computed:    true,
+				Description: "List of PI network DNS name",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 				Optional:    true,
+				Type:        schema.TypeSet,
+			},
+			Arg_NetworkCidr: {
 				Computed:    true,
 				Description: "PI network CIDR",
-			},
-			PINetworkGateway: {
-				Type:        schema.TypeString,
 				Optional:    true,
+				Type:        schema.TypeString,
+			},
+			Arg_NetworkGateway: {
 				Computed:    true,
 				Description: "PI network gateway",
+				Optional:    true,
+				Type:        schema.TypeString,
 			},
-			PINetworkJumbo: {
-				Type:          schema.TypeBool,
-				Optional:      true,
+			Arg_NetworkJumbo: {
 				Computed:      true,
+				ConflictsWith: []string{Arg_NetworkMtu},
 				Deprecated:    "This field is deprecated, use pi_network_mtu instead.",
-				ConflictsWith: []string{PINetworkMtu},
 				Description:   "PI network enable MTU Jumbo option",
-			},
-			PINetworkMtu: {
-				Type:          schema.TypeInt,
 				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{PINetworkJumbo},
-				Description:   "PI Maximum Transmission Unit",
+				Type:          schema.TypeBool,
 			},
-			PINetworkAccessConfig: {
-				Type:         schema.TypeString,
-				Optional:     true,
+			Arg_NetworkMtu: {
+				Computed:      true,
+				ConflictsWith: []string{Arg_NetworkJumbo},
+				Description:   "PI Maximum Transmission Unit",
+				Optional:      true,
+				Type:          schema.TypeInt,
+			},
+			Arg_NetworkAccessConfig: {
 				Computed:     true,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{"internal-only", "outbound-only", "bidirectional-static-route", "bidirectional-bgp", "bidirectional-l2out"}),
 				Description:  "PI network communication configuration",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{"internal-only", "outbound-only", "bidirectional-static-route", "bidirectional-bgp", "bidirectional-l2out"}),
 			},
 			Arg_CloudInstanceID: {
-				Type:        schema.TypeString,
-				Required:    true,
 				Description: "PI cloud instance ID",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
-			PINetworkIPAddressRange: {
-				Type:        schema.TypeList,
-				Optional:    true,
+			Arg_NetworkIPAddressRange: {
 				Computed:    true,
 				Description: "List of one or more ip address range(s)",
+				Optional:    true,
+				Type:        schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						piEndingIPAaddress: {
@@ -124,14 +124,14 @@ func ResourceIBMPINetwork() *schema.Resource {
 
 			//Computed Attributes
 			Attr_NetworkID: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PI network ID",
+				Type:        schema.TypeString,
 			},
 			Attr_VLanID: {
-				Type:        schema.TypeFloat,
 				Computed:    true,
 				Description: "VLAN Id value",
+				Type:        schema.TypeFloat,
 			},
 		},
 	}
@@ -143,39 +143,39 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	networkname := d.Get(PINetworkName).(string)
-	networktype := d.Get(PINetworkType).(string)
+	networkname := d.Get(Arg_NetworkName).(string)
+	networktype := d.Get(Arg_NetworkType).(string)
 
 	client := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 	var body = &models.NetworkCreate{
 		Type: &networktype,
 		Name: networkname,
 	}
-	if v, ok := d.GetOk(PINetworkDNS); ok {
+	if v, ok := d.GetOk(Arg_NetworkDNS); ok {
 		networkdns := flex.ExpandStringList((v.(*schema.Set)).List())
 		if len(networkdns) > 0 {
 			body.DNSServers = networkdns
 		}
 	}
 
-	if v, ok := d.GetOk(PINetworkJumbo); ok {
+	if v, ok := d.GetOk(Arg_NetworkJumbo); ok {
 		body.Jumbo = v.(bool)
 	}
-	if v, ok := d.GetOk(PINetworkMtu); ok {
+	if v, ok := d.GetOk(Arg_NetworkMtu); ok {
 		var mtu int64 = int64(v.(int))
 		body.Mtu = &mtu
 	}
-	if v, ok := d.GetOk(PINetworkAccessConfig); ok {
+	if v, ok := d.GetOk(Arg_NetworkAccessConfig); ok {
 		body.AccessConfig = models.AccessConfig(v.(string))
 	}
 
 	if networktype == "vlan" {
 		var networkcidr string
 		var ipBodyRanges []*models.IPAddressRange
-		if v, ok := d.GetOk(PINetworkCidr); ok {
+		if v, ok := d.GetOk(Arg_NetworkCidr); ok {
 			networkcidr = v.(string)
 		} else {
-			return diag.Errorf("%s is required when %s is vlan", PINetworkCidr, PINetworkType)
+			return diag.Errorf("%s is required when %s is vlan", Arg_NetworkCidr, Arg_NetworkType)
 		}
 
 		gateway, firstip, lastip, err := generateIPData(networkcidr)
@@ -185,11 +185,11 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 
 		ipBodyRanges = []*models.IPAddressRange{{EndingIPAddress: &lastip, StartingIPAddress: &firstip}}
 
-		if g, ok := d.GetOk(PINetworkGateway); ok {
+		if g, ok := d.GetOk(Arg_NetworkGateway); ok {
 			gateway = g.(string)
 		}
 
-		if ips, ok := d.GetOk(PINetworkIPAddressRange); ok {
+		if ips, ok := d.GetOk(Arg_NetworkIPAddressRange); ok {
 			ipBodyRanges = getIPAddressRanges(ips.([]interface{}))
 		}
 
@@ -233,15 +233,15 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	d.Set(Attr_NetworkID, networkdata.NetworkID)
-	d.Set(PINetworkCidr, networkdata.Cidr)
-	d.Set(PINetworkDNS, networkdata.DNSServers)
+	d.Set(Arg_NetworkCidr, networkdata.Cidr)
+	d.Set(Arg_NetworkDNS, networkdata.DNSServers)
 	d.Set(Attr_VLanID, networkdata.VlanID)
-	d.Set(PINetworkName, networkdata.Name)
-	d.Set(PINetworkType, networkdata.Type)
-	d.Set(PINetworkJumbo, networkdata.Jumbo)
-	d.Set(PINetworkMtu, networkdata.Mtu)
-	d.Set(PINetworkAccessConfig, networkdata.AccessConfig)
-	d.Set(PINetworkGateway, networkdata.Gateway)
+	d.Set(Arg_NetworkName, networkdata.Name)
+	d.Set(Arg_NetworkType, networkdata.Type)
+	d.Set(Arg_NetworkJumbo, networkdata.Jumbo)
+	d.Set(Arg_NetworkMtu, networkdata.Mtu)
+	d.Set(Arg_NetworkAccessConfig, networkdata.AccessConfig)
+	d.Set(Arg_NetworkGateway, networkdata.Gateway)
 	ipRangesMap := []map[string]interface{}{}
 	if networkdata.IPAddressRanges != nil {
 		for _, n := range networkdata.IPAddressRanges {
@@ -254,7 +254,7 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 			}
 		}
 	}
-	d.Set(PINetworkIPAddressRange, ipRangesMap)
+	d.Set(Arg_NetworkIPAddressRange, ipRangesMap)
 
 	return nil
 
@@ -271,18 +271,18 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(PINetworkName, PINetworkDNS, PINetworkGateway, PINetworkIPAddressRange) {
+	if d.HasChanges(Arg_NetworkName, Arg_NetworkDNS, Arg_NetworkGateway, Arg_NetworkIPAddressRange) {
 		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 		body := &models.NetworkUpdate{
-			DNSServers: flex.ExpandStringList((d.Get(PINetworkDNS).(*schema.Set)).List()),
+			DNSServers: flex.ExpandStringList((d.Get(Arg_NetworkDNS).(*schema.Set)).List()),
 		}
-		if d.Get(PINetworkType).(string) == "vlan" {
-			body.Gateway = flex.PtrToString(d.Get(PINetworkGateway).(string))
-			body.IPAddressRanges = getIPAddressRanges(d.Get(PINetworkIPAddressRange).([]interface{}))
+		if d.Get(Arg_NetworkType).(string) == "vlan" {
+			body.Gateway = flex.PtrToString(d.Get(Arg_NetworkGateway).(string))
+			body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_NetworkIPAddressRange).([]interface{}))
 		}
 
-		if d.HasChange(PINetworkName) {
-			body.Name = flex.PtrToString(d.Get(PINetworkName).(string))
+		if d.HasChange(Arg_NetworkName) {
+			body.Name = flex.PtrToString(d.Get(Arg_NetworkName).(string))
 		}
 
 		_, err = networkC.Update(networkID, body)
@@ -319,7 +319,7 @@ func resourceIBMPINetworkDelete(ctx context.Context, d *schema.ResourceData, met
 
 func isWaitForIBMPINetworkAvailable(ctx context.Context, client *instance.IBMPINetworkClient, id string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", PINetworkProvisioning},
+		Pending:    []string{"retry", Arg_NetworkProvisioning},
 		Target:     []string{"NETWORK_READY"},
 		Refresh:    isIBMPINetworkRefreshFunc(client, id),
 		Timeout:    timeout,
@@ -341,7 +341,7 @@ func isIBMPINetworkRefreshFunc(client *instance.IBMPINetworkClient, id string) r
 			return network, "NETWORK_READY", nil
 		}
 
-		return network, PINetworkProvisioning, nil
+		return network, Arg_NetworkProvisioning, nil
 	}
 }
 
