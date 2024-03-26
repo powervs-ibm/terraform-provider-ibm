@@ -35,14 +35,12 @@ Example usage:
   ```
 
 ## Timeouts
-
 The `ibm_pi_console_language` provides the following [timeouts](https://www.terraform.io/docs/language/resources/syntax.html) configuration options:
 
 - **create** - (Default 5 minutes) Used for setting a console language.
 - **update** - (Default 5 minutes) Used for updating a console language.
 
 ## Argument reference
-
 Review the argument references that you can specify for your resource. 
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
@@ -50,7 +48,6 @@ Review the argument references that you can specify for your resource.
 - `pi_language_code` - (Required, String) Language code.
 
 ## Attribute reference
-
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
 - `id` - (String) The unique identifier of the instance console language. The ID is composed of `<pi_cloud_instance_id>/<pi_instance_name>`.
