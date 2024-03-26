@@ -28,8 +28,13 @@ const (
 	Arg_VTL                                 = "vtl"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
-	Arg_VolumeName                          = "pi_volume_name"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_OnboardingVolumes                   = "pi_onboarding_volumes"
+	Arg_AuxiliaryVolumes                    = "pi_auxiliary_volumes"
+	Arg_AuxiliaryVolumeName                 = "pi_auxiliary_volume_name"
+	Arg_SourceCRN                           = "pi_source_crn"
+	Arg_DisplayName                         = "pi_display_name"
+	Arg_Description                         = "pi_description"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"
@@ -96,7 +101,6 @@ const (
 	Attr_HypervisorType                              = "hypervisor_type"
 	Attr_IBMIPAddress                                = "ibm_ip_address"
 	Attr_ID                                          = "id"
-	Attr_IOThrottleRate                              = "io_throttle_rate"
 	Attr_IP                                          = "ip"
 	Attr_IPAddress                                   = "ipaddress"
 	Attr_IPOctet                                     = "ipoctet"
