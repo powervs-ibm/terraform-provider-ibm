@@ -356,8 +356,8 @@ const (
 	PIDRLocation = "location"
 
 	// VPN
-	PIVPNConnectionId                         = "connection_id"
-	PIVPNConnectionName                       = "connection_name"
+	Attr_VPNConnectionId                      = "connection_id"
+	Attr_VPNConnectionName                    = "connection_name"
 	PIVPNConnectionStatus                     = "connection_status"
 	PIVPNConnectionDeadPeerDetection          = "dead_peer_detections"
 	PIVPNConnectionDeadPeerDetectionAction    = "action"
@@ -365,12 +365,12 @@ const (
 	PIVPNConnectionDeadPeerDetectionThreshold = "threshold"
 	PIVPNConnectionLocalGatewayAddress        = "local_gateway_address"
 	PIVPNConnectionVpnGatewayAddress          = "gateway_address"
-	PIVPNIKEPolicyId                          = "ike_policy_id"
-	PIVPNIPSecPolicyId                        = "ipsec_policy_id"
-	PIVPNConnectionMode                       = "connection_mode"
-	PIVPNConnectionNetworks                   = "connection_networks"
-	PIVPNConnectionPeerGatewayAddress         = "connection_peer_gateway_address"
-	PIVPNConnectionPeerSubnets                = "connection_peer_subnets"
+	Attr_VPNIKEPolicyId                       = "ike_policy_id"
+	Attr_VPNIPSecPolicyId                     = "ipsec_policy_id"
+	Attr_VPNConnectionMode                    = "connection_mode"
+	Attr_VPNConnectionNetworks                = "connection_networks"
+	Attr_VPNConnectionPeerGatewayAddress      = "connection_peer_gateway_address"
+	Attr_VPNConnectionPeerSubnets             = "connection_peer_subnets"
 	// Cloud Connections
 	PICloudConnectionTransitEnabled = "pi_cloud_connection_transit_enabled"
 
