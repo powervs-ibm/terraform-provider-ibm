@@ -83,6 +83,7 @@ func DataSourceIBMPIVolumeGroupStorageDetails() *schema.Resource {
 		},
 	}
 }
+}
 
 func dataSourceIBMPIVolumeGroupStorageDetailsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()

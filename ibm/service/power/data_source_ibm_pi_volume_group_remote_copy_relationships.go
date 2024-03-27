@@ -112,11 +112,11 @@ func DataSourceIBMPIVolumeGroupRemoteCopyRelationships() *schema.Resource {
 					},
 				},
 				Type: schema.TypeList,
+				},
 			},
-		},
+		}
 	}
 }
-
 func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {

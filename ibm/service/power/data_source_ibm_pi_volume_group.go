@@ -18,11 +18,14 @@ func DataSourceIBMPIVolumeGroup() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeGroupRead,
 		Schema: map[string]*schema.Schema{
+<<<<<<< HEAD
 			Arg_VolumeGroupID: {
 				Type:         schema.TypeString,
+=======
 			// Arguments
 			Arg_CloudInstanceID: {
 				Description:  "The GUID of the service instance associated with an account.",
+>>>>>>> master
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
