@@ -17,8 +17,6 @@ func DataSourceIBMPIVolumeGroupRemoteCopyRelationships() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads,
 		Schema: map[string]*schema.Schema{
-			Arg_VolumeGroupID: {
-				Type:         schema.TypeString,
 			// Arguments
 			Arg_CloudInstanceID: {
 				Description:  "The GUID of the service instance associated with an account.",
@@ -112,11 +110,11 @@ func DataSourceIBMPIVolumeGroupRemoteCopyRelationships() *schema.Resource {
 					},
 				},
 				Type: schema.TypeList,
-				},
 			},
-		}
+		},
 	}
 }
+
 func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {

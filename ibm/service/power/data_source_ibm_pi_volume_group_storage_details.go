@@ -17,8 +17,6 @@ func DataSourceIBMPIVolumeGroupStorageDetails() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeGroupStorageDetailsReads,
 		Schema: map[string]*schema.Schema{
-			Arg_VolumeGroupID: {
-				Type:         schema.TypeString,
 			// Arguments
 			Arg_CloudInstanceID: {
 				Description:  "The GUID of the service instance associated with an account.",
@@ -82,7 +80,6 @@ func DataSourceIBMPIVolumeGroupStorageDetails() *schema.Resource {
 			},
 		},
 	}
-}
 }
 
 func dataSourceIBMPIVolumeGroupStorageDetailsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
