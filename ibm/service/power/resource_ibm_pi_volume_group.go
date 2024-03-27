@@ -11,7 +11,6 @@ import (
 	"time"
 
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_volume_groups"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -35,24 +34,24 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Cloud Instance ID - This is the service_instance_id.",
 			},
-			PIVolumeGroupName: {
+			Arg_VolumeGroupName: {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "Volume Group Name to create",
-				ConflictsWith: []string{PIVolumeGroupConsistencyGroupName},
+				ConflictsWith: []string{Arg_VolumeGroupConsistencyGroupName},
 			},
-			PIVolumeGroupConsistencyGroupName: {
+			Arg_VolumeGroupConsistencyGroupName: {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "The name of consistency group at storage controller level",
-				ConflictsWith: []string{PIVolumeGroupName},
+				ConflictsWith: []string{Arg_VolumeGroupName},
 			},
-			PIVolumeIds: {
+			Arg_VolumeIds: {
 				Type:        schema.TypeSet,
 				Required:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -92,16 +91,16 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	vgName := d.Get(PIVolumeGroupName).(string)
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	vgName := d.Get(Arg_VolumeGroupName).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	body := &models.VolumeGroupCreate{
 		Name: vgName,
 	}
 
-	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIds).(*schema.Set)).List())
 	body.VolumeIDs = volids
 
-	if v, ok := d.GetOk(PIVolumeGroupConsistencyGroupName); ok {
+	if v, ok := d.GetOk(Arg_VolumeGroupConsistencyGroupName); ok {
 		body.ConsistencyGroupName = v.(string)
 	}
 
@@ -143,8 +142,8 @@ func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set("volume_group_status", vg.Status)
 	d.Set("consistency_group_name", vg.ConsistencyGroupName)
 	d.Set("replication_status", vg.ReplicationStatus)
-	d.Set(PIVolumeGroupName, vg.Name)
-	d.Set(PIVolumeIds, vg.VolumeIDs)
+	d.Set(Arg_VolumeGroupName, vg.Name)
+	d.Set(Arg_VolumeIds, vg.VolumeIDs)
 	d.Set("status_description_errors", flattenVolumeGroupStatusDescription(vg.StatusDescription.Errors))
 
 	return nil
@@ -163,8 +162,8 @@ func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
-	if d.HasChanges(PIVolumeIds) {
-		old, new := d.GetChange(PIVolumeIds)
+	if d.HasChanges(Arg_VolumeIds) {
+		old, new := d.GetChange(Arg_VolumeIds)
 		oldList := old.(*schema.Set)
 		newList := new.(*schema.Set)
 		body := &models.VolumeGroupUpdate{
@@ -196,7 +195,7 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 
 	client := st.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 
-	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIds).(*schema.Set)).List())
 	if len(volids) > 0 {
 		body := &models.VolumeGroupUpdate{
 			RemoveVolumes: volids,
@@ -227,8 +226,8 @@ func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *st.IBMPIVol
 	log.Printf("Waiting for Volume Group (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIVolumeProvisioning},
-		Target:     []string{helpers.PIVolumeProvisioningDone},
+		Pending:    []string{"retry", States_Creating},
+		Target:     []string{States_Available},
 		Refresh:    isIBMPIVolumeGroupRefreshFunc(client, id),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
@@ -246,10 +245,10 @@ func isIBMPIVolumeGroupRefreshFunc(client *st.IBMPIVolumeGroupClient, id string)
 		}
 
 		if vg.Status == "available" {
-			return vg, helpers.PIVolumeProvisioningDone, nil
+			return vg, States_Available, nil
 		}
 
-		return vg, helpers.PIVolumeProvisioning, nil
+		return vg, States_Creating, nil
 	}
 }
 

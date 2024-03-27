@@ -19,7 +19,7 @@ func DataSourceIBMPIVolumeGroupRemoteCopyRelationships() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads,
 		Schema: map[string]*schema.Schema{
-			PIVolumeGroupID: {
+			Arg_VolumeGroupID: {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Volume group ID",
@@ -123,7 +123,7 @@ func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context,
 
 	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
 	vgClient := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
-	vgData, err := vgClient.GetVolumeGroupRemoteCopyRelationships(d.Get(PIVolumeGroupID).(string))
+	vgData, err := vgClient.GetVolumeGroupRemoteCopyRelationships(d.Get(Arg_VolumeGroupID).(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}

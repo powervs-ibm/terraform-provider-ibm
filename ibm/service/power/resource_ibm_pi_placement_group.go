@@ -55,14 +55,14 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 				Description: "PI cloud instance ID",
 			},
 
-			PIPlacementGroupMembers: {
+			Attr_PlacementGroupMembers: {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Server IDs that are the placement group members",
 			},
 
-			PIPlacementGroupID: {
+			Attr_SPPPlacementGroupID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PI placement group ID",
@@ -118,9 +118,9 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	d.Set(helpers.PIPlacementGroupName, response.Name)
-	d.Set(PIPlacementGroupID, response.ID)
+	d.Set(Attr_SPPPlacementGroupID, response.ID)
 	d.Set(helpers.PIPlacementGroupPolicy, response.Policy)
-	d.Set(PIPlacementGroupMembers, response.Members)
+	d.Set(Attr_PlacementGroupMembers, response.Members)
 
 	return nil
 

@@ -27,25 +27,25 @@ func ResourceIBMPIWorkspace() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			PIWorkspaceName: {
+			Attr_WorkspaceName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "A descriptive name used to identify the workspace.",
 			},
-			PIWorkspaceDatacenter: {
+			Arg_WorkspaceDatacenter: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Target location or environment to create the resource instance.",
 			},
-			PIWorkspaceResourceGroup: {
+			Arg_WorkspaceResourceGroup: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The ID of the resource group where you want to create the workspace. You can retrieve the value from data source ibm_resource_group.",
 			},
-			PIWorkspacePlan: {
+			Arg_WorkspacePlan: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -66,10 +66,10 @@ func resourceIBMPIWorkspaceCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	name := d.Get(PIWorkspaceName).(string)
-	datacenter := d.Get(PIWorkspaceDatacenter).(string)
-	resourceGroup := d.Get(PIWorkspaceResourceGroup).(string)
-	plan := d.Get(PIWorkspacePlan).(string)
+	name := d.Get(Attr_WorkspaceName).(string)
+	datacenter := d.Get(Arg_WorkspaceDatacenter).(string)
+	resourceGroup := d.Get(Arg_WorkspaceResourceGroup).(string)
+	plan := d.Get(Arg_WorkspacePlan).(string)
 
 	// No need for cloudInstanceID because we are creating a workspace
 	client := st.NewIBMPIWorkspacesClient(ctx, sess, "")
@@ -126,7 +126,7 @@ func resourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, met
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.Set(PIWorkspaceName, controller.Name)
+	d.Set(Attr_WorkspaceName, controller.Name)
 	wsDetails := map[string]interface{}{
 		Attr_CreationDate: controller.CreatedAt,
 		Attr_CRN:          controller.TargetCRN,

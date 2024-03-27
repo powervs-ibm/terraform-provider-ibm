@@ -24,7 +24,7 @@ func DataSourceIBMPIInstanceSnapshot() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Arg_SnapshotID: {
+			Attr_SnapshotID: {
 				Description:  "The unique identifier of the Power Systems Virtual Machine instance snapshot.",
 				Type:         schema.TypeString,
 				Required:     true,
@@ -42,7 +42,7 @@ func DataSourceIBMPIInstanceSnapshot() *schema.Resource {
 				Description: "Date of snapshot creation.",
 				Type:        schema.TypeString,
 			},
-			Attr_Description: {
+			Arg_Description: {
 				Computed:    true,
 				Description: "The description of the snapshot.",
 				Type:        schema.TypeString,
@@ -84,7 +84,7 @@ func dataSourceIBMPIInstanceSnapshotRead(ctx context.Context, d *schema.Resource
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	snapshot := instance.NewIBMPISnapshotClient(ctx, sess, cloudInstanceID)
-	snapshotData, err := snapshot.Get(d.Get(Arg_SnapshotID).(string))
+	snapshotData, err := snapshot.Get(d.Get(Attr_SnapshotID).(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -92,7 +92,7 @@ func dataSourceIBMPIInstanceSnapshotRead(ctx context.Context, d *schema.Resource
 	d.SetId(*snapshotData.SnapshotID)
 	d.Set(Attr_Action, snapshotData.Action)
 	d.Set(Attr_CreationDate, snapshotData.CreationDate.String())
-	d.Set(Attr_Description, snapshotData.Description)
+	d.Set(Arg_Description, snapshotData.Description)
 	d.Set(Attr_LastUpdatedDate, snapshotData.LastUpdateDate.String())
 	d.Set(Attr_Name, snapshotData.Name)
 	d.Set(Attr_PercentComplete, snapshotData.PercentComplete)

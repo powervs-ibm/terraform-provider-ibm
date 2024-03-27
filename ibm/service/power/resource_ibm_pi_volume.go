@@ -73,44 +73,44 @@ func ResourceIBMPIVolume() *schema.Resource {
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Volume pool where the volume will be created; if provided then pi_affinity_policy values will be ignored",
 			},
-			PIAffinityPolicy: {
+			Arg_AffinityPolicy: {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Affinity policy for data volume being created; ignored if pi_volume_pool provided; for policy affinity requires one of pi_affinity_instance or pi_affinity_volume to be specified; for policy anti-affinity requires one of pi_anti_affinity_instances or pi_anti_affinity_volumes to be specified",
-				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", PIAffinityPolicy),
+				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", Arg_AffinityPolicy),
 			},
-			PIAffinityVolume: {
+			Arg_AffinityVolume: {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "Volume (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_instance is not provided",
-				ConflictsWith:    []string{PIAffinityInstance},
+				ConflictsWith:    []string{Arg_AffinityInstance},
 			},
-			PIAffinityInstance: {
+			Arg_AffinityInstance: {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "PVM Instance (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_volume is not provided",
-				ConflictsWith:    []string{PIAffinityVolume},
+				ConflictsWith:    []string{Arg_AffinityVolume},
 			},
-			PIAntiAffinityVolumes: {
+			Arg_AntiAffinityVolumes: {
 				Type:             schema.TypeList,
 				Optional:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "List of volumes to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_instances is not provided",
-				ConflictsWith:    []string{PIAntiAffinityInstances},
+				ConflictsWith:    []string{Arg_AntiAffinityInstances},
 			},
-			PIAntiAffinityInstances: {
+			Arg_AntiAffinityInstances: {
 				Type:             schema.TypeList,
 				Optional:         true,
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				DiffSuppressFunc: flex.ApplyOnce,
 				Description:      "List of pvmInstances to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_volumes is not provided",
-				ConflictsWith:    []string{PIAntiAffinityVolumes},
+				ConflictsWith:    []string{Arg_AntiAffinityVolumes},
 			},
-			helpers.PIReplicationEnabled: {
+			Attr_ReplicationEnabled: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Computed:    true,
@@ -215,7 +215,7 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	name := d.Get(helpers.PIVolumeName).(string)
+	name := d.Get(Arg_VolumeName).(string)
 	size := float64(d.Get(helpers.PIVolumeSize).(float64))
 	var shared bool
 	if v, ok := d.GetOk(helpers.PIVolumeShareable); ok {
@@ -235,29 +235,29 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		volumePool := v.(string)
 		body.VolumePool = volumePool
 	}
-	if v, ok := d.GetOk(helpers.PIReplicationEnabled); ok {
+	if v, ok := d.GetOk(Attr_ReplicationEnabled); ok {
 		replicationEnabled := v.(bool)
 		body.ReplicationEnabled = &replicationEnabled
 	}
-	if ap, ok := d.GetOk(PIAffinityPolicy); ok {
+	if ap, ok := d.GetOk(Arg_AffinityPolicy); ok {
 		policy := ap.(string)
 		body.AffinityPolicy = &policy
 
 		if policy == "affinity" {
-			if av, ok := d.GetOk(PIAffinityVolume); ok {
+			if av, ok := d.GetOk(Arg_AffinityVolume); ok {
 				afvol := av.(string)
 				body.AffinityVolume = &afvol
 			}
-			if ai, ok := d.GetOk(PIAffinityInstance); ok {
+			if ai, ok := d.GetOk(Arg_AffinityInstance); ok {
 				afins := ai.(string)
 				body.AffinityPVMInstance = &afins
 			}
 		} else {
-			if avs, ok := d.GetOk(PIAntiAffinityVolumes); ok {
+			if avs, ok := d.GetOk(Arg_AntiAffinityVolumes); ok {
 				afvols := flex.ExpandStringList(avs.([]interface{}))
 				body.AntiAffinityVolumes = afvols
 			}
-			if ais, ok := d.GetOk(PIAntiAffinityInstances); ok {
+			if ais, ok := d.GetOk(Arg_AntiAffinityInstances); ok {
 				afinss := flex.ExpandStringList(ais.([]interface{}))
 				body.AntiAffinityPVMInstances = afinss
 			}
@@ -310,7 +310,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	if vol.VolumeID != nil {
 		d.Set("volume_id", vol.VolumeID)
 	}
-	d.Set(helpers.PIReplicationEnabled, vol.ReplicationEnabled)
+	d.Set(Attr_ReplicationEnabled, vol.ReplicationEnabled)
 	d.Set("auxiliary", vol.Auxiliary)
 	d.Set("consistency_group_name", vol.ConsistencyGroupName)
 	d.Set("group_id", vol.GroupID)
@@ -363,10 +363,10 @@ func resourceIBMPIVolumeUpdate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(helpers.PIReplicationEnabled, helpers.PIVolumeType) {
+	if d.HasChanges(Attr_ReplicationEnabled, helpers.PIVolumeType) {
 		volActionBody := models.VolumeAction{}
-		if d.HasChange(helpers.PIReplicationEnabled) {
-			volActionBody.ReplicationEnabled = flex.PtrToBool(d.Get(helpers.PIReplicationEnabled).(bool))
+		if d.HasChange(Attr_ReplicationEnabled) {
+			volActionBody.ReplicationEnabled = flex.PtrToBool(d.Get(Attr_ReplicationEnabled).(bool))
 		}
 		if d.HasChange(helpers.PIVolumeType) {
 			volActionBody.TargetStorageTier = flex.PtrToString(d.Get(helpers.PIVolumeType).(string))
@@ -412,8 +412,8 @@ func isWaitForIBMPIVolumeAvailable(ctx context.Context, client *st.IBMPIVolumeCl
 	log.Printf("Waiting for Volume (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIVolumeProvisioning},
-		Target:     []string{helpers.PIVolumeProvisioningDone},
+		Pending:    []string{"retry", States_Creating},
+		Target:     []string{States_Available},
 		Refresh:    isIBMPIVolumeRefreshFunc(client, id),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
@@ -431,16 +431,16 @@ func isIBMPIVolumeRefreshFunc(client *st.IBMPIVolumeClient, id string) resource.
 		}
 
 		if vol.State == "available" || vol.State == "in-use" {
-			return vol, helpers.PIVolumeProvisioningDone, nil
+			return vol, States_Available, nil
 		}
 
-		return vol, helpers.PIVolumeProvisioning, nil
+		return vol, States_Creating, nil
 	}
 }
 
 func isWaitForIBMPIVolumeDeleted(ctx context.Context, client *st.IBMPIVolumeClient, id string, timeout time.Duration) (interface{}, error) {
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"deleting", helpers.PIVolumeProvisioning},
+		Pending:    []string{"deleting", States_Creating},
 		Target:     []string{"deleted"},
 		Refresh:    isIBMPIVolumeDeleteRefreshFunc(client, id),
 		Delay:      10 * time.Second,

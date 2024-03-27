@@ -34,7 +34,7 @@ func DataSourceIBMPIVolumeOnboardings() *schema.Resource {
 				Description: "List of volume onboardings.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_Description: {
+						Arg_Description: {
 							Computed:    true,
 							Description: "The description of the volume onboarding operation.",
 							Type:        schema.TypeString,
@@ -89,7 +89,7 @@ func flattenVolumeOnboardings(list []*models.VolumeOnboardingCommon) (networks [
 	for _, i := range list {
 		l := map[string]interface{}{
 			Attr_ID:           *i.ID,
-			Attr_Description:  i.Description,
+			Arg_Description:   i.Description,
 			Attr_InputVolumes: i.InputVolumes,
 			Attr_Status:       i.Status,
 		}

@@ -44,7 +44,7 @@ func DataSourceIBMPIImages() *schema.Resource {
 							Description: "The unique identifier of an image.",
 							Type:        schema.TypeString,
 						},
-						Attr_ImageType: {
+						Attr_ImageInfo: {
 							Computed:    true,
 							Description: "The identifier of this image type.",
 							Type:        schema.TypeString,
@@ -104,7 +104,7 @@ func flattenStockImages(list []*models.ImageReference) []map[string]interface{} 
 		l := map[string]interface{}{
 			Attr_Href:        *i.Href,
 			Attr_ID:          *i.ImageID,
-			Attr_ImageType:   i.Specifications.ImageType,
+			Attr_ImageInfo:   i.Specifications.ImageType,
 			Attr_Name:        *i.Name,
 			Attr_State:       *i.State,
 			Attr_StoragePool: *i.StoragePool,

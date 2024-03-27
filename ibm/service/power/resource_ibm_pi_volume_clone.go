@@ -10,7 +10,6 @@ import (
 	"time"
 
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -38,13 +37,13 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				ForceNew:    true,
 				Description: "The GUID of the service instance associated with an account.",
 			},
-			PIVolumeCloneName: {
+			Arg_VolumeCloneName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The base name of the newly cloned volume(s).",
 			},
-			PIVolumeIds: {
+			Arg_VolumeIds: {
 				Type:        schema.TypeSet,
 				Required:    true,
 				ForceNew:    true,
@@ -52,13 +51,13 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				Set:         schema.HashString,
 				Description: "List of volumes to be cloned.",
 			},
-			PITargetStorageTier: {
+			Arg_TargetStorageTier: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
 				Description: "The storage tier for the cloned volume(s).",
 			},
-			helpers.PIReplicationEnabled: {
+			Attr_ReplicationEnabled: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
@@ -98,20 +97,20 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	vcName := d.Get(PIVolumeCloneName).(string)
-	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
+	vcName := d.Get(Arg_VolumeCloneName).(string)
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIds).(*schema.Set)).List())
 
 	body := &models.VolumesCloneAsyncRequest{
 		Name:      &vcName,
 		VolumeIDs: volids,
 	}
 
-	if v, ok := d.GetOk(PITargetStorageTier); ok {
+	if v, ok := d.GetOk(Arg_TargetStorageTier); ok {
 		body.TargetStorageTier = v.(string)
 	}
 
-	if !d.GetRawConfig().GetAttr(helpers.PIReplicationEnabled).IsNull() {
-		body.TargetReplicationEnabled = flex.PtrToBool(d.Get(helpers.PIReplicationEnabled).(bool))
+	if !d.GetRawConfig().GetAttr(Attr_ReplicationEnabled).IsNull() {
+		body.TargetReplicationEnabled = flex.PtrToBool(d.Get(Attr_ReplicationEnabled).(bool))
 	}
 
 	client := st.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)

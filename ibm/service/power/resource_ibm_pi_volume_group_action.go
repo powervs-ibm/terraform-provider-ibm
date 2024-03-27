@@ -36,13 +36,13 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 				ForceNew:    true,
 				Description: "Cloud Instance ID - This is the service_instance_id.",
 			},
-			PIVolumeGroupID: {
+			Arg_VolumeGroupID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "Volume Group ID",
 			},
-			PIVolumeGroupAction: {
+			Arg_VolumeGroupAction: {
 				Type:        schema.TypeList,
 				Required:    true,
 				ForceNew:    true,
@@ -125,8 +125,8 @@ func resourceIBMPIVolumeGroupActionCreate(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	vgID := d.Get(PIVolumeGroupID).(string)
-	vgAction, err := expandVolumeGroupAction(d.Get(PIVolumeGroupAction).([]interface{}))
+	vgID := d.Get(Arg_VolumeGroupID).(string)
+	vgAction, err := expandVolumeGroupAction(d.Get(Arg_VolumeGroupAction).([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
 	}

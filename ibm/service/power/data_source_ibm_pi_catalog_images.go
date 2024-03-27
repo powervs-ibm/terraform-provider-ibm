@@ -58,7 +58,7 @@ func DataSourceIBMPICatalogImages() *schema.Resource {
 							Description: "Date of image creation",
 							Type:        schema.TypeString,
 						},
-						Attr_Description: {
+						Arg_Description: {
 							Computed:    true,
 							Description: "The description of an image.",
 							Type:        schema.TypeString,
@@ -88,7 +88,7 @@ func DataSourceIBMPICatalogImages() *schema.Resource {
 							Description: "The unique identifier of an image.",
 							Type:        schema.TypeString,
 						},
-						Attr_ImageType: {
+						Attr_ImageInfo: {
 							Computed:    true,
 							Description: "The identifier of this image type.",
 							Type:        schema.TypeString,
@@ -153,7 +153,7 @@ func dataSourceIBMPICatalogImagesRead(ctx context.Context, d *schema.ResourceDat
 		image[Attr_Name] = *i.Name
 
 		if i.Description != nil {
-			image[Attr_Description] = *i.Description
+			image[Arg_Description] = *i.Description
 		}
 		if i.CreationDate != nil {
 			image[Attr_CreationDate] = i.CreationDate.String()
@@ -182,7 +182,7 @@ func dataSourceIBMPICatalogImagesRead(ctx context.Context, d *schema.ResourceDat
 				image[Attr_HypervisorType] = s.HypervisorType
 			}
 			if s.ImageType != "" {
-				image[Attr_ImageType] = s.ImageType
+				image[Attr_ImageInfo] = s.ImageType
 			}
 			if s.OperatingSystem != "" {
 				image[Attr_OperatingSystem] = s.OperatingSystem

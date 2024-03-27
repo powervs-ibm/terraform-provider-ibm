@@ -45,7 +45,7 @@ func ResourceIBMPICapture() *schema.Resource {
 				Description: " Cloud Instance ID - This is the service_instance_id.",
 			},
 
-			helpers.PIInstanceName: {
+			Arg_InstanceName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -120,7 +120,7 @@ func resourceIBMPICaptureCreate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	name := d.Get(helpers.PIInstanceName).(string)
+	name := d.Get(Arg_InstanceName).(string)
 	capturename := d.Get(helpers.PIInstanceCaptureName).(string)
 	capturedestination := d.Get(helpers.PIInstanceCaptureDestination).(string)
 	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)

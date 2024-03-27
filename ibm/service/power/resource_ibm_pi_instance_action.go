@@ -41,18 +41,18 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 				Required:    true,
 				Description: "PI Cloud instance id",
 			},
-			Arg_PVMInstanceId: {
+			Attr_PVMInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PVM instance ID",
 			},
-			Arg_PVMInstanceActionType: {
+			PVMInstanceHealthWarning: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"start", "stop", "hard-reboot", "soft-reboot", "immediate-shutdown", "reset-state"}),
 				Description:  "PVM instance action type",
 			},
-			Arg_PVMInstanceHealthStatus: {
+			PVMInstanceHealthOk: {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{PVMInstanceHealthOk, PVMInstanceHealthWarning}),
@@ -88,7 +88,7 @@ func resourceIBMPIInstanceActionCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	id := d.Get(Arg_PVMInstanceId).(string)
+	id := d.Get(Attr_PVMInstanceID).(string)
 	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, id))
 
 	return resourceIBMPIInstanceActionRead(ctx, d, meta)
@@ -122,7 +122,7 @@ func resourceIBMPIInstanceActionRead(ctx context.Context, d *schema.ResourceData
 
 func resourceIBMPIInstanceActionUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
-	if d.HasChange(Arg_PVMInstanceActionType) {
+	if d.HasChange(PVMInstanceHealthWarning) {
 		adiag := takeInstanceAction(ctx, d, meta, d.Timeout(schema.TimeoutUpdate))
 		if adiag != nil {
 			return adiag
@@ -145,9 +145,9 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	id := d.Get(Arg_PVMInstanceId).(string)
-	action := d.Get(Arg_PVMInstanceActionType).(string)
-	targetHealthStatus := d.Get(Arg_PVMInstanceHealthStatus).(string)
+	id := d.Get(Attr_PVMInstanceID).(string)
+	action := d.Get(PVMInstanceHealthWarning).(string)
+	targetHealthStatus := d.Get(PVMInstanceHealthOk).(string)
 
 	var targetStatus string
 	if action == "stop" || action == "immediate-shutdown" {

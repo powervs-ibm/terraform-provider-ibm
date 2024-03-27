@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 )
@@ -36,13 +35,13 @@ func ResourceIBMPICloudConnectionNetworkAttach() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required Attributes
-			helpers.PICloudInstanceId: {
+			Attr_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "PI cloud instance ID",
 			},
-			helpers.PICloudConnectionId: {
+			Attr_CloudConnectionId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -64,8 +63,8 @@ func resourceIBMPICloudConnectionNetworkAttachCreate(ctx context.Context, d *sch
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	cloudConnectionID := d.Get(helpers.PICloudConnectionId).(string)
+	cloudInstanceID := d.Get(Attr_CloudInstanceID).(string)
+	cloudConnectionID := d.Get(Attr_CloudConnectionId).(string)
 	networkID := d.Get(PICloudConnectionNetworkId).(string)
 
 	client := st.NewIBMPICloudConnectionClient(ctx, sess, cloudInstanceID)
@@ -97,8 +96,8 @@ func resourceIBMPICloudConnectionNetworkAttachRead(ctx context.Context, d *schem
 	cloudConnectionID := parts[1]
 	networkID := parts[2]
 
-	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
-	d.Set(helpers.PICloudConnectionId, cloudConnectionID)
+	d.Set(Attr_CloudInstanceID, cloudInstanceID)
+	d.Set(Attr_CloudConnectionId, cloudConnectionID)
 	d.Set(PICloudConnectionNetworkId, networkID)
 
 	return nil

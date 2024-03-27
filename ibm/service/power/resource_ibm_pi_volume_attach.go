@@ -174,7 +174,7 @@ func isWaitForIBMPIVolumeAttachAvailable(ctx context.Context, client *st.IBMPIVo
 	log.Printf("Waiting for Volume (%s) to be available for attachment", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", helpers.PIVolumeProvisioning},
+		Pending:    []string{"retry", States_Creating},
 		Target:     []string{helpers.PIVolumeAllowableAttachStatus},
 		Refresh:    isIBMPIVolumeAttachRefreshFunc(client, id, cloudInstanceID, pvmInstanceID),
 		Delay:      10 * time.Second,
@@ -196,7 +196,7 @@ func isIBMPIVolumeAttachRefreshFunc(client *st.IBMPIVolumeClient, id, cloudInsta
 			return vol, helpers.PIVolumeAllowableAttachStatus, nil
 		}
 
-		return vol, helpers.PIVolumeProvisioning, nil
+		return vol, States_Creating, nil
 	}
 }
 
@@ -205,7 +205,7 @@ func isWaitForIBMPIVolumeDetach(ctx context.Context, client *st.IBMPIVolumeClien
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"detaching", helpers.PowerVolumeAttachDeleting},
-		Target:     []string{helpers.PIVolumeProvisioningDone},
+		Target:     []string{States_Available},
 		Refresh:    isIBMPIVolumeDetachRefreshFunc(client, id, cloudInstanceID, pvmInstanceID),
 		Delay:      10 * time.Second,
 		MinTimeout: 30 * time.Second,
@@ -223,7 +223,7 @@ func isIBMPIVolumeDetachRefreshFunc(client *st.IBMPIVolumeClient, id, cloudInsta
 			switch uErr.(type) {
 			case *p_cloud_volumes.PcloudCloudinstancesVolumesGetNotFound:
 				log.Printf("[DEBUG] volume does not exist while detaching %v", err)
-				return vol, helpers.PIVolumeProvisioningDone, nil
+				return vol, States_Available, nil
 			}
 			return nil, "", err
 		}
@@ -233,7 +233,7 @@ func isIBMPIVolumeDetachRefreshFunc(client *st.IBMPIVolumeClient, id, cloudInsta
 		// In case of Sharable Volume it can be `in-use` state
 		if !flex.StringContains(vol.PvmInstanceIDs, pvmInstanceID) &&
 			(*vol.Shareable || (!*vol.Shareable && vol.State == "available")) {
-			return vol, helpers.PIVolumeProvisioningDone, nil
+			return vol, States_Available, nil
 		}
 
 		return vol, "detaching", nil

@@ -42,7 +42,7 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Description: "Hypervision Type.",
 				Type:        schema.TypeString,
 			},
-			Attr_ImageType: {
+			Attr_ImageInfo: {
 				Computed:    true,
 				Description: "The identifier of this image type.",
 				Type:        schema.TypeString,
@@ -94,7 +94,7 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.SetId(*imagedata.ImageID)
 	d.Set(Attr_Architecture, imagedata.Specifications.Architecture)
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
-	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
+	d.Set(Attr_ImageInfo, imagedata.Specifications.ImageType)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
 	d.Set(Attr_Size, imagedata.Size)
 	d.Set(Attr_State, imagedata.State)

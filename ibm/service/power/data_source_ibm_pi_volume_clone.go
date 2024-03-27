@@ -18,7 +18,7 @@ func DataSourceIBMPIVolumeClone() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeCloneRead,
 		Schema: map[string]*schema.Schema{
-			PIVolumeCloneTaskID: {
+			Arg_VolumeCloneTaskID: {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The ID of the volume clone task.",
@@ -59,12 +59,12 @@ func dataSourceIBMPIVolumeCloneRead(ctx context.Context, d *schema.ResourceData,
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := st.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
-	volClone, err := client.Get(d.Get(PIVolumeCloneTaskID).(string))
+	volClone, err := client.Get(d.Get(Arg_VolumeCloneTaskID).(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(d.Get(PIVolumeCloneTaskID).(string))
+	d.SetId(d.Get(Arg_VolumeCloneTaskID).(string))
 	if volClone.Status != nil {
 		d.Set("status", *volClone.Status)
 	}

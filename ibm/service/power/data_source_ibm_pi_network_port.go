@@ -41,7 +41,7 @@ func DataSourceIBMPINetworkPort() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_Description: {
+						Arg_Description: {
 							Computed:    true,
 							Description: "The description for the network port.",
 							Type:        schema.TypeString,
@@ -109,13 +109,13 @@ func flattenNetworkPorts(networkPorts []*models.NetworkPort) interface{} {
 	log.Printf("the number of ports is %d", len(networkPorts))
 	for _, i := range networkPorts {
 		l := map[string]interface{}{
-			Attr_Description: i.Description,
-			Attr_Href:        i.Href,
-			Attr_IPAddress:   *i.IPAddress,
-			Attr_MacAddress:  *i.MacAddress,
-			Attr_PortID:      *i.PortID,
-			Attr_PublicIP:    i.ExternalIP,
-			Attr_Status:      *i.Status,
+			Arg_Description: i.Description,
+			Attr_Href:       i.Href,
+			Attr_IPAddress:  *i.IPAddress,
+			Attr_MacAddress: *i.MacAddress,
+			Attr_PortID:     *i.PortID,
+			Attr_PublicIP:   i.ExternalIP,
+			Attr_Status:     *i.Status,
 		}
 		result = append(result, l)
 	}

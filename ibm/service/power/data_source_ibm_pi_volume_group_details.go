@@ -19,7 +19,7 @@ func DataSourceIBMPIVolumeGroupDetails() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIVolumeGroupDetailsRead,
 		Schema: map[string]*schema.Schema{
-			PIVolumeGroupID: {
+			Arg_VolumeGroupID: {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Name of the volume group",
@@ -67,7 +67,7 @@ func dataSourceIBMPIVolumeGroupDetailsRead(ctx context.Context, d *schema.Resour
 
 	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
 	vgClient := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
-	vgData, err := vgClient.GetDetails(d.Get(PIVolumeGroupID).(string))
+	vgData, err := vgClient.GetDetails(d.Get(Arg_VolumeGroupID).(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
