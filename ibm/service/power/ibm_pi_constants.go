@@ -39,7 +39,6 @@ const (
 	Arg_VTL                                 = "vtl"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
-	Arg_VolumeName                          = "pi_volume_name"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
 
 	// Attributes
@@ -262,14 +261,14 @@ const (
 	Attr_VPCCRNs                                     = "vpc_crns"
 	Attr_VPCEnabled                                  = "vpc_enabled"
 	Attr_VirtualCoresAssigned                        = "virtual_cores_assigned"
-	//Attr_VolumeGroupName                             = "volume_group_name"
-	Attr_VolumeGroups    = "volume_groups"
-	Attr_VolumeIDs       = "volume_ids"
-	Attr_VolumePool      = "volume_pool"
-	Attr_VolumeSnapshots = "volume_snapshots"
-	Attr_Volumes         = "volumes"
-	Attr_WWN             = "wwn"
-	Attr_Workspaces      = "workspaces"
+	Attr_VolumeGroupName                             = "volume_group_name"
+	Attr_VolumeGroups                                = "volume_groups"
+	Attr_VolumeIDs                                   = "volume_ids"
+	Attr_VolumePool                                  = "volume_pool"
+	Attr_VolumeSnapshots                             = "volume_snapshots"
+	Attr_Volumes                                     = "volumes"
+	Attr_WWN                                         = "wwn"
+	Attr_Workspaces                                  = "workspaces"
 
 	// TODO: Second Half Cleanup, remove extra variables
 
