@@ -35,13 +35,13 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			PIPlacementGroupName: {
+			Arg_PlacementGroupName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Name of the placement group",
 			},
 
-			PIPlacementGroupPolicy: {
+			Arg_PlacementGroupPolicy: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"affinity", "anti-affinity"}),
@@ -54,14 +54,14 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 				Description: "PI cloud instance ID",
 			},
 
-			PIPlacementGroupMembers: {
+			Attr_PlacementGroupMembers: {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Server IDs that are the placement group members",
 			},
 
-			PIPlacementGroupID: {
+			Attr_PlacementGroupID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PI placement group ID",
@@ -77,8 +77,8 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	name := d.Get(PIPlacementGroupName).(string)
-	policy := d.Get(PIPlacementGroupPolicy).(string)
+	name := d.Get(Arg_PlacementGroupName).(string)
+	policy := d.Get(Arg_PlacementGroupPolicy).(string)
 	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
 		Name:   &name,
@@ -116,10 +116,10 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	d.Set(PIPlacementGroupName, response.Name)
-	d.Set(PIPlacementGroupID, response.ID)
-	d.Set(PIPlacementGroupPolicy, response.Policy)
-	d.Set(PIPlacementGroupMembers, response.Members)
+	d.Set(Arg_PlacementGroupName, response.Name)
+	d.Set(Attr_PlacementGroupID, response.ID)
+	d.Set(Arg_PlacementGroupPolicy, response.Policy)
+	d.Set(Attr_PlacementGroupMembers, response.Members)
 
 	return nil
 
