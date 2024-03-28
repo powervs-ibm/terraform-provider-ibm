@@ -1,5 +1,4 @@
 ---
-
 subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: pi_instance"
@@ -31,7 +30,7 @@ resource "ibm_pi_instance" "test-instance" {
 }
 ```
 
-**Note**
+**Notes**
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   * `region` - `lon`
@@ -135,7 +134,7 @@ In addition to all argument reference list, you can access the following attribu
 - `status` - (String) The status of the instance.
 ## Import
 
-The `ibm_pi_instance` can be imported using `power_instance_id` and `instance_id`.
+The `ibm_pi_instance` can be imported using `cloud_instance_id` and `instance_id`.
 
 **Example**
 

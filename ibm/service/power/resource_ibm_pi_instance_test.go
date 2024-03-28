@@ -572,8 +572,7 @@ func testAccCheckIBMPIActiveInstanceConfigUpdate(name, instanceHealthStatus, pro
 		pi_network {
 			network_id = data.ibm_pi_network.power_networks.id
 		}
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory)
 }
 
 func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, proc, memory, action string) string {
@@ -614,8 +613,7 @@ func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, pr
   		pi_instance_id       = ibm_pi_instance.power_instance.instance_id
   		pi_action            = "%[8]s"
   		pi_health_status     = "%[5]s"
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory, action)
+	}`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory, action)
 }
 
 func testAccCheckIBMPIInstanceStatus(n, status string) resource.TestCheckFunc {
