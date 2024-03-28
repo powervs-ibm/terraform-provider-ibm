@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -1362,7 +1361,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 
 	var userData string
-	if u, ok := d.GetOk(helpers.PIInstanceUserData); ok {
+	if u, ok := d.GetOk(Arg_InstanceUserData); ok {
 		userData = u.(string)
 	}
 
