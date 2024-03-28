@@ -335,6 +335,7 @@ const (
 	PIPlacementGroupMembers = "members"
 
 	// Volume
+	PIVolumeIds                 = "pi_volume_ids"
 	Arg_VolumeIds               = "pi_volume_ids"
 	Attr_VolumeProvisioning     = "creating"
 	Attr_VolumeProvisioningDone = "available"
