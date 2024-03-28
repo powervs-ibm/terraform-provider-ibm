@@ -1257,7 +1257,7 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	}
 
 	if st, ok := d.GetOk(Arg_InstanceStorageType); ok {
-		body.StorageType = instance.(string)
+		body.StorageType = st.(string)
 	}
 	if sp, ok := d.GetOk(Arg_InstanceStoragePool); ok {
 		body.StoragePool = sp.(string)
@@ -1396,7 +1396,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 
 	if st, ok := d.GetOk(Arg_InstanceStorageType); ok {
-		body.StorageType = instance.(string)
+		body.StorageType = st.(string)
 	}
 	if sp, ok := d.GetOk(Arg_InstanceStoragePool); ok {
 		body.StoragePool = sp.(string)

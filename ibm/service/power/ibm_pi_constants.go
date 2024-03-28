@@ -360,8 +360,8 @@ const (
 	Arg_AffinityPolicy        = "pi_volume_affinity_policy"
 	Arg_AffinityVolume        = "pi_volume_affinity"
 	Arg_AffinityInstance      = "pi_volume_affinity_instance"
-	Arg_AntiAffinityInstances = "pi_volume_affinity_instance"
-	Arg_AntiAffinityVolumes   = "pi_volume_anti_affinity_instance"
+	Arg_AntiAffinityInstances = "pi_volume_anti_affinity_instance"
+	Arg_AntiAffinityVolumes   = "pi_volume_anti_affinity"
 
 	// Volume Clone
 	PIVolumeCloneName   = "pi_volume_clone_name"
