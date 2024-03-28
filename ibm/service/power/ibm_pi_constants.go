@@ -335,14 +335,14 @@ const (
 	PIPlacementGroupMembers = "members"
 
 	// Volume
-	PIVolumeIds              = "pi_volume_ids"
-	PIVolumeProvisioning     = "pi_volume_provisioning"
-	PIVolumeProvisioningDone = "pi_volume_provisioning_done"
-	PIAffinityPolicy         = "pi_affinity_policy"
-	PIAffinityVolume         = "pi_affinity_volume"
-	PIAffinityInstance       = "pi_affinity_instance"
-	PIAntiAffinityInstances  = "pi_anti_affinity_instances"
-	PIAntiAffinityVolumes    = "pi_anti_affinity_volumes"
+	Arg_VolumeIds               = "pi_volume_ids"
+	Attr_VolumeProvisioning     = "creating"
+	Attr_VolumeProvisioningDone = "available"
+	PIAffinityPolicy            = "pi_affinity_policy"
+	PIAffinityVolume            = "pi_affinity_volume"
+	PIAffinityInstance          = "pi_affinity_instance"
+	PIAntiAffinityInstances     = "pi_anti_affinity_instances"
+	PIAntiAffinityVolumes       = "pi_anti_affinity_volumes"
 
 	// Volume Clone
 	PIVolumeCloneName   = "pi_volume_clone_name"
@@ -350,11 +350,11 @@ const (
 	PITargetStorageTier = "pi_target_storage_tier"
 
 	// IBM PI Volume Group
-	PIVolumeGroupName                 = "pi_volume_group_name"
-	PIVolumeGroupConsistencyGroupName = "pi_consistency_group_name"
-	PIVolumeGroupID                   = "pi_volume_group_id"
-	PIVolumeGroupAction               = "pi_volume_group_action"
-	PIVolumeOnboardingID              = "pi_volume_onboarding_id"
+	Arg_VolumeGroupName                 = "pi_volume_group_name"
+	Arg_VolumeGroupConsistencyGroupName = "pi_consistency_group_name"
+	PIVolumeGroupID                     = "pi_volume_group_id"
+	PIVolumeGroupAction                 = "pi_volume_group_action"
+	PIVolumeOnboardingID                = "pi_volume_onboarding_id"
 
 	// Disaster Recovery Location
 	PIDRLocation = "location"
