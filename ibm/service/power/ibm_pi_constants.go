@@ -26,9 +26,12 @@ const (
 	Arg_StoragePool                         = "pi_storage_pool"
 	Arg_StorageType                         = "pi_storage_type"
 	Arg_VTL                                 = "vtl"
+	Arg_VolumeIds                           = "pi_volume_ids"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
+	Arg_VolumeCloneName                     = "pi_volume_clone_name"
+	Arg_TargetStorageTier                   = "pi_target_storage_tier"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"

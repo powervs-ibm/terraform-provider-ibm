@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -38,13 +37,13 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-			PIVolumeCloneName: {
+			Arg_VolumeCloneName: {
 				Description: "The base name of the newly cloned volume(s).",
 				ForceNew:    true,
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-			PIVolumeIds: {
+			Arg_VolumeIds: {
 				Description: "List of volumes to be cloned.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
@@ -52,7 +51,7 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
-			PITargetStorageTier: {
+			Arg_TargetStorageTier: {
 				Description: "The storage tier for the cloned volume(s).",
 				ForceNew:    true,
 				Optional:    true,
@@ -98,20 +97,20 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	vcName := d.Get(PIVolumeCloneName).(string)
-	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
+	vcName := d.Get(Arg_VolumeCloneName).(string)
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIds).(*schema.Set)).List())
 
 	body := &models.VolumesCloneAsyncRequest{
 		Name:      &vcName,
 		VolumeIDs: volids,
 	}
 
-	if v, ok := d.GetOk(PITargetStorageTier); ok {
+	if v, ok := d.GetOk(Arg_TargetStorageTier); ok {
 		body.TargetStorageTier = v.(string)
 	}
 
 	if !d.GetRawConfig().GetAttr(Attr_ReplicationEnabled).IsNull() {
-		body.TargetReplicationEnabled = flex.PtrToBool(d.Get(helpers.PIReplicationEnabled).(bool))
+		body.TargetReplicationEnabled = flex.PtrToBool(d.Get(Attr_ReplicationEnabled).(bool))
 	}
 
 	client := instance.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)
