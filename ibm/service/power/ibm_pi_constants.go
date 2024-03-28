@@ -6,13 +6,14 @@ const (
 	// Arguments
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_Description                         = "pi_description"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_Key                                 = "pi_ssh_key"
 	Arg_KeyName                             = "pi_key_name"
 	Arg_NetworkName                         = "pi_network_name"
 	Arg_PlacementGroupName                  = "pi_placement_group_name"
-	Arg_PlacementGroupPolicy= "pi_placement_group_policy"
+	Arg_PlacementGroupPolicy                = "pi_placement_group_policy"
 	Arg_SAP                                 = "sap"
 	Arg_SAPProfileID                        = "pi_sap_profile_id"
 	Arg_SPPPlacementGroupID                 = "pi_spp_placement_group_id"
@@ -209,6 +210,8 @@ const (
 	Attr_SharedProcessorPools                        = "shared_processor_pools"
 	Attr_Size                                        = "size"
 	Attr_SourceVolumeName                            = "source_volume_name"
+	Attr_SnapshotName                                = "snapshot_name"
+	Attr_SnapshotID                                  = "snapshot_id"
 	Attr_Speed                                       = "speed"
 	Attr_StartTime                                   = "start_time"
 	Attr_State                                       = "state"
@@ -324,8 +327,8 @@ const (
 	PIInstanceStorageConnection         = "pi_storage_connection"
 	PIInstanceStoragePoolAffinity       = "pi_storage_pool_affinity"
 
-	PIInstanceUserData  = "pi_user_data"
-	PIInstanceVolumeIds = "pi_volume_ids"
+	PIInstanceUserData    = "pi_user_data"
+	Arg_InstanceVolumeIds = "pi_volume_ids"
 
 	Attr_PIInstanceSharedProcessorPool   = "shared_processor_pool"
 	Attr_PIInstanceSharedProcessorPoolID = "shared_processor_pool_id"
@@ -391,7 +394,8 @@ const (
 	// volume clone task status
 	VolumeCloneCompleted = "completed"
 	VolumeCloneRunning   = "running"
-
+	State_Deleting       = "deleting"
+	State_NotFound       = "not_found"
 	// Workspaces
 	Attr_WorkspaceCapabilities = "pi_workspace_capabilities"
 	Attr_WorkspaceDetails      = "pi_workspace_details"
