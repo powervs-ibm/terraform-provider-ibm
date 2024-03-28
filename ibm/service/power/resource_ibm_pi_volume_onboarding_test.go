@@ -82,6 +82,5 @@ func testAccCheckIBMPIVolumeOnboardingConfig(name string) string {
 				pi_display_name = "%[2]s-1"
 			}
 		}
-	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_volume_onboarding_source_crn, acc.Pi_auxiliary_volume_name)
+	  }`, acc.Pi_cloud_instance_id, name, acc.Pi_volume_onboarding_source_crn, acc.Pi_auxiliary_volume_name)
 }

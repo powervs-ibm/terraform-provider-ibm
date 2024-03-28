@@ -1,5 +1,4 @@
 ---
-
 subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: pi_volume_onboarding"
@@ -28,7 +27,7 @@ resource "ibm_pi_volume_onboarding" "testacc_volume_onboarding"{
 }
 ```
 
-**Note**
+**Notes**
 * Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 * If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   * `region` - `lon`
