@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	models "github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -79,7 +78,7 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	name := d.Get(Arg_PlacementGroupName).(string)
 	policy := d.Get(Arg_PlacementGroupPolicy).(string)
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	client := instanceNewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
 		Name:   &name,
 		Policy: &policy,
@@ -108,7 +107,7 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	client := instanceNewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 
 	response, err := client.Get(parts[1])
 	if err != nil {
@@ -139,7 +138,7 @@ func resourceIBMPIPlacementGroupDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := parts[0]
-	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
+	client := instanceNewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	err = client.Delete(parts[1])
 
 	if err != nil {
