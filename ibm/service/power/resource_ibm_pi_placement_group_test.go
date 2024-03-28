@@ -610,6 +610,5 @@ func testAccCheckIBMPIDeletePlacementGroup(name string, policy string, sapProfil
 			pi_cloud_instance_id      = "%[1]s"
 			pi_placement_group_name   = "%[2]s-2"
 			pi_placement_group_policy = "%[3]s"
-		}
-	`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, sapProfile, acc.Pi_sap_image, acc.Pi_network_name)
+		}`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, sapProfile, acc.Pi_sap_image, acc.Pi_network_name)
 }

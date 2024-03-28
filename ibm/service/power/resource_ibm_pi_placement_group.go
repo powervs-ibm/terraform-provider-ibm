@@ -11,8 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	models "github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -36,33 +35,33 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			helpers.PIPlacementGroupName: {
+			Arg_PlacementGroupName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Name of the placement group",
 			},
 
-			helpers.PIPlacementGroupPolicy: {
+			Arg_PlacementGroupPolicy: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"affinity", "anti-affinity"}),
 				Description:  "Policy of the placement group",
 			},
 
-			helpers.PICloudInstanceId: {
+			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI cloud instance ID",
 			},
 
-			PIPlacementGroupMembers: {
+			Attr_PlacementGroupMembers: {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Server IDs that are the placement group members",
 			},
 
-			PIPlacementGroupID: {
+			Attr_PlacementGroupID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PI placement group ID",
@@ -77,9 +76,9 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
-	name := d.Get(helpers.PIPlacementGroupName).(string)
-	policy := d.Get(helpers.PIPlacementGroupPolicy).(string)
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	name := d.Get(Arg_PlacementGroupName).(string)
+	policy := d.Get(Arg_PlacementGroupPolicy).(string)
 	client := st.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
 		Name:   &name,
@@ -117,10 +116,10 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	d.Set(helpers.PIPlacementGroupName, response.Name)
-	d.Set(PIPlacementGroupID, response.ID)
-	d.Set(helpers.PIPlacementGroupPolicy, response.Policy)
-	d.Set(PIPlacementGroupMembers, response.Members)
+	d.Set(Arg_PlacementGroupName, response.Name)
+	d.Set(Attr_PlacementGroupID, response.ID)
+	d.Set(Arg_PlacementGroupPolicy, response.Policy)
+	d.Set(Attr_PlacementGroupMembers, response.Members)
 
 	return nil
 

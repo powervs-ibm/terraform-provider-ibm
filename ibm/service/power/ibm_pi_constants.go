@@ -12,6 +12,7 @@ const (
 	Arg_KeyName                             = "pi_key_name"
 	Arg_NetworkName                         = "pi_network_name"
 	Arg_PlacementGroupName                  = "pi_placement_group_name"
+	Arg_PlacementGroupPolicy= "pi_placement_group_policy"
 	Arg_SAP                                 = "sap"
 	Arg_SAPProfileID                        = "pi_sap_profile_id"
 	Arg_SPPPlacementGroupID                 = "pi_spp_placement_group_id"
@@ -331,8 +332,7 @@ const (
 	Arg_PIInstanceSharedProcessorPool    = "pi_shared_processor_pool"
 
 	// Placement Group
-	PIPlacementGroupID      = "placement_group_id"
-	PIPlacementGroupMembers = "members"
+	Attr_PlacementGroupMembers = "members"
 
 	// Volume
 	PIVolumeIds             = "pi_volume_ids"
