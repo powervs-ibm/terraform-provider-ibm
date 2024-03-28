@@ -320,6 +320,11 @@ const (
 	// power service instance capabilities
 	CUSTOM_VIRTUAL_CORES = "custom-virtualcores"
 
+	PIAffinityPolicy                  = "pi_volume_affinity_policy"
+	PIAffinityVolume                  = "pi_volume_affinity"
+	PIAffinityInstance                = "pi_volume_affinity_instance"
+	PIAntiAffinityVolumes             = "pi_volume_anti_affinity"
+	PIAntiAffinityInstances           = "pi_volume_anti_affinity_instance"
 	PIConsoleLanguageCode             = "pi_language_code"
 	PICloudConnectionId               = "cloud_connection_id"
 	PICloudConnectionStatus           = "status"
@@ -352,11 +357,11 @@ const (
 
 	// Volume
 	PIVolumeIds               = "pi_volume_ids"
-	Arg_AffinityPolicy        = "pi_affinity_policy"
-	Arg_AffinityVolume        = "pi_affinity_volume"
-	Arg_AffinityInstance      = "pi_affinity_instance"
-	Arg_AntiAffinityInstances = "pi_anti_affinity_instances"
-	Arg_AntiAffinityVolumes   = "pi_anti_affinity_volumes"
+	Arg_AffinityPolicy        = "pi_volume_affinity_policy"
+	Arg_AffinityVolume        = "pi_volume_affinity"
+	Arg_AffinityInstance      = "pi_volume_affinity_instance"
+	Arg_AntiAffinityInstances = "pi_volume_affinity_instance"
+	Arg_AntiAffinityVolumes   = "pi_volume_anti_affinity_instance"
 
 	// Volume Clone
 	PIVolumeCloneName   = "pi_volume_clone_name"
