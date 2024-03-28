@@ -1,4 +1,3 @@
-
 package power
 
 import "time"

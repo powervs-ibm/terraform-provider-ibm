@@ -35,13 +35,13 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 
-			Arg_PlacementGroupName: {
+			PIPlacementGroupName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Name of the placement group",
 			},
 
-			Attr_SPPPlacementGroupPolicy: {
+			PIPlacementGroupPolicy: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"affinity", "anti-affinity"}),
@@ -54,14 +54,14 @@ func ResourceIBMPIPlacementGroup() *schema.Resource {
 				Description: "PI cloud instance ID",
 			},
 
-			Attr_SPPPlacementGroupMembers: {
+			PIPlacementGroupMembers: {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "Server IDs that are the placement group members",
 			},
 
-			Attr_SPPPlacementGroupID: {
+			PIPlacementGroupID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "PI placement group ID",
@@ -77,8 +77,8 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	name := d.Get(Attr_SPPPlacementGroupName).(string)
-	policy := d.Get(Attr_SPPPlacementGroupPolicy).(string)
+	name := d.Get(PIPlacementGroupName).(string)
+	policy := d.Get(PIPlacementGroupPolicy).(string)
 	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
 		Name:   &name,
@@ -116,10 +116,10 @@ func resourceIBMPIPlacementGroupRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_SPPPlacementGroupName, response.Name)
-	d.Set(Attr_SPPPlacementGroupID, response.ID)
-	d.Set(Attr_SPPPlacementGroupPolicy, response.Policy)
-	d.Set(Attr_SPPPlacementGroupMembers, response.Members)
+	d.Set(PIPlacementGroupName, response.Name)
+	d.Set(PIPlacementGroupID, response.ID)
+	d.Set(PIPlacementGroupPolicy, response.Policy)
+	d.Set(PIPlacementGroupMembers, response.Members)
 
 	return nil
 
