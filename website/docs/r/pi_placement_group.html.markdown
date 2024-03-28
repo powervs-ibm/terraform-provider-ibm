@@ -60,7 +60,7 @@ Review the argument references that you can specify for your resource.
 
 ## Import
 
-The `ibm_pi_placement_group` resource can be imported by using `power_instance_id` and `placement_group_id`.
+The `ibm_pi_placement_group` resource can be imported by using `cloud_instance_id` and `placement_group_id`.
 
 **Example**
 
