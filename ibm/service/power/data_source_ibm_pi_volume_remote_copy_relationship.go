@@ -1,149 +1,181 @@
 // Copyright IBM Corp. 2022 All Rights Reserved.
 // Licensed under the Mozilla Public License v2.0
-
 package power
-
 import (
 	"context"
 
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/helpers"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 )
 
-func DataSourceIBMPIVolumeRemoteCopyRelationship() *schema.Resource {
+func DataSourceIBMPIVolumeGroupRemoteCopyRelationships() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceIBMPIVolumeRemoteCopyRelationshipsReads,
+		ReadContext: dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads,
 		Schema: map[string]*schema.Schema{
-			// Arguments
-			Arg_CloudInstanceID: {
-				Description:  "The GUID of the service instance associated with an account.",
-				Required:     true,
+			PIVolumeGroupID: {
 				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Volume group ID",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Arg_VolumeID: {
-				Description:  "The ID of the volume for which you want to retrieve detailed information.",
-				Required:     true,
+			helpers.PICloudInstanceId: {
 				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			// Attributes
-			Attr_AuxiliaryChangedVolumeName: {
+			// Computed Attributes
+			"remote_copy_relationships": {
+				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "The name of the volume that is acting as the auxiliary change volume for the relationship.",
-				Type:        schema.TypeString,
-			},
-			Attr_AuxiliaryVolumeName: {
-				Computed:    true,
-				Description: "The auxiliary volume name at storage host level.",
-				Type:        schema.TypeString,
-			},
-			Attr_ConsistencyGroupName: {
-				Computed:    true,
-				Description: "The consistency group name if volume is a part of volume group.",
-				Type:        schema.TypeString,
-			},
-			Attr_CopyType: {
-				Computed:    true,
-				Description: "The copy type.",
-				Type:        schema.TypeString,
-			},
-			Attr_CyclingMode: {
-				Computed:    true,
-				Description: "The type of cycling mode used.",
-				Type:        schema.TypeString,
-			},
-			Attr_CyclePeriodSeconds: {
-				Computed:    true,
-				Description: "The minimum period in seconds between multiple cycles.",
-				Type:        schema.TypeInt,
-			},
-			Attr_FreezeTime: {
-				Computed:    true,
-				Description: "The freeze time of remote copy relationship.",
-				Type:        schema.TypeString,
-			},
-			Attr_MasterChangedVolumeName: {
-				Computed:    true,
-				Description: "The name of the volume that is acting as the master change volume for the relationship.",
-				Type:        schema.TypeString,
-			},
-			Attr_MasterVolumeName: {
-				Computed:    true,
-				Description: "The master volume name at storage host level.",
-				Type:        schema.TypeString,
-			},
-			Attr_Name: {
-				Computed:    true,
-				Description: "The remote copy relationship name.",
-				Type:        schema.TypeString,
-			},
-			Attr_PrimaryRole: {
-				Computed:    true,
-				Description: "Indicates whether master/aux volume is playing the primary role.",
-				Type:        schema.TypeString,
-			},
-			Attr_Progress: {
-				Computed:    true,
-				Description: "The relationship progress.",
-				Type:        schema.TypeInt,
-			},
-			Attr_RemoteCopyID: {
-				Computed:    true,
-				Description: "The remote copy relationship ID.",
-				Type:        schema.TypeString,
-			},
-			Attr_State: {
-				Computed:    true,
-				Description: "The relationship state.",
-				Type:        schema.TypeString,
-			},
-			Attr_Synchronized: {
-				Computed:    true,
-				Description: "Indicates whether the relationship is synchronized.",
-				Type:        schema.TypeString,
+				Description: "List of remote copy relationships",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"auxiliary_changed_volume_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Name of the volume that is acting as the auxiliary change volume for the relationship",
+						},
+						"auxiliary_volume_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Auxiliary volume name at storage host level",
+						},
+						"consistency_group_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Consistency Group Name if volume is a part of volume group",
+						},
+						"copy_type": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Indicates the copy type.",
+						},
+						"cycling_mode": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Indicates the type of cycling mode used.",
+						},
+						"freeze_time": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Freeze time of remote copy relationship",
+						},
+						"master_changed_volume_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Name of the volume that is acting as the master change volume for the relationship",
+						},
+						"master_volume_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Master volume name at storage host level",
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Remote copy relationship name",
+						},
+						"primary_role": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Indicates whether master/aux volume is playing the primary role",
+						},
+						"progress": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Indicates the relationship progress",
+						},
+						"remote_copy_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Remote copy relationship ID",
+						},
+						"state": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Indicates the relationship state",
+						},
+						"synchronized": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Indicates whether the relationship is synchronized",
+						},
+					},
+				},
 			},
 		},
 	}
-}
 
-func dataSourceIBMPIVolumeRemoteCopyRelationshipsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -121,9 +121,9 @@ func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context,
+  
+}
+func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	volClient := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
-	volData, err := volClient.GetVolumeRemoteCopyRelationships(d.Get(Arg_VolumeID).(string))
+	cloudInstanceID := d.Get(helpers.PICloudInstanceId).(string)
+	vgClient := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	vgData, err := vgClient.GetVolumeGroupRemoteCopyRelationships(d.Get(PIVolumeGroupID).(string))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(volData.ID)
-	d.Set(Attr_AuxiliaryChangedVolumeName, volData.AuxChangedVolumeName)
-	d.Set(Attr_AuxiliaryVolumeName, volData.AuxVolumeName)
-	d.Set(Attr_ConsistencyGroupName, volData.ConsistencyGroupName)
-	d.Set(Attr_CopyType, volData.CopyType)
-	d.Set(Attr_CyclingMode, volData.CyclingMode)
-	d.Set(Attr_CyclePeriodSeconds, volData.CyclePeriodSeconds)
-	d.Set(Attr_FreezeTime, volData.FreezeTime.String())
-	d.Set(Attr_MasterChangedVolumeName, volData.MasterChangedVolumeName)
-	d.Set(Attr_MasterVolumeName, volData.MasterVolumeName)
-	if volData.Name != nil {
-		d.Set(Attr_Name, volData.Name)
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -132,32 +132,32 @@ func dataSourceIBMPIVolumeGroupRemoteCopyRelationshipsReads(ctx context.Context,
+  
+	results := make([]map[string]interface{}, 0, len(vgData.RemoteCopyRelationships))
+	for _, i := range vgData.RemoteCopyRelationships {
+		if i != nil {
+			l := map[string]interface{}{
+				"auxiliary_changed_volume_name": i.AuxChangedVolumeName,
+				"auxiliary_volume_name":         i.AuxVolumeName,
+				"consistency_group_name":        i.ConsistencyGroupName,
+				"copy_type":                     i.CopyType,
+				"cycling_mode":                  i.CyclingMode,
+				"freeze_time":                   i.FreezeTime.String(),
+				"master_changed_volume_name":    i.MasterChangedVolumeName,
+				"master_volume_name":            i.MasterVolumeName,
+				"primary_role":                  i.PrimaryRole,
+				"progress":                      i.Progress,
+				"state":                         i.State,
+				"synchronized":                  i.Sync,
+			}
+			if i.Name != nil {
+				l["name"] = i.Name
+			}
+			if i.RemoteCopyID != nil {
+				l["remote_copy_id"] = i.RemoteCopyID
+			}
+
+			results = append(results, l)
+		}
 	}
-	d.Set(Attr_PrimaryRole, volData.PrimaryRole)
-	d.Set(Attr_Progress, volData.Progress)
-	if volData.RemoteCopyID != nil {
-		d.Set(Attr_RemoteCopyID, volData.RemoteCopyID)
-	}
-	d.Set(Attr_State, volData.State)
-	d.Set(Attr_Synchronized, volData.Sync)
+
+	d.SetId(vgData.ID)
+	d.Set("remote_copy_relationships", results)
 
 	return nil
 }
