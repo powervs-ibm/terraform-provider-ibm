@@ -77,7 +77,7 @@ func resourceIBMPIPlacementGroupCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	name := d.Get(Attr_SPPPlacementGroupNamePlacementGroupName).(string)
+	name := d.Get(Attr_SPPPlacementGroupName).(string)
 	policy := d.Get(Attr_SPPPlacementGroupPolicy).(string)
 	client := instance.NewIBMPIPlacementGroupClient(ctx, sess, cloudInstanceID)
 	body := &models.PlacementGroupCreate{
