@@ -108,9 +108,6 @@ const (
 	Attr_IP                                          = "ip"
 	Attr_IPAddress                                   = "ipaddress"
 	Attr_IPOctet                                     = "ipoctet"
-	Attr_IP                                          = "ip"
-	Attr_IPAddress                                   = "ipaddress"
-	Attr_IPOctet                                     = "ipoctet"
 	Attr_IsActive                                    = "is_active"
 	Attr_Jumbo                                       = "jumbo"
 	Attr_Key                                         = "key"
@@ -334,7 +331,6 @@ const (
 
 	Attr_PIInstanceSharedProcessorPool   = "shared_processor_pool"
 	Attr_PIInstanceSharedProcessorPoolID = "shared_processor_pool_id"
-	Arg_PIInstanceSharedProcessorPool    = "pi_shared_processor_pool"
 
 	// Placement Group
 	PIPlacementGroupID      = "placement_group_id"
