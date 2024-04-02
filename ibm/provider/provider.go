@@ -650,7 +650,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_workspaces":                             power.DatasourceIBMPIWorkspaces(),
 			"ibm_pi_datacenter":                             power.DataSourceIBMPIDatacenter(),
 			"ibm_pi_datacenters":                            power.DataSourceIBMPIDatacenters(),
-			"ibm_pi_hostgroup":                              power.DataSourceIBMPiHostgroup(),
+			"ibm_pi_host_group":                             power.DataSourceIBMPiHostGroup(),
 
 			// Added for private dns zones
 

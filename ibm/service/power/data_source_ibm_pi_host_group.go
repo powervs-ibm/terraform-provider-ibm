@@ -15,9 +15,9 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 )
 
-func DataSourceIBMPiHostgroup() *schema.Resource {
+func DataSourceIBMPiHostGroup() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceIBMPiHostgroupRead,
+		ReadContext: dataSourceIBMPiHostGroupRead,
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
@@ -28,14 +28,14 @@ func DataSourceIBMPiHostgroup() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_HostgroupID: {
-				Description: "Hostgroup ID.",
+				Description: "Host group ID.",
 				Required:    true,
 				Type:        schema.TypeString,
 			},
 			// Attributes
 			Attr_CreationDate: {
 				Computed:    true,
-				Description: "Date/Time of hostgroup creation.",
+				Description: "Date/Time of host group creation.",
 				Type:        schema.TypeString,
 			},
 			Attr_Hosts: {
@@ -48,17 +48,17 @@ func DataSourceIBMPiHostgroup() *schema.Resource {
 			},
 			Attr_Name: {
 				Computed:    true,
-				Description: "Name of the hostgroup.",
+				Description: "Name of the host group.",
 				Type:        schema.TypeString,
 			},
 			Attr_Primary: {
 				Computed:    true,
-				Description: "Name of the workspace owning the hostgroup.",
+				Description: "Name of the workspace owning the host group.",
 				Type:        schema.TypeString,
 			},
 			Attr_Secondaries: {
 				Computed:    true,
-				Description: "Names of workspaces the hostgroup has been shared with.",
+				Description: "Names of workspaces the host group has been shared with.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -68,26 +68,26 @@ func DataSourceIBMPiHostgroup() *schema.Resource {
 	}
 }
 
-func dataSourceIBMPiHostgroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceIBMPiHostGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	hostgroupID := d.Get(Arg_HostgroupID).(string)
+	hostGroupID := d.Get(Arg_HostgroupID).(string)
 	client := instance.NewIBMPHostgroupsClient(ctx, sess, cloudInstanceID)
-	hostgroup, err := client.GetHostgroup(hostgroupID)
+	hostGroup, err := client.GetHostGroup(hostGroupID)
 	if err != nil {
-		log.Printf("[DEBUG] get hostgroup %v", err)
+		log.Printf("[DEBUG] get host group %v", err)
 		return diag.FromErr(err)
 	}
 
-	d.SetId(hostgroup.ID)
+	d.SetId(hostGroup.ID)
 
-	d.Set(Attr_CreationDate, hostgroup.CreationDate.String())
-	d.Set(Attr_Hosts, hostgroup.Hosts)
-	d.Set(Attr_Name, hostgroup.Name)
-	d.Set(Attr_Primary, hostgroup.Primary)
-	d.Set(Attr_Secondaries, hostgroup.Secondaries)
+	d.Set(Attr_CreationDate, hostGroup.CreationDate.String())
+	d.Set(Attr_Hosts, hostGroup.Hosts)
+	d.Set(Attr_Name, hostGroup.Name)
+	d.Set(Attr_Primary, hostGroup.Primary)
+	d.Set(Attr_Secondaries, hostGroup.Secondaries)
 	return nil
 }

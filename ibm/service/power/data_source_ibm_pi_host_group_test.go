@@ -20,7 +20,7 @@ func TestAccIBMPiHostgroupDataSourceBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPiHostgroupDataSourceConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.ibm_pi_hostgroup.testacc_ds_hostgroup", "id"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_hostgroup.hostGroup", "id"),
 				),
 			},
 		},
@@ -29,7 +29,7 @@ func TestAccIBMPiHostgroupDataSourceBasic(t *testing.T) {
 
 func testAccCheckIBMPiHostgroupDataSourceConfigBasic() string {
 	return fmt.Sprintf(`
-		data "ibm_pi_hostgroup" "testacc_ds_hostgroup" {
+		data "ibm_pi_host_group" "hostGroup" {
 			pi_cloud_instance_id = "%s"
 			pi_hostgroup_id  = "%s"
 		}`, acc.Pi_cloud_instance_id, acc.Pi_hostgroup_id)

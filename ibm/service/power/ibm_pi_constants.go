@@ -6,6 +6,7 @@ const (
 	// Arguments
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_HostgroupID                         = "pi_host_group_id"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
@@ -29,11 +30,9 @@ const (
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeName                          = "pi_volume_name"
 	Arg_VolumeOnboardingID                  = "pi_volume_onboarding_id"
-	Arg_HostgroupID                         = "pi_hostgroup_id"
 	Arg_VTL                                 = "vtl"
 
 	// Attributes
-	Attr_Hosts                                       = "hosts"
 	Attr_AccessConfig                                = "access_config"
 	Attr_Action                                      = "action"
 	Attr_Addresses                                   = "addresses"
@@ -93,6 +92,7 @@ const (
 	Attr_GroupID                                     = "group_id"
 	Attr_HealthStatus                                = "health_status"
 	Attr_HostID                                      = "host_id"
+	Attr_Hosts                                       = "hosts"
 	Attr_Href                                        = "href"
 	Attr_Hypervisor                                  = "hypervisor"
 	Attr_HypervisorType                              = "hypervisor_type"
@@ -184,8 +184,6 @@ const (
 	Attr_ReservedCores                               = "reserved_cores"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
-	Attr_SPPPlacementGroups                          = "spp_placement_groups"
-	Attr_SSHKey                                      = "ssh_key"
 	Attr_Secondaries                                 = "secondaries"
 	Attr_ServerName                                  = "server_name"
 	Attr_Shareable                                   = "shreable"
