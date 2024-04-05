@@ -43,10 +43,20 @@ func DataSourceIBMPISAPProfile() *schema.Resource {
 				Description: "Amount of cores.",
 				Type:        schema.TypeInt,
 			},
+			Attr_FullSystemProfile: {
+				Computed:    true,
+				Description: "Requires full system for deployment.",
+				Type:        schema.TypeBool,
+			},
 			Attr_Memory: {
 				Computed:    true,
 				Description: "Amount of memory (in GB).",
 				Type:        schema.TypeInt,
+			},
+			Attr_SAPS: {
+				Computed:    true,
+				Description: "SAP Application Performance Standard",
+				Type:        schema.TypeString,
 			},
 			Attr_SupportedSystems: {
 				Computed:    true,
@@ -59,6 +69,11 @@ func DataSourceIBMPISAPProfile() *schema.Resource {
 			Attr_Type: {
 				Computed:    true,
 				Description: "Type of profile.",
+				Type:        schema.TypeString,
+			},
+			Attr_WorkloadType: {
+				Computed:    true,
+				Description: "Workload Type.",
 				Type:        schema.TypeString,
 			},
 		},
