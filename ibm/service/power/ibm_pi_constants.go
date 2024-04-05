@@ -3,6 +3,7 @@ package power
 import "time"
 
 const (
+
 	// Arguments
 	Arg_AffinityInstance                    = "pi_affinity_instance"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
@@ -13,14 +14,14 @@ const (
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
 	Arg_ImageAccessKey                      = "pi_image_access_key"
 	Arg_ImageBucketAccess                   = "pi_image_bucket_access"
-	Arg_ImageBucketName                     = "pi_image_bucket_name"
-	Arg_ImageName                           = "pi_image_name"
-	Arg_ImageId                             = "pi_image_id"
-	Arg_ImageSecretKey                      = "pi_image_secret_key"
-	Arg_ImageBucketRegion                   = "pi_image_bucket_region"
 	Arg_ImageBucketFileName                 = "pi_image_bucket_file_name"
-	Arg_ImageStorageType                    = "pi_image_storage_type"
+	Arg_ImageBucketName                     = "pi_image_bucket_name"
+	Arg_ImageBucketRegion                   = "pi_image_bucket_region"
+	Arg_ImageID                             = "pi_image_id"
+	Arg_ImageName                           = "pi_image_name"
+	Arg_ImageSecretKey                      = "pi_image_secret_key"
 	Arg_ImageStoragePool                    = "pi_image_storage_pool"
+	Arg_ImageStorageType                    = "pi_image_storage_type"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
 	Arg_NetworkName                         = "pi_network_name"
@@ -267,6 +268,17 @@ const (
 	Attr_Workspaces                                  = "workspaces"
 	Attr_WWN                                         = "wwn"
 
+	// Status
+	Status_Active             = "active"
+	Status_Completed          = "status_completed"
+	Status_Failed             = "status_failed"
+	Status_InProgress         = "status_in_progress"
+	Status_Queued             = "queued"
+	Status_ReadyForProcessing = "ready_for_processing"
+	Status_Retry              = "retry"
+	Status_Running            = "status_running"
+	Status_Waiting            = "status_waiting"
+
 	// TODO: Second Half Cleanup, remove extra variables
 
 	// SAP Profile
@@ -391,16 +403,6 @@ const (
 	Attr_SPPPlacementGroupPolicy  = "policy"
 	Attr_SPPPlacementGroupName    = "name"
 
-	// status
-	Image_Questatus           = "image_questatus"
-	Image_ActiveStatus        = "active_status"
-	Status_Queued             = "queued"
-	Status_Completed          = "status_completed"
-	Status_Failed             = "status_failed"
-	Status_InProgress         = "status_in_progress"
-	Status_Running            = "status_running"
-	Status_Waiting            = "status_waiting"
-	Status_ReadyForProcessing = "ready_for_processing"
 	// common status states
 	StatusShutoff = "SHUTOFF"
 	StatusActive  = "ACTIVE"

@@ -37,8 +37,8 @@ Example usage:
 ## Timeouts
 ibm_pi_key provides the following [timeouts](https://www.terraform.io/docs/language/resources/syntax.html) configuration options:
 
-- **create** - (Default 60 minutes) Used for creating a SSH key.
-- **delete** - (Default 60 minutes) Used for deleting a SSH key.
+- **Create** - (Default 60 minutes) Used for creating a SSH key.
+- **Delete** - (Default 60 minutes) Used for deleting a SSH key.
 
 ## Argument reference
 Review the argument references that you can specify for your resource. 
@@ -48,7 +48,7 @@ Review the argument references that you can specify for your resource.
 - `pi_ssh_key` - (Required, String) SSH RSA key. 
 
 ## Attribute reference
- In addition to all argument reference list, you can access the following attribute reference after your resource is created.
+In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
 - `creation_date` - (String) Date of SSH Key creation. 
 - `id` - (String) The unique identifier of the key. The ID is composed of `<pi_cloud_instance_id>/<pi_key_name>`.

@@ -34,94 +34,16 @@ func ResourceIBMPIImage() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			Arg_CloudInstanceID: {
-				Description: "PI cloud instance ID",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-			Arg_ImageName: {
-				Description:      "Image name",
-				DiffSuppressFunc: flex.ApplyOnce,
-				ForceNew:         true,
-				Required:         true,
-				Type:             schema.TypeString,
-			},
-			Arg_ImageId: {
-				ConflictsWith:    []string{Arg_ImageBucketName},
-				Description:      "Instance image id",
-				DiffSuppressFunc: flex.ApplyOnce,
-				ExactlyOneOf:     []string{Arg_ImageId, Arg_ImageBucketName},
-				ForceNew:         true,
-				Optional:         true,
-				Type:             schema.TypeString,
-			},
-
-			// COS import variables
-			Arg_ImageBucketName: {
-				ConflictsWith: []string{Arg_ImageId},
-				Description:   "Cloud Object Storage bucket name; bucket-name[/optional/folder]",
-				ExactlyOneOf:  []string{Arg_ImageId, Arg_ImageBucketName},
-				ForceNew:      true,
-				Optional:      true,
-				RequiredWith:  []string{Arg_ImageBucketRegion, Arg_ImageBucketFileName},
-				Type:          schema.TypeString,
-			},
-			Arg_ImageBucketAccess: {
-				ConflictsWith: []string{Arg_ImageId},
-				Description:   "Indicates if the bucket has public or private access",
-				Default:       "public",
+			// Arguments
+			Arg_AffinityInstance: {
+				ConflictsWith: []string{Arg_AffinityVolume},
+				Description:   "PVM Instance (ID or Name) to base storage affinity policy against; required if requesting 'affinity' and 'pi_affinity_volume' is not provided.",
 				ForceNew:      true,
 				Optional:      true,
 				Type:          schema.TypeString,
-				ValidateFunc:  validate.ValidateAllowedStringValues([]string{"public", "private"}),
-			},
-			Arg_ImageAccessKey: {
-				Description:  "Cloud Object Storage access key; required for buckets with private access",
-				ForceNew:     true,
-				Optional:     true,
-				RequiredWith: []string{Arg_ImageSecretKey},
-				Sensitive:    true,
-				Type:         schema.TypeString,
-			},
-			Arg_ImageSecretKey: {
-				Description:  "Cloud Object Storage secret key; required for buckets with private access",
-				ForceNew:     true,
-				Optional:     true,
-				RequiredWith: []string{Arg_ImageAccessKey},
-				Sensitive:    true,
-				Type:         schema.TypeString,
-			},
-			Arg_ImageBucketRegion: {
-				ConflictsWith: []string{Arg_ImageId},
-				Description:   "Cloud Object Storage region",
-				Optional:      true,
-				ForceNew:      true,
-				RequiredWith:  []string{Arg_ImageBucketName},
-				Type:          schema.TypeString,
-			},
-			Arg_ImageBucketFileName: {
-				ConflictsWith: []string{Arg_ImageId},
-				Description:   "Cloud Object Storage image filename",
-				ForceNew:      true,
-				Optional:      true,
-				RequiredWith:  []string{Arg_ImageBucketName},
-				Type:          schema.TypeString,
-			},
-			Arg_ImageStorageType: {
-				Description: "Type of storage; If not specified, default is tier3",
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeString,
-			},
-			Arg_ImageStoragePool: {
-				Description: "Storage pool where the image will be loaded, if provided then pi_affinity_policy will be ignored",
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeString,
 			},
 			Arg_AffinityPolicy: {
-				Description:  "Affinity policy for image; ignored if pi_image_storage_pool provided; for policy affinity requires one of pi_affinity_instance or pi_affinity_volume to be specified; for policy anti-affinity requires one of pi_anti_affinity_instances or pi_anti_affinity_volumes to be specified",
+				Description:  "Affinity policy for image; ignored if 'pi_image_storage_pool' provided; for policy affinity requires one of 'pi_affinity_instance' or 'pi_affinity_volume' to be specified; for policy anti-affinity requires one of 'pi_anti_affinity_instances' or 'pi_anti_affinity_volumes' to be specified; Allowable values: 'affinity', 'anti-affinity'.",
 				ForceNew:     true,
 				Optional:     true,
 				Type:         schema.TypeString,
@@ -129,39 +51,116 @@ func ResourceIBMPIImage() *schema.Resource {
 			},
 			Arg_AffinityVolume: {
 				ConflictsWith: []string{Arg_AffinityInstance},
-				Description:   "Volume (ID or Name) to base storage affinity policy against; required if requesting affinity and pi_affinity_instance is not provided",
+				Description:   "Volume (ID or Name) to base storage affinity policy against; required if requesting 'affinity' and 'pi_affinity_instance' is not provided.",
 				ForceNew:      true,
 				Optional:      true,
 				Type:          schema.TypeString,
-			},
-			Arg_AffinityInstance: {
-				ConflictsWith: []string{Arg_AffinityVolume},
-				Description:   "PVM Instance (ID or Name) to base storage affinity policy against; required if requesting storage affinity and pi_affinity_volume is not provided",
-				ForceNew:      true,
-				Optional:      true,
-				Type:          schema.TypeString,
-			},
-			Arg_AntiAffinityVolumes: {
-				ConflictsWith: []string{Arg_AntiAffinityInstances},
-				Description:   "List of volumes to base storage anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_instances is not provided",
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				ForceNew:      true,
-				Optional:      true,
-				Type:          schema.TypeList,
 			},
 			Arg_AntiAffinityInstances: {
 				ConflictsWith: []string{Arg_AntiAffinityVolumes},
-				Description:   "List of pvmInstances to base storage anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_volumes is not provided",
+				Description:   "List of pvmInstances to base storage anti-affinity policy against; required if requesting 'anti-affinity' and 'pi_anti_affinity_volumes' is not provided.",
 				Elem:          &schema.Schema{Type: schema.TypeString},
 				ForceNew:      true,
 				Optional:      true,
 				Type:          schema.TypeList,
 			},
+			Arg_AntiAffinityVolumes: {
+				ConflictsWith: []string{Arg_AntiAffinityInstances},
+				Description:   "List of volumes to base storage anti-affinity policy against; required if requesting 'anti-affinity' and 'pi_anti_affinity_instances' is not provided.",
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ForceNew:      true,
+				Optional:      true,
+				Type:          schema.TypeList,
+			},
+			Arg_CloudInstanceID: {
+				Description: "The GUID of the service instance associated with an account.",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
+			},
+			Arg_ImageAccessKey: {
+				Description:  "Cloud Object Storage access key; required for buckets with private access.",
+				ForceNew:     true,
+				Optional:     true,
+				RequiredWith: []string{Arg_ImageSecretKey},
+				Sensitive:    true,
+				Type:         schema.TypeString,
+			},
+			Arg_ImageBucketAccess: {
+				ConflictsWith: []string{Arg_ImageID},
+				Description:   "Indicates if the bucket has public or private access. The default value is 'public'.",
+				Default:       "public",
+				ForceNew:      true,
+				Optional:      true,
+				Type:          schema.TypeString,
+				ValidateFunc:  validate.ValidateAllowedStringValues([]string{"public", "private"}),
+			},
+			Arg_ImageBucketFileName: {
+				ConflictsWith: []string{Arg_ImageID},
+				Description:   "Cloud Object Storage image filename.",
+				ForceNew:      true,
+				Optional:      true,
+				RequiredWith:  []string{Arg_ImageBucketName},
+				Type:          schema.TypeString,
+			},
+			Arg_ImageBucketName: {
+				ConflictsWith: []string{Arg_ImageID},
+				Description:   "Cloud Object Storage bucket name; 'bucket-name[/optional/folder]'.",
+				ExactlyOneOf:  []string{Arg_ImageID, Arg_ImageBucketName},
+				ForceNew:      true,
+				Optional:      true,
+				RequiredWith:  []string{Arg_ImageBucketRegion, Arg_ImageBucketFileName},
+				Type:          schema.TypeString,
+			},
+			Arg_ImageBucketRegion: {
+				ConflictsWith: []string{Arg_ImageID},
+				Description:   "Cloud Object Storage region.",
+				Optional:      true,
+				ForceNew:      true,
+				RequiredWith:  []string{Arg_ImageBucketName},
+				Type:          schema.TypeString,
+			},
+			Arg_ImageID: {
+				ConflictsWith:    []string{Arg_ImageBucketName},
+				Description:      "Image ID of existing source image; required for copy image.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				ExactlyOneOf:     []string{Arg_ImageID, Arg_ImageBucketName},
+				ForceNew:         true,
+				Optional:         true,
+				Type:             schema.TypeString,
+			},
+			Arg_ImageName: {
+				Description:      "The name of an image.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				ForceNew:         true,
+				Required:         true,
+				Type:             schema.TypeString,
+			},
+			Arg_ImageSecretKey: {
+				Description:  "Cloud Object Storage secret key; required for buckets with private access.",
+				ForceNew:     true,
+				Optional:     true,
+				RequiredWith: []string{Arg_ImageAccessKey},
+				Sensitive:    true,
+				Type:         schema.TypeString,
+			},
+			Arg_ImageStoragePool: {
+				Description: "Storage pool where the image will be loaded, if provided then `pi_affinity_policy` will be ignored. Used only when importing an image from cloud storage.",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
+			Arg_ImageStorageType: {
+				Description: "Type of storage; If not provided the storage type will default to 'tier3'. Used only when importing an image from cloud storage.",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 
-			// Computed Attribute
+			// Attributes
 			Attr_ImageID: {
 				Computed:    true,
-				Description: "Image ID",
+				Description: "The unique identifier of an image.",
 				Type:        schema.TypeString,
 			},
 		},
@@ -180,7 +179,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	client := instance.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
 	// image copy
-	if v, ok := d.GetOk(Arg_ImageId); ok {
+	if v, ok := d.GetOk(Arg_ImageID); ok {
 		imageid := v.(string)
 		source := "root-project"
 		var body = &models.CreateImage{
@@ -231,29 +230,29 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 		if v, ok := d.GetOk(Arg_ImageStoragePool); ok {
 			body.StoragePool = v.(string)
 		}
-		if ap, ok := d.GetOk(PIAffinityPolicy); ok {
+		if ap, ok := d.GetOk(Arg_AffinityPolicy); ok {
 			policy := ap.(string)
 			affinity := &models.StorageAffinity{
 				AffinityPolicy: &policy,
 			}
 
 			if policy == "affinity" {
-				if av, ok := d.GetOk(PIAffinityVolume); ok {
-					afvol := av.(string)
-					affinity.AffinityVolume = &afvol
-				}
-				if ai, ok := d.GetOk(PIAffinityInstance); ok {
+				if ai, ok := d.GetOk(Arg_AffinityInstance); ok {
 					afins := ai.(string)
 					affinity.AffinityPVMInstance = &afins
 				}
-			} else {
-				if avs, ok := d.GetOk(PIAntiAffinityVolumes); ok {
-					afvols := flex.ExpandStringList(avs.([]interface{}))
-					affinity.AntiAffinityVolumes = afvols
+				if av, ok := d.GetOk(Arg_AffinityVolume); ok {
+					afvol := av.(string)
+					affinity.AffinityVolume = &afvol
 				}
-				if ais, ok := d.GetOk(PIAntiAffinityInstances); ok {
+			} else {
+				if ais, ok := d.GetOk(Arg_AntiAffinityInstances); ok {
 					afinss := flex.ExpandStringList(ais.([]interface{}))
 					affinity.AntiAffinityPVMInstances = afinss
+				}
+				if avs, ok := d.GetOk(Arg_AntiAffinityVolumes); ok {
+					afvols := flex.ExpandStringList(avs.([]interface{}))
+					affinity.AntiAffinityVolumes = afvols
 				}
 			}
 			body.StorageAffinity = affinity
@@ -306,7 +305,7 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	imageid := *imagedata.ImageID
-	d.Set("image_id", imageid)
+	d.Set(Attr_ImageID, imageid)
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 
 	return nil
@@ -337,8 +336,8 @@ func isWaitForIBMPIImageAvailable(ctx context.Context, client *instance.IBMPIIma
 	log.Printf("Waiting for Power Image (%s) to be available.", id)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", Image_Questatus},
-		Target:     []string{Image_ActiveStatus},
+		Pending:    []string{Status_Retry, Status_Queued},
+		Target:     []string{Status_Active},
 		Refresh:    isIBMPIImageRefreshFunc(ctx, client, id),
 		Timeout:    timeout,
 		Delay:      20 * time.Second,
@@ -349,7 +348,6 @@ func isWaitForIBMPIImageAvailable(ctx context.Context, client *instance.IBMPIIma
 }
 
 func isIBMPIImageRefreshFunc(ctx context.Context, client *instance.IBMPIImageClient, id string) resource.StateRefreshFunc {
-
 	log.Printf("Calling the isIBMPIImageRefreshFunc Refresh Function....")
 	return func() (interface{}, string, error) {
 		image, err := client.Get(id)
@@ -357,11 +355,11 @@ func isIBMPIImageRefreshFunc(ctx context.Context, client *instance.IBMPIImageCli
 			return nil, "", err
 		}
 
-		if image.State == "active" {
-			return image, Image_ActiveStatus, nil
+		if image.State == Status_Active {
+			return image, Status_Active, nil
 		}
 
-		return image, Image_Questatus, nil
+		return image, Status_Queued, nil
 	}
 }
 
