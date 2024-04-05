@@ -56,7 +56,7 @@ func DataSourceIBMPISAPProfile() *schema.Resource {
 			Attr_SAPS: {
 				Computed:    true,
 				Description: "SAP Application Performance Standard",
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 			},
 			Attr_SupportedSystems: {
 				Computed:    true,
@@ -99,9 +99,12 @@ func dataSourceIBMPISAPProfileRead(ctx context.Context, d *schema.ResourceData, 
 	d.SetId(*sapProfile.ProfileID)
 	d.Set(Attr_Certified, *sapProfile.Certified)
 	d.Set(Attr_Cores, *sapProfile.Cores)
+	d.Set(Attr_FullSystemProfile, *sapProfile.FullSystemProfile)
 	d.Set(Attr_Memory, *sapProfile.Memory)
-	d.Set(Attr_Type, *sapProfile.Type)
+	d.Set(Attr_SAPS, *sapProfile.Saps)
 	d.Set(Attr_SupportedSystems, sapProfile.SupportedSystems)
+	d.Set(Attr_Type, *sapProfile.Type)
+	d.Set(Attr_WorkloadType, *sapProfile.WorkloadType)
 
 	return nil
 }
