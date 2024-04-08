@@ -301,7 +301,9 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-	OS_IBMI                                          = "ibmi"
+
+	// Instance
+	OS_IBMI = "ibmi"
 
 	// TODO: Second Half Cleanup, remove extra variables
 
