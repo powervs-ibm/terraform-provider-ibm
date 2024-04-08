@@ -1,21 +1,21 @@
 ---
 subcategory: "Power Systems"
 layout: "ibm"
-page_title: "IBM: ibm_pi_hostgroup"
+page_title: "IBM: ibm_pi_host_group"
 description: |-
-  Manages a hostgroup in
+  Manages a host group in
 ---
 
-# ibm_pi_hostgroup
+# ibm_pi_host_group
 
-Provides a read-only data source to retrieve information about a hostgroup you can use in Power Systems Virtual Server. For more information, about ower Systems Virtual Server hostgroup, see [hostgroups](https://cloud.ibm.com/apidocs/power-cloud#endpoint).
+Provides a read-only data source to retrieve information about a host group you can use in Power Systems Virtual Server. For more information, about Power Systems Virtual Server host group, see [host groups](https://cloud.ibm.com/apidocs/power-cloud#endpoint).
 
 ## Example usage
 
 ```terraform
-data "ibm_pi_hostgroup" "ds_hostgroup" {
+data "ibm_pi_host_group" "ds_host_group" {
     pi_cloud_instance_id    = "<value of the cloud_instance_id>"
-    pi_hostgroup_id         = "<value of the hostgroup_id>"
+    pi_host_group_id         = "<value of the host_group_id>"
 }
 ```
 
@@ -41,19 +41,19 @@ You can specify the following arguments for this data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 
-- `hostgroup_id` - (Required, Forces new resource, String) Hostgroup ID.
+- `pi_host_group_id` - (Required, Forces new resource, String) Host group ID.
 
 ## Attribute Reference
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
-- `id` - The unique identifier of the hostgroup.
-- `creation_date` - (String) Date/Time of hostgroup creation.
+- `id` - The unique identifier of the host group.
+- `creation_date` - (String) Date/Time of host group creation.
 
 - `hosts` - (List) List of hosts.
 
-- `name` - (String) Name of the hostgroup.
+- `name` - (String) Name of the host group.
 
-- `primary` - (String) Name of the workspace owning the hostgroup.
+- `primary` - (String) Name of the workspace owning the host group.
 
-- `secondaries` - (List) Names of workspaces the hostgroup has been shared with.
+- `secondaries` - (List) Names of workspaces the host group has been shared with.
