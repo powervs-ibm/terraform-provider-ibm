@@ -13,10 +13,10 @@ const (
 	Arg_DhcpID                              = "pi_dhcp_id"
 	Arg_DhcpName                            = "pi_dhcp_name"
 	Arg_DhcpSnatEnabled                     = "pi_dhcp_snat_enabled"
+	Arg_HostgroupID                         = "pi_host_group_id"
 	Arg_IBMiCSS                             = "pi_ibmi_css"
 	Arg_IBMiPHA                             = "pi_ibmi_pha"
 	Arg_IBMiRDSUsers                        = "pi_ibmi_rds_users"
-	Arg_HostgroupID                         = "pi_host_group_id"
 	Arg_ImageName                           = "pi_image_name"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
@@ -219,8 +219,8 @@ const (
 	Attr_ReservedCores                               = "reserved_cores"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
-	Attr_Secondaries                                 = "secondaries"
 	Attr_SAPS                                        = "saps"
+	Attr_Secondaries                                 = "secondaries"
 	Attr_ServerName                                  = "server_name"
 	Attr_Shareable                                   = "shreable"
 	Attr_SharedCoreRatio                             = "shared_core_ratio"
@@ -305,9 +305,7 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-
-	// Instance
-	OS_IBMI = "ibmi"
+	OS_IBMI                                          = "ibmi"
 
 	// TODO: Second Half Cleanup, remove extra variables
 

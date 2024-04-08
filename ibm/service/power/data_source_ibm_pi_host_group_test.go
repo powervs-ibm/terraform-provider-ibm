@@ -12,13 +12,13 @@ import (
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 )
 
-func TestAccIBMPiHostgroupDataSourceBasic(t *testing.T) {
+func TestAccIBMPIHostgroupDataSourceBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPiHostgroupDataSourceConfigBasic(),
+				Config: testAccCheckIBMPIHostgroupDataSourceConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.ibm_pi_hostgroup.hostGroup", "id"),
 				),
@@ -27,10 +27,10 @@ func TestAccIBMPiHostgroupDataSourceBasic(t *testing.T) {
 	})
 }
 
-func testAccCheckIBMPiHostgroupDataSourceConfigBasic() string {
+func testAccCheckIBMPIHostgroupDataSourceConfigBasic() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_host_group" "hostGroup" {
 			pi_cloud_instance_id = "%s"
 			pi_hostgroup_id  = "%s"
-		}`, acc.Pi_cloud_instance_id, acc.Pi_hostgroup_id)
+		}`, acc.Pi_cloud_instance_id, acc.Pi_host_group_id)
 }

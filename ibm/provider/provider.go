@@ -608,6 +608,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_dhcps":                                  power.DataSourceIBMPIDhcps(),
 			"ibm_pi_disaster_recovery_location":             power.DataSourceIBMPIDisasterRecoveryLocation(),
 			"ibm_pi_disaster_recovery_locations":            power.DataSourceIBMPIDisasterRecoveryLocations(),
+			"ibm_pi_host_group":                             power.DataSourceIBMPIHostGroup(),
 			"ibm_pi_image":                                  power.DataSourceIBMPIImage(),
 			"ibm_pi_images":                                 power.DataSourceIBMPIImages(),
 			"ibm_pi_instance_ip":                            power.DataSourceIBMPIInstanceIP(),
@@ -650,9 +651,6 @@ func Provider() *schema.Provider {
 			"ibm_pi_volume":                                 power.DataSourceIBMPIVolume(),
 			"ibm_pi_workspace":                              power.DatasourceIBMPIWorkspace(),
 			"ibm_pi_workspaces":                             power.DatasourceIBMPIWorkspaces(),
-			"ibm_pi_datacenter":                             power.DataSourceIBMPIDatacenter(),
-			"ibm_pi_datacenters":                            power.DataSourceIBMPIDatacenters(),
-			"ibm_pi_host_group":                             power.DataSourceIBMPiHostGroup(),
 
 			// Added for private dns zones
 

@@ -15,9 +15,9 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 )
 
-func DataSourceIBMPiHostGroup() *schema.Resource {
+func DataSourceIBMPIHostGroup() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceIBMPiHostGroupRead,
+		ReadContext: dataSourceIBMPIHostGroupRead,
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
@@ -68,14 +68,14 @@ func DataSourceIBMPiHostGroup() *schema.Resource {
 	}
 }
 
-func dataSourceIBMPiHostGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceIBMPIHostGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	hostGroupID := d.Get(Arg_HostgroupID).(string)
-	client := instance.NewIBMPHostgroupsClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIHostGroupsClient(ctx, sess, cloudInstanceID)
 	hostGroup, err := client.GetHostGroup(hostGroupID)
 	if err != nil {
 		log.Printf("[DEBUG] get host group %v", err)
