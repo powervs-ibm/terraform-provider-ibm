@@ -64,7 +64,7 @@ func DataSourceIBMPIVolume() *schema.Resource {
 			},
 			Attr_IOThrottleRate: {
 				Computed:    true,
-				Description: "Amount of iops assigned to the volume",
+				Description: "Amount of iops assigned to the volume.",
 				Type:        schema.TypeString,
 			},
 			Attr_MasterVolumeName: {

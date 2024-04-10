@@ -11,13 +11,12 @@ import (
 	"testing"
 
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPIVolumebasic(t *testing.T) {
@@ -48,8 +47,8 @@ func TestAccIBMPIVolumebasic(t *testing.T) {
 		},
 	})
 }
-func testAccCheckIBMPIVolumeDestroy(s *terraform.State) error {
 
+func testAccCheckIBMPIVolumeDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return err
@@ -62,7 +61,7 @@ func testAccCheckIBMPIVolumeDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		volumeC := st.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
+		volumeC := instance.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
 		volume, err := volumeC.Get(volumeID)
 		if err == nil {
 			log.Println("volume*****", volume.State)
@@ -72,6 +71,7 @@ func testAccCheckIBMPIVolumeDestroy(s *terraform.State) error {
 
 	return nil
 }
+
 func testAccCheckIBMPIVolumeExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -93,7 +93,7 @@ func testAccCheckIBMPIVolumeExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(volumeID)
 		if err != nil {

@@ -10,16 +10,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_volumes"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIVolume() *schema.Resource {
@@ -37,130 +37,123 @@ func ResourceIBMPIVolume() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			Arg_CloudInstanceID: {
-				Description: "Cloud Instance ID - This is the service_instance_id.",
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-			Arg_VolumeName: {
-				Description: "Volume Name to create",
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-			Arg_VolumeShareable: {
-				Description: "Flag to indicate if the volume can be shared across multiple instances.",
-				Optional:    true,
-				Type:        schema.TypeBool,
-			},
-			Arg_VolumeSize: {
-				Description: "Size of the volume in GB",
-				Required:    true,
-				Type:        schema.TypeFloat,
-			},
-			Arg_VolumeType: {
-				Computed:         true,
+			// Arguments
+			Arg_AffinityInstance: {
+				ConflictsWith:    []string{Arg_AffinityVolume},
+				Description:      "PVM Instance (ID or Name) to base volume affinity policy against; required if requesting 'affinity' and 'pi_affinity_volume' is not provided.",
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Type of disk, if disk type is not provided the disk type will default to tier3",
-				Optional:         true,
-				ValidateFunc:     validate.ValidateAllowedStringValues([]string{"tier0", "tier1", "tier3", "tier5k"}),
-				Type:             schema.TypeString,
-			},
-			Arg_VolumePool: {
-				Computed:         true,
-				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Volume pool where the volume will be created; if provided then pi_affinity_policy values will be ignored",
 				Optional:         true,
 				Type:             schema.TypeString,
 			},
 			Arg_AffinityPolicy: {
+				Description:      "Affinity policy for data volume being created; ignored if 'pi_volume_pool' provided; for policy 'affinity' requires one of 'pi_affinity_instance' or 'pi_affinity_volume' to be specified; for policy 'anti-affinity' requires one of 'pi_anti_affinity_instances' or 'pi_anti_affinity_volumes' to be specified; Allowable values: 'affinity', 'anti-affinity'.",
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Affinity policy for data volume being created; ignored if pi_volume_pool provided; for policy affinity requires one of pi_affinity_instance or pi_affinity_volume to be specified; for policy anti-affinity requires one of pi_anti_affinity_instances or pi_anti_affinity_volumes to be specified",
 				Optional:         true,
-				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", Arg_AffinityPolicy),
 				Type:             schema.TypeString,
+				ValidateFunc:     validate.InvokeValidator("ibm_pi_volume", Arg_AffinityPolicy),
 			},
 			Arg_AffinityVolume: {
 				ConflictsWith:    []string{Arg_AffinityInstance},
+				Description:      "Volume (ID or Name) to base volume affinity policy against; required if requesting 'affinity' and 'pi_affinity_instance' is not provided.",
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "Volume (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_instance is not provided",
 				Optional:         true,
 				Type:             schema.TypeString,
-			},
-			Arg_AffinityInstance: {
-				ConflictsWith:    []string{Arg_AffinityVolume},
-				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "PVM Instance (ID or Name) to base volume affinity policy against; required if requesting affinity and pi_affinity_volume is not provided",
-				Optional:         true,
-				Type:             schema.TypeString,
-			},
-			Arg_AntiAffinityVolumes: {
-				ConflictsWith:    []string{Arg_AntiAffinityInstances},
-				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "List of volumes to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_instances is not provided",
-				Elem:             &schema.Schema{Type: schema.TypeString},
-				Optional:         true,
-				Type:             schema.TypeList,
 			},
 			Arg_AntiAffinityInstances: {
 				ConflictsWith:    []string{Arg_AntiAffinityVolumes},
+				Description:      "List of pvmInstances to base volume anti-affinity policy against; required if requesting 'anti-affinity' and 'pi_anti_affinity_volumes' is not provided.",
 				DiffSuppressFunc: flex.ApplyOnce,
-				Description:      "List of pvmInstances to base volume anti-affinity policy against; required if requesting anti-affinity and pi_anti_affinity_volumes is not provided",
 				Elem:             &schema.Schema{Type: schema.TypeString},
 				Optional:         true,
 				Type:             schema.TypeList,
 			},
-			Attr_ReplicationEnabled: {
+			Arg_AntiAffinityVolumes: {
+				ConflictsWith:    []string{Arg_AntiAffinityInstances},
+				Description:      "List of volumes to base volume anti-affinity policy against; required if requesting 'anti-affinity' and 'pi_anti_affinity_instances' is not provided.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				Elem:             &schema.Schema{Type: schema.TypeString},
+				Optional:         true,
+				Type:             schema.TypeList,
+			},
+			Arg_CloudInstanceID: {
+				Description:  "The GUID of the service instance associated with an account.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			Arg_ReplicationEnabled: {
 				Computed:    true,
-				Description: "Indicates if the volume should be replication enabled or not",
+				Description: "Indicates if the volume should be replication enabled or not.",
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
-
-			// Computed Attributes
-			Attr_VolumeIDs: {
-				Computed:    true,
-				Description: "Volume ID",
-				Type:        schema.TypeString,
+			Arg_VolumeName: {
+				Description:  "The name of the volume.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			Attr_VolumeStatus: {
-				Computed:    true,
-				Description: "Volume status",
-				Type:        schema.TypeString,
+			Arg_VolumePool: {
+				Computed:         true,
+				Description:      "Volume pool where the volume will be created; if provided then 'pi_affinity_policy' values will be ignored.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				Optional:         true,
+				Type:             schema.TypeString,
 			},
-
-			Attr_DeleteOnTermination: {
-				Computed:    true,
-				Description: "Should the volume be deleted during termination",
+			Arg_VolumeShareable: {
+				Description: "If set to true, the volume can be shared across Power Systems Virtual Server instances. If set to false, you can attach it only to one instance.",
+				Optional:    true,
 				Type:        schema.TypeBool,
 			},
-			Attr_WWN: {
-				Computed:    true,
-				Description: "WWN Of the volume",
-				Type:        schema.TypeString,
+			Arg_VolumeSize: {
+				Description:  "The size of the volume in gigabytes.",
+				Required:     true,
+				Type:         schema.TypeFloat,
+				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_VolumeType: {
+				Computed:         true,
+				Description:      "Type of disk, if diskType is not provided the disk type will default to 'tier3'",
+				DiffSuppressFunc: flex.ApplyOnce,
+				Optional:         true,
+				Type:             schema.TypeString,
+				ValidateFunc:     validate.ValidateAllowedStringValues([]string{"tier0", "tier1", "tier3", "tier5k"}),
+			},
+
+			// Attributes
 			Attr_Auxiliary: {
 				Computed:    true,
-				Description: "true if volume is auxiliary otherwise false",
+				Description: "Indicates if the volume is auxiliary or not.",
 				Type:        schema.TypeBool,
+			},
+			Attr_AuxiliaryVolumeName: {
+				Computed:    true,
+				Description: "The auxiliary volume name.",
+				Type:        schema.TypeString,
 			},
 			Attr_ConsistencyGroupName: {
 				Computed:    true,
-				Description: "Consistency Group Name if volume is a part of volume group",
+				Description: "The consistency group name if volume is a part of volume group.",
 				Type:        schema.TypeString,
+			},
+			Attr_DeleteOnTermination: {
+				Computed:    true,
+				Description: "Indicates if the volume should be deleted when the server terminates.",
+				Type:        schema.TypeBool,
 			},
 			Attr_GroupID: {
 				Computed:    true,
-				Description: "Volume Group ID",
+				Description: "The volume group id to which volume belongs.",
 				Type:        schema.TypeString,
 			},
-			Attr_ReplicationType: {
+			Attr_IOThrottleRate: {
 				Computed:    true,
-				Description: "Replication type(metro,global)",
+				Description: "Amount of iops assigned to the volume.",
 				Type:        schema.TypeString,
 			},
-			Attr_ReplicationStatus: {
+			Attr_MasterVolumeName: {
 				Computed:    true,
-				Description: "Replication status of a volume",
+				Description: "Indicates master volume name",
 				Type:        schema.TypeString,
 			},
 			Attr_MirroringState: {
@@ -170,31 +163,40 @@ func ResourceIBMPIVolume() *schema.Resource {
 			},
 			Attr_PrimaryRole: {
 				Computed:    true,
-				Description: "Indicates whether master/aux volume is playing the primary role",
+				Description: "Indicates whether 'master'/'auxiliary' volume is playing the primary role.",
 				Type:        schema.TypeString,
 			},
-			Attr_AuxiliaryVolumeName: {
+			Attr_ReplicationStatus: {
 				Computed:    true,
-				Description: "Indicates auxiliary volume name",
+				Description: "The replication status of the volume.",
 				Type:        schema.TypeString,
 			},
-			Attr_MasterVolumeName: {
+			Attr_ReplicationType: {
 				Computed:    true,
-				Description: "Indicates master volume name",
+				Description: "The replication type of the volume 'metro' or 'global'.",
 				Type:        schema.TypeString,
 			},
-			Attr_IoThrottleRate: {
+			Attr_VolumeIDs: {
 				Computed:    true,
-				Description: "Amount of iops assigned to the volume",
+				Description: "The unique identifier of the volume.",
+				Type:        schema.TypeString,
+			},
+			Attr_VolumeStatus: {
+				Computed:    true,
+				Description: "The status of the volume.",
+				Type:        schema.TypeString,
+			},
+			Attr_WWN: {
+				Computed:    true,
+				Description: "The world wide name of the volume.",
 				Type:        schema.TypeString,
 			},
 		},
 	}
 }
+
 func ResourceIBMPIVolumeValidator() *validate.ResourceValidator {
-
 	validateSchema := make([]validate.ValidateSchema, 0)
-
 	validateSchema = append(validateSchema,
 		validate.ValidateSchema{
 			Identifier:                 "pi_affinity",
@@ -234,7 +236,7 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		volumePool := v.(string)
 		body.VolumePool = volumePool
 	}
-	if v, ok := d.GetOk(Attr_ReplicationEnabled); ok {
+	if v, ok := d.GetOk(Arg_ReplicationEnabled); ok {
 		replicationEnabled := v.(bool)
 		body.ReplicationEnabled = &replicationEnabled
 	}
@@ -298,33 +300,34 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.Set(Arg_VolumeName, vol.Name)
-	d.Set(Arg_VolumeSize, vol.Size)
-	if vol.Shareable != nil {
-		d.Set(Arg_VolumeShareable, vol.Shareable)
-	}
-	d.Set(Arg_VolumeType, vol.DiskType)
-	d.Set(Arg_VolumePool, vol.VolumePool)
-	d.Set(Attr_VolumeStatus, vol.State)
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	if vol.VolumeID != nil {
 		d.Set(Attr_VolumeIDs, vol.VolumeID)
 	}
-	d.Set(Attr_ReplicationEnabled, vol.ReplicationEnabled)
+	d.Set(Arg_VolumeName, vol.Name)
+	d.Set(Arg_VolumePool, vol.VolumePool)
+	if vol.Shareable != nil {
+		d.Set(Arg_VolumeShareable, vol.Shareable)
+	}
+	d.Set(Arg_VolumeSize, vol.Size)
+	d.Set(Arg_VolumeType, vol.DiskType)
+
 	d.Set(Attr_Auxiliary, vol.Auxiliary)
-	d.Set(Attr_ConsistencyGroupName, vol.ConsistencyGroupName)
-	d.Set(Attr_GroupID, vol.GroupID)
-	d.Set(Attr_ReplicationType, vol.ReplicationType)
-	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
-	d.Set(Attr_MirroringState, vol.MirroringState)
-	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
-	d.Set(Attr_MasterVolumeName, vol.MasterVolumeName)
 	d.Set(Attr_AuxiliaryVolumeName, vol.AuxVolumeName)
+	d.Set(Attr_ConsistencyGroupName, vol.ConsistencyGroupName)
 	if vol.DeleteOnTermination != nil {
 		d.Set(Attr_DeleteOnTermination, vol.DeleteOnTermination)
 	}
-	d.Set(Attr_WWN, vol.Wwn)
-	d.Set(Arg_CloudInstanceID, cloudInstanceID)
+	d.Set(Attr_GroupID, vol.GroupID)
 	d.Set(Attr_IOThrottleRate, vol.IoThrottleRate)
+	d.Set(Attr_MasterVolumeName, vol.MasterVolumeName)
+	d.Set(Attr_MirroringState, vol.MirroringState)
+	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
+	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
+	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
+	d.Set(Attr_ReplicationType, vol.ReplicationType)
+	d.Set(Attr_VolumeStatus, vol.State)
+	d.Set(Attr_WWN, vol.Wwn)
 
 	return nil
 }
@@ -362,10 +365,10 @@ func resourceIBMPIVolumeUpdate(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(Attr_ReplicationEnabled, Arg_VolumeType) {
+	if d.HasChanges(Arg_ReplicationEnabled, Arg_VolumeType) {
 		volActionBody := models.VolumeAction{}
-		if d.HasChange(Attr_ReplicationEnabled) {
-			volActionBody.ReplicationEnabled = flex.PtrToBool(d.Get(Attr_ReplicationEnabled).(bool))
+		if d.HasChange(Arg_ReplicationEnabled) {
+			volActionBody.ReplicationEnabled = flex.PtrToBool(d.Get(Arg_ReplicationEnabled).(bool))
 		}
 		if d.HasChange(Arg_VolumeType) {
 			volActionBody.TargetStorageTier = flex.PtrToString(d.Get(Arg_VolumeType).(string))
@@ -410,9 +413,9 @@ func resourceIBMPIVolumeDelete(ctx context.Context, d *schema.ResourceData, meta
 func isWaitForIBMPIVolumeAvailable(ctx context.Context, client *instance.IBMPIVolumeClient, id string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for Volume (%s) to be available.", id)
 
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"retry", PIVolumeProvisioning},
-		Target:     []string{PIVolumeProvisioningDone},
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Retry, State_Creating},
+		Target:     []string{State_Available},
 		Refresh:    isIBMPIVolumeRefreshFunc(client, id),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
@@ -422,25 +425,25 @@ func isWaitForIBMPIVolumeAvailable(ctx context.Context, client *instance.IBMPIVo
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeRefreshFunc(client *instance.IBMPIVolumeClient, id string) resource.StateRefreshFunc {
+func isIBMPIVolumeRefreshFunc(client *instance.IBMPIVolumeClient, id string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		vol, err := client.Get(id)
 		if err != nil {
 			return nil, "", err
 		}
 
-		if vol.State == "available" || vol.State == "in-use" {
-			return vol, PIVolumeProvisioningDone, nil
+		if vol.State == State_Available || vol.State == State_InUse {
+			return vol, State_Available, nil
 		}
 
-		return vol, PIVolumeProvisioning, nil
+		return vol, State_Creating, nil
 	}
 }
 
 func isWaitForIBMPIVolumeDeleted(ctx context.Context, client *instance.IBMPIVolumeClient, id string, timeout time.Duration) (interface{}, error) {
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"deleting", PIVolumeProvisioning},
-		Target:     []string{"deleted"},
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Deleting, State_Creating},
+		Target:     []string{State_Deleted},
 		Refresh:    isIBMPIVolumeDeleteRefreshFunc(client, id),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
@@ -449,7 +452,7 @@ func isWaitForIBMPIVolumeDeleted(ctx context.Context, client *instance.IBMPIVolu
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeDeleteRefreshFunc(client *instance.IBMPIVolumeClient, id string) resource.StateRefreshFunc {
+func isIBMPIVolumeDeleteRefreshFunc(client *instance.IBMPIVolumeClient, id string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		vol, err := client.Get(id)
 		if err != nil {
@@ -457,13 +460,13 @@ func isIBMPIVolumeDeleteRefreshFunc(client *instance.IBMPIVolumeClient, id strin
 			switch uErr.(type) {
 			case *p_cloud_volumes.PcloudCloudinstancesVolumesGetNotFound:
 				log.Printf("[DEBUG] volume does not exist %v", err)
-				return vol, "deleted", nil
+				return vol, State_Deleted, nil
 			}
 			return nil, "", err
 		}
 		if vol == nil {
-			return vol, "deleted", nil
+			return vol, State_Deleted, nil
 		}
-		return vol, "deleting", nil
+		return vol, State_Deleting, nil
 	}
 }
