@@ -27,10 +27,11 @@ func DataSourceIBMPIHostGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Arg_HostgroupID: {
-				Description: "Host group ID.",
-				Required:    true,
-				Type:        schema.TypeString,
+			Arg_HostGroupID: {
+				Description:  "Host group ID.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			// Attributes
 			Attr_CreationDate: {
@@ -53,12 +54,12 @@ func DataSourceIBMPIHostGroup() *schema.Resource {
 			},
 			Attr_Primary: {
 				Computed:    true,
-				Description: "Name of the workspace owning the host group.",
+				Description: "ID of the workspace owning the host group.",
 				Type:        schema.TypeString,
 			},
 			Attr_Secondaries: {
 				Computed:    true,
-				Description: "Names of workspaces the host group has been shared with.",
+				Description: "IDs of workspaces the host group has been shared with.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -74,7 +75,7 @@ func dataSourceIBMPIHostGroupRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	hostGroupID := d.Get(Arg_HostgroupID).(string)
+	hostGroupID := d.Get(Arg_HostGroupID).(string)
 	client := instance.NewIBMPIHostGroupsClient(ctx, sess, cloudInstanceID)
 	hostGroup, err := client.GetHostGroup(hostGroupID)
 	if err != nil {

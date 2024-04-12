@@ -13,7 +13,7 @@ const (
 	Arg_DhcpID                              = "pi_dhcp_id"
 	Arg_DhcpName                            = "pi_dhcp_name"
 	Arg_DhcpSnatEnabled                     = "pi_dhcp_snat_enabled"
-	Arg_HostgroupID                         = "pi_host_group_id"
+	Arg_HostGroupID                         = "pi_host_group_id"
 	Arg_IBMiCSS                             = "pi_ibmi_css"
 	Arg_IBMiPHA                             = "pi_ibmi_pha"
 	Arg_IBMiRDSUsers                        = "pi_ibmi_rds_users"

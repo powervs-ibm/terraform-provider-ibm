@@ -54,6 +54,6 @@ In addition to all argument reference list, you can access the following attribu
 
 - `name` - (String) Name of the host group.
 
-- `primary` - (String) Name of the workspace owning the host group.
+- `primary` - (String) ID of the workspace owning the host group.
 
-- `secondaries` - (List) Names of workspaces the host group has been shared with.
+- `secondaries` - (List) IDs of workspaces the host group has been shared with.
