@@ -42,9 +42,5 @@ In addition to all argument reference list, you can access the following attribu
 
 - `certified` - (Boolean) Has certification been performed on profile.
 - `cores` - (Integer) Amount of cores.
-- `full_system_profile` - (Boolean) Requires full system for deployment.
 - `memory` - (Integer) Amount of memory (in GB).
-- `saps` - (Integer) SAP Application Performance Standard.
-- `supported_systems` - (List) List of supported systems.
 - `type` - (String) Type of profile.
-- `workload_type` - (String) Workload Type
