@@ -4,6 +4,7 @@ import "time"
 
 const (
 	// Arguments
+	Arg_Action                              = "pi_action"
 	Arg_AffinityInstance                    = "pi_affinity_instance"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
 	Arg_AffinityVolume                      = "pi_affinity_volume"
@@ -19,10 +20,12 @@ const (
 	Arg_DhcpID                              = "pi_dhcp_id"
 	Arg_DhcpName                            = "pi_dhcp_name"
 	Arg_DhcpSnatEnabled                     = "pi_dhcp_snat_enabled"
+	Arg_HealthStatus                        = "pi_health_status"
 	Arg_IBMiCSS                             = "pi_ibmi_css"
 	Arg_IBMiPHA                             = "pi_ibmi_pha"
 	Arg_IBMiRDSUsers                        = "pi_ibmi_rds_users"
 	Arg_ImageName                           = "pi_image_name"
+	Arg_InstanceID                          = "pi_instance_id"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
 	Arg_LanguageCode                        = "pi_language_code"
@@ -93,9 +96,9 @@ const (
 	Attr_CoreMemoryRatio                             = "core_memory_ratio"
 	Attr_Cores                                       = "cores"
 	Attr_CPUs                                        = "cpus"
+	Attr_Created                                     = "created"
 	Attr_CreateTime                                  = "create_time"
 	Attr_CreationDate                                = "creation_date"
-	Attr_Created                                     = "created"
 	Attr_CRN                                         = "crn"
 	Attr_CyclePeriodSeconds                          = "cycle_period_seconds"
 	Attr_CyclingMode                                 = "cycling_mode"
@@ -322,11 +325,8 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-	OS_IBMI                                          = "ibmi"
 
-	// Affinty Values
-	Affinity     = "affinity"
-	AntiAffinity = "anti-affinity"
+	OS_IBMI = "ibmi"
 
 	// States
 	State_Active              = "active"
@@ -339,18 +339,41 @@ const (
 	State_Deleted             = "deleted"
 	State_Deleting            = "deleting"
 	State_DELETING            = "DELETING"
+	State_Error               = "error"
 	State_Failed              = "failed"
 	State_Inactive            = "inactive"
 	State_InProgress          = "in progress"
 	State_InUse               = "in-use"
 	State_NotFound            = "Not Found"
+	State_Pending             = "pending"
 	State_PendingReclaimation = "pending_reclamation"
 	State_Provisioning        = "provisioning"
 	State_Removed             = "removed"
 	State_Retry               = "retry"
+	State_Shutoff             = "shutoff"
 
-	// Health
-	Health_OK = "OK"
+	// Status
+	Status_Active  = "ACTIVE"
+	Status_Error   = "ERROR"
+	Status_Pending = "PENDING"
+	Status_Shutoff = "SHUTOFF"
+	StatusBuild    = "BUILD"
+	StatusResize   = "RESIZE"
+
+	// Action
+	Action_HardReboot        = "hard-reboot"
+	Action_ImmediateShutdown = "immediate-shutdown"
+	Action_ResetState        = "reset-state"
+	Action_SoftReboot        = "soft-reboot"
+	Action_Start             = "start"
+	Action_Stop              = "stop"
+
+	// Allowed Values
+	Affinity     = "affinity"
+	AntiAffinity = "anti-affinity"
+	Critical     = "CRITICAL"
+	OK           = "OK"
+	Warning      = "WARNING"
 
 	// TODO: Second Half Cleanup, remove extra variables
 
@@ -361,9 +384,6 @@ const (
 	PISAPProfileMemory    = "memory"
 	PISAPProfileID        = "profile_id"
 	PISAPProfileType      = "type"
-
-	PVMInstanceHealthOk      = "OK"
-	PVMInstanceHealthWarning = "WARNING"
 
 	//Added timeout values for warning  and active status
 	warningTimeOut = 60 * time.Second
@@ -433,17 +453,6 @@ const (
 
 	// Cloud Connections
 	PICloudConnectionTransitEnabled = "pi_cloud_connection_transit_enabled"
-
-	// status
-	// common status states
-	StatusShutoff = "SHUTOFF"
-	StatusActive  = "ACTIVE"
-	StatusResize  = "RESIZE"
-	StatusError   = "ERROR"
-	StatusBuild   = "BUILD"
-	StatusPending = "PENDING"
-	SctionStart   = "start"
-	SctionStop    = "stop"
 
 	// volume clone task status
 	VolumeCloneCompleted = "completed"
