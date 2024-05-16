@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPINetworkbasic(t *testing.T) {
@@ -139,7 +139,7 @@ func testAccCheckIBMPINetworkDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		networkC := st.NewIBMPINetworkClient(context.Background(), sess, cloudInstanceID)
+		networkC := instance.NewIBMPINetworkClient(context.Background(), sess, cloudInstanceID)
 		_, err = networkC.Get(networkID)
 		if err == nil {
 			return fmt.Errorf("PI Network still exists: %s", rs.Primary.ID)
@@ -169,7 +169,7 @@ func testAccCheckIBMPINetworkExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPINetworkClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPINetworkClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(networkID)
 		if err != nil {
