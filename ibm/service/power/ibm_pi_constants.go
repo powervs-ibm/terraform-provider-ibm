@@ -27,6 +27,8 @@ const (
 	Arg_KeyName                             = "pi_key_name"
 	Arg_LanguageCode                        = "pi_language_code"
 	Arg_NetworkName                         = "pi_network_name"
+	Arg_NetworkPortDescription              = "pi_network_port_description"
+	Arg_NetworkPortIPAddress                = "pi_network_port_ipaddress"
 	Arg_PIInstanceSharedProcessorPool       = "pi_shared_processor_pool"
 	Arg_PlacementGroupName                  = "pi_placement_group_name"
 	Arg_PlacementGroupPolicy                = "pi_placement_group_policy"
@@ -200,6 +202,7 @@ const (
 	Attr_NetworkID                                   = "network_id"
 	Attr_NetworkName                                 = "network_name"
 	Attr_NetworkPorts                                = "network_ports"
+	Attr_NetworkPortID                               = "network_port_id"
 	Attr_Networks                                    = "networks"
 	Attr_NumberOfVolumes                             = "number_of_volumes"
 	Attr_Onboardings                                 = "onboardings"
@@ -335,6 +338,7 @@ const (
 	State_Adding              = "adding"
 	State_Available           = "available"
 	State_BUILD               = "BUILD"
+	State_Build               = "build"
 	State_Creating            = "creating"
 	State_Deleted             = "deleted"
 	State_Deleting            = "deleting"
@@ -348,6 +352,7 @@ const (
 	State_Provisioning        = "provisioning"
 	State_Removed             = "removed"
 	State_Retry               = "retry"
+	State_Down                = "down"
 
 	// Health
 	Health_OK = "OK"
