@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -46,9 +47,10 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_CloudInstanceID: {
-				Description: "PI cloud instance ID",
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "PI cloud instance ID",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_DNS: {
 				Computed:    true,
@@ -69,14 +71,16 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Arg_EndingIPAddress: {
-							Description: "Ending ip address",
-							Required:    true,
-							Type:        schema.TypeString,
+							Description:  "Ending ip address",
+							Required:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						Arg_StartingIPAddress: {
-							Description: "Starting ip address",
-							Required:    true,
-							Type:        schema.TypeString,
+							Description:  "Starting ip address",
+							Required:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -106,9 +110,10 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Type:          schema.TypeInt,
 			},
 			Arg_NetworkName: {
-				Description: "PI network name",
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "PI network name",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			Arg_NetworkType: {
