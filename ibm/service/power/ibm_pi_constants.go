@@ -3,12 +3,20 @@ package power
 import "time"
 
 const (
+
 	// Arguments
 	Arg_AffinityInstance                    = "pi_affinity_instance"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
 	Arg_AffinityVolume                      = "pi_affinity_volume"
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
 	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
+	Arg_CaptureCloudStorageAccessKey        = "pi_capture_cloud_storage_access_key"
+	Arg_CaptureCloudStorageRegion           = "pi_capture_cloud_storage_region"
+	Arg_CaptureCloudStorageSecretKey        = "pi_capture_cloud_storage_secret_key"
+	Arg_CaptureDestination                  = "pi_capture_destination"
+	Arg_CaptureName                         = "pi_capture_name"
+	Arg_CaptureStorageImagePath             = "pi_capture_storage_image_path"
+	Arg_CaptureVolumeIDs                    = "pi_capture_volume_ids"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
 	Arg_Datacenter                          = "pi_datacenter"
@@ -328,12 +336,6 @@ const (
 	Attr_WWN                                         = "wwn"
 	OS_IBMI                                          = "ibmi"
 
-	// Affinty Values
-	Affinity     = "affinity"
-	AntiAffinity = "anti-affinity"
-	Private      = "private"
-	Public       = "public"
-
 	// States
 	State_Active             = "active"
 	State_ACTIVE             = "ACTIVE"
@@ -354,6 +356,15 @@ const (
 	State_Provisioning       = "provisioning"
 	State_Removed            = "removed"
 	State_Retry              = "retry"
+
+	// Allowed Values
+	Affinity     = "affinity"
+	AntiAffinity = "anti-affinity"
+	Both         = "both"
+	CloudStorage = "cloud-storage"
+	ImageCatalog = "image-catalog"
+	Private      = "private"
+	Public       = "public"
 
 	// Health
 	Health_OK = "OK"
