@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/helpers"
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -153,7 +153,7 @@ func testAccCheckIBMPICaptureExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(captureID)
 		if err != nil {
@@ -179,7 +179,7 @@ func testAccCheckIBMPICaptureDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		imageClient := st.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
+		imageClient := instance.NewIBMPIImageClient(context.Background(), sess, cloudInstanceID)
 		_, err = imageClient.Get(captureID)
 		if err == nil {
 			return fmt.Errorf("PI Image still exists: %s", rs.Primary.ID)
