@@ -41,7 +41,7 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 				Required:    true,
 				Description: "PI Cloud instance id",
 			},
-			Arg_PVMInstanceId: {
+			Arg_InstanceId: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PVM instance ID",
@@ -88,7 +88,7 @@ func resourceIBMPIInstanceActionCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	id := d.Get(Arg_PVMInstanceId).(string)
+	id := d.Get(Arg_InstanceId).(string)
 	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, id))
 
 	return resourceIBMPIInstanceActionRead(ctx, d, meta)
@@ -145,7 +145,7 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	id := d.Get(Arg_PVMInstanceId).(string)
+	id := d.Get(Arg_InstanceId).(string)
 	action := d.Get(Arg_PVMInstanceActionType).(string)
 	targetHealthStatus := d.Get(Arg_PVMInstanceHealthStatus).(string)
 

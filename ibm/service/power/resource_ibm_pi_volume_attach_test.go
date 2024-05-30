@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -71,7 +71,7 @@ func testAccCheckIBMPIVolumeAttachDestroy(s *terraform.State) error {
 			return err
 		}
 		cloudInstanceID, pvmInstanceID, volumeID := ids[0], ids[1], ids[2]
-		client := st.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
 		volumeAttach, err := client.CheckVolumeAttach(pvmInstanceID, volumeID)
 		if err == nil {
 			log.Println("volume attach*****", volumeAttach.State)
@@ -104,7 +104,7 @@ func testAccCheckIBMPIVolumeAttachExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		cloudInstanceID, pvmInstanceID, volumeID := ids[0], ids[1], ids[2]
-		client := st.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVolumeClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.CheckVolumeAttach(pvmInstanceID, volumeID)
 		if err != nil {

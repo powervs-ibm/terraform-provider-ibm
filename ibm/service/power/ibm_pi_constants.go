@@ -35,7 +35,7 @@ const (
 	Arg_Plan                                = "pi_plan"
 	Arg_PVMInstanceActionType               = "pi_action"
 	Arg_PVMInstanceHealthStatus             = "pi_health_status"
-	Arg_PVMInstanceId                       = "pi_instance_id"
+	Arg_InstanceId                          = "pi_instance_id"
 	Arg_ReplicationEnabled                  = "pi_replication_enabled"
 	Arg_ResourceGroupID                     = "pi_resource_group_id"
 	Arg_SAP                                 = "sap"
@@ -354,6 +354,7 @@ const (
 	State_Provisioning       = "provisioning"
 	State_Removed            = "removed"
 	State_Retry              = "retry"
+	State_Detaching          = "detaching"
 
 	// Health
 	Health_OK = "OK"
