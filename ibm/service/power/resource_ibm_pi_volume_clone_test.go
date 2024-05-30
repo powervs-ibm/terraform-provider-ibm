@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -63,7 +63,7 @@ func testAccCheckIBMPIVolumeCloneExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		cloudInstanceID, vcTaskID := ids[0], ids[1]
-		client := st.NewIBMPICloneVolumeClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPICloneVolumeClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(vcTaskID)
 		if err != nil {

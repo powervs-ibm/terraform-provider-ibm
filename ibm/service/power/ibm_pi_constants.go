@@ -5,7 +5,6 @@ import "time"
 const (
 	// Arguments
 	Arg_AffinityInstance                    = "pi_affinity_instance"
-	Arg_VolumeCloneName                     = "pi_volume_clone_name"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
 	Arg_AffinityVolume                      = "pi_affinity_volume"
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
@@ -54,6 +53,9 @@ const (
 	Arg_SSHKey                              = "pi_ssh_key"
 	Arg_StoragePool                         = "pi_storage_pool"
 	Arg_StorageType                         = "pi_storage_type"
+	Arg_TargetStorageTier                   = "pi_target_storage_tier"
+	Arg_VolumeCloneName                     = "pi_volume_clone_name"
+	Arg_VolumeCloneTaskID                   = "pi_volume_clone_task_id"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeIDs                           = "pi_volume_ids"
@@ -63,9 +65,7 @@ const (
 	Arg_VolumeShareable                     = "pi_volume_shareable"
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
-	Arg_VolumeCloneTaskID                   = "pi_volume_clone_task_id"
 	Arg_VTL                                 = "vtl"
-	Arg_TargetStorageTier                   = "pi_target_storage_tier"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"
@@ -86,6 +86,8 @@ const (
 	Attr_Certified                                   = "certified"
 	Attr_CIDR                                        = "cidr"
 	Attr_ClassicEnabled                              = "classic_enabled"
+	Attr_ClonedVolumes                               = "cloned_volumes"
+	Attr_CloneVolumeID                               = "clone_volume_id"
 	Attr_CloudConnectionID                           = "cloud_connection_id"
 	Attr_CloudInstanceID                             = "cloud_instance_id"
 	Attr_CloudInstances                              = "cloud_instances"
@@ -135,6 +137,7 @@ const (
 	Attr_Endianness                                  = "endianness"
 	Attr_ExternalIP                                  = "external_ip"
 	Attr_FailureMessage                              = "failure_message"
+	Attr_FailureReason                               = "failure_reason"
 	Attr_Fault                                       = "fault"
 	Attr_FlashCopyMappings                           = "flash_copy_mappings"
 	Attr_FlashCopyName                               = "flash_copy_name"
@@ -269,6 +272,7 @@ const (
 	Attr_SharedProcessorPoolStatusDetail             = "status_detail"
 	Attr_Size                                        = "size"
 	Attr_SnapshotID                                  = "snapshot_id"
+	Attr_SourceVolumeID                              = "source_volume_id"
 	Attr_SourceVolumeName                            = "source_volume_name"
 	Attr_Speed                                       = "speed"
 	Attr_SPPPlacementGroupID                         = "spp_placement_group_id"
@@ -280,7 +284,6 @@ const (
 	Attr_StartTime                                   = "start_time"
 	Attr_State                                       = "state"
 	Attr_Status                                      = "status"
-	Attr_TaskID                                      = "task_id"
 	Attr_StatusDescriptionErrors                     = "status_description_errors"
 	Attr_StatusDetail                                = "status_detail"
 	Attr_StoragePool                                 = "storage_pool"
@@ -294,6 +297,7 @@ const (
 	Attr_Systems                                     = "systems"
 	Attr_SysType                                     = "systype"
 	Attr_TargetVolumeName                            = "target_volume_name"
+	Attr_TaskID                                      = "task_id"
 	Attr_TenantID                                    = "tenant_id"
 	Attr_TenantName                                  = "tenant_name"
 	Attr_TotalCapacity                               = "total_capacity"
@@ -319,8 +323,6 @@ const (
 	Attr_Volumes                                     = "volumes"
 	Attr_VolumeSnapshots                             = "volume_snapshots"
 	Attr_VolumeStatus                                = "volume_status"
-	Attr_ClonedVolumes                               = "cloned_volumes"
-	AttrFailureReason                                = "failure_reason"
 	Attr_VPCCRNs                                     = "vpc_crns"
 	Attr_VPCEnabled                                  = "vpc_enabled"
 	Attr_WorkspaceCapabilities                       = "pi_workspace_capabilities"
@@ -347,6 +349,7 @@ const (
 	State_Adding             = "adding"
 	State_Available          = "available"
 	State_BUILD              = "BUILD"
+	State_Completed          = "completed"
 	State_Creating           = "creating"
 	State_Deleted            = "deleted"
 	State_Deleting           = "deleting"
@@ -360,6 +363,7 @@ const (
 	State_Provisioning       = "provisioning"
 	State_Removed            = "removed"
 	State_Retry              = "retry"
+	State_Running            = "running"
 
 	// Health
 	Health_OK = "OK"
@@ -455,10 +459,6 @@ const (
 	StatusPending = "PENDING"
 	SctionStart   = "start"
 	SctionStop    = "stop"
-
-	// volume clone task status
-	VolumeCloneCompleted = "completed"
-	VolumeCloneRunning   = "running"
 
 	// IBM PI Workspace
 	PIWorkspaceName          = "pi_name"

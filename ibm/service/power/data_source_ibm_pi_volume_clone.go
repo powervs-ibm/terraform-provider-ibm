@@ -34,20 +34,20 @@ func DataSourceIBMPIVolumeClone() *schema.Resource {
 
 			// Attributes
 			Attr_ClonedVolumes: clonedVolumesSchema(),
-			AttrFailureReason: {
-				Type:        schema.TypeString,
+			Attr_FailureReason: {
 				Computed:    true,
 				Description: "The reason the clone volumes task has failed.",
+				Type:        schema.TypeString,
 			},
 			Attr_PercentComplete: {
-				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The completion percentage of the volume clone task.",
+				Type:        schema.TypeInt,
 			},
 			Attr_Status: {
-				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the volume clone task.",
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -70,7 +70,7 @@ func dataSourceIBMPIVolumeCloneRead(ctx context.Context, d *schema.ResourceData,
 	if volClone.Status != nil {
 		d.Set(Attr_Status, *volClone.Status)
 	}
-	d.Set(AttrFailureReason, volClone.FailedReason)
+	d.Set(Attr_FailureReason, volClone.FailedReason)
 	if volClone.PercentComplete != nil {
 		d.Set(Attr_PercentComplete, *volClone.PercentComplete)
 	}
