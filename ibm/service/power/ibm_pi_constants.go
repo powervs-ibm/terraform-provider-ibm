@@ -5,6 +5,7 @@ import "time"
 const (
 	// Arguments
 	Arg_AffinityInstance                    = "pi_affinity_instance"
+	Arg_VolumeCloneName                     = "pi_volume_clone_name"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
 	Arg_AffinityVolume                      = "pi_affinity_volume"
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
@@ -62,7 +63,9 @@ const (
 	Arg_VolumeShareable                     = "pi_volume_shareable"
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
+	Arg_VolumeCloneTaskID                   = "pi_volume_clone_task_id"
 	Arg_VTL                                 = "vtl"
+	Arg_TargetStorageTier                   = "pi_target_storage_tier"
 
 	// Attributes
 	Attr_AccessConfig                                = "access_config"
@@ -277,6 +280,7 @@ const (
 	Attr_StartTime                                   = "start_time"
 	Attr_State                                       = "state"
 	Attr_Status                                      = "status"
+	Attr_TaskID                                      = "task_id"
 	Attr_StatusDescriptionErrors                     = "status_description_errors"
 	Attr_StatusDetail                                = "status_detail"
 	Attr_StoragePool                                 = "storage_pool"
@@ -315,6 +319,8 @@ const (
 	Attr_Volumes                                     = "volumes"
 	Attr_VolumeSnapshots                             = "volume_snapshots"
 	Attr_VolumeStatus                                = "volume_status"
+	Attr_ClonedVolumes                               = "cloned_volumes"
+	AttrFailureReason                                = "failure_reason"
 	Attr_VPCCRNs                                     = "vpc_crns"
 	Attr_VPCEnabled                                  = "vpc_enabled"
 	Attr_WorkspaceCapabilities                       = "pi_workspace_capabilities"
@@ -405,7 +411,6 @@ const (
 	PIPlacementGroupMembers = "members"
 
 	// Volume
-	PIVolumeIds             = "pi_volume_ids"
 	PIAffinityPolicy        = "pi_affinity_policy"
 	PIAffinityVolume        = "pi_affinity_volume"
 	PIAffinityInstance      = "pi_affinity_instance"
@@ -413,9 +418,9 @@ const (
 	PIAntiAffinityVolumes   = "pi_anti_affinity_volumes"
 
 	// Volume Clone
-	PIVolumeCloneName   = "pi_volume_clone_name"
+
 	PIVolumeCloneTaskID = "pi_volume_clone_task_id"
-	PITargetStorageTier = "pi_target_storage_tier"
+	// PITargetStorageTier = "pi_target_storage_tier"
 
 	// IBM PI Volume Group
 	PIVolumeGroupName                 = "pi_volume_group_name"

@@ -32,19 +32,20 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			// Arguments
 			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The GUID of the service instance associated with an account.",
 			},
-			PIVolumeCloneName: {
+			Arg_VolumeCloneName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The base name of the newly cloned volume(s).",
 			},
-			PIVolumeIds: {
+			Arg_VolumeIDs: {
 				Type:        schema.TypeSet,
 				Required:    true,
 				ForceNew:    true,
@@ -52,7 +53,7 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				Set:         schema.HashString,
 				Description: "List of volumes to be cloned.",
 			},
-			PITargetStorageTier: {
+			Arg_TargetStorageTier: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
@@ -65,24 +66,24 @@ func ResourceIBMPIVolumeClone() *schema.Resource {
 				Description: "Indicates whether the cloned volume should have replication enabled. If no value is provided, it will default to the replication status of the source volume(s).",
 			},
 
-			// Computed attributes
-			"task_id": {
+			// Attributes
+			Attr_TaskID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the volume clone task.",
 			},
-			"cloned_volumes": clonedVolumesSchema(),
-			"failure_reason": {
+			Attr_ClonedVolumes: clonedVolumesSchema(),
+			AttrFailureReason: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The reason for the failure of the volume clone task.",
 			},
-			"percent_complete": {
+			Attr_PercentComplete: {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The completion percentage of the volume clone task.",
 			},
-			"status": {
+			Attr_Status: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the volume clone task.",
@@ -98,15 +99,15 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	vcName := d.Get(PIVolumeCloneName).(string)
-	volids := flex.ExpandStringList((d.Get(PIVolumeIds).(*schema.Set)).List())
+	vcName := d.Get(Arg_VolumeCloneName).(string)
+	volids := flex.ExpandStringList((d.Get(Arg_VolumeIDs).(*schema.Set)).List())
 
 	body := &models.VolumesCloneAsyncRequest{
 		Name:      &vcName,
 		VolumeIDs: volids,
 	}
 
-	if v, ok := d.GetOk(PITargetStorageTier); ok {
+	if v, ok := d.GetOk(Arg_TargetStorageTier); ok {
 		body.TargetStorageTier = v.(string)
 	}
 
@@ -148,15 +149,15 @@ func resourceIBMPIVolumeCloneRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	d.Set("task_id", vcTaskID)
+	d.Set(Attr_TaskID, vcTaskID)
 	if volCloneTask.Status != nil {
-		d.Set("status", *volCloneTask.Status)
+		d.Set(Attr_Status, *volCloneTask.Status)
 	}
-	d.Set("failure_reason", volCloneTask.FailedReason)
+	d.Set(AttrFailureReason, volCloneTask.FailedReason)
 	if volCloneTask.PercentComplete != nil {
-		d.Set("percent_complete", *volCloneTask.PercentComplete)
+		d.Set(Attr_PercentComplete, *volCloneTask.PercentComplete)
 	}
-	d.Set("cloned_volumes", flattenClonedVolumes(volCloneTask.ClonedVolumes))
+	d.Set(Attr_ClonedVolumes, flattenClonedVolumes(volCloneTask.ClonedVolumes))
 
 	return nil
 }
