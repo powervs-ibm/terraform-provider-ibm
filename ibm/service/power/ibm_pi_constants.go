@@ -326,7 +326,9 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-	OS_IBMI                                          = "ibmi"
+
+	// OS Type
+	OS_IBMI = "ibmi"
 
 	// Affinty Values
 	Affinity     = "affinity"
