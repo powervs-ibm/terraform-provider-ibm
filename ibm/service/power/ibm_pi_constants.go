@@ -136,6 +136,7 @@ const (
 	Attr_FlashCopyMappings                           = "flash_copy_mappings"
 	Attr_FlashCopyName                               = "flash_copy_name"
 	Attr_FreezeTime                                  = "freeze_time"
+	Attr_FullSystemProfile                           = "full_system_profile"
 	Attr_Gateway                                     = "gateway"
 	Attr_GlobalRouting                               = "global_routing"
 	Attr_GreDestinationAddress                       = "gre_destination_address"
@@ -241,6 +242,7 @@ const (
 	Attr_ReservedCores                               = "reserved_cores"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
+	Attr_SAPS                                        = "saps"
 	Attr_ServerName                                  = "server_name"
 	Attr_Shareable                                   = "shreable"
 	Attr_SharedCoreRatio                             = "shared_core_ratio"
@@ -284,6 +286,7 @@ const (
 	Attr_StoragePoolsCapacity                        = "storage_pools_capacity"
 	Attr_StorageType                                 = "storage_type"
 	Attr_StorageTypesCapacity                        = "storage_types_capacity"
+	Attr_SupportedSystems                            = "supported_systems"
 	Attr_Synchronized                                = "synchronized"
 	Attr_SystemPoolName                              = "system_pool_name"
 	Attr_SystemPools                                 = "system_pools"
@@ -317,6 +320,7 @@ const (
 	Attr_VolumeStatus                                = "volume_status"
 	Attr_VPCCRNs                                     = "vpc_crns"
 	Attr_VPCEnabled                                  = "vpc_enabled"
+	Attr_WorkloadType                                = "workload_type"
 	Attr_WorkspaceCapabilities                       = "pi_workspace_capabilities"
 	Attr_WorkspaceDetails                            = "pi_workspace_details"
 	Attr_WorkspaceID                                 = "pi_workspace_id"
@@ -326,7 +330,9 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
-	OS_IBMI                                          = "ibmi"
+
+	// OS Type
+	OS_IBMI = "ibmi"
 
 	// Affinty Values
 	Affinity     = "affinity"
