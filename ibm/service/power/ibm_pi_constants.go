@@ -31,6 +31,7 @@ const (
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_KeyName                             = "pi_key_name"
 	Arg_LanguageCode                        = "pi_language_code"
+	Arg_LicenseRepositoryCapacity           = "pi_license_repository_capacity"
 	Arg_Name                                = "pi_name"
 	Arg_NetworkName                         = "pi_network_name"
 	Arg_PIInstanceSharedProcessorPool       = "pi_shared_processor_pool"
@@ -69,13 +70,8 @@ const (
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
 	Arg_VTL                                 = "vtl"
-	Arg_LicenseRepositoryCapacity           = "pi_license_repository_capacity"
 
 	// Attributes
-	Attr_MinProcessors                               = "min_processors"
-	Attr_MinMemory                                   = "min_memory"
-	Attr_MaxMemory                                   = "max_memory"
-	Attr_MaxProcessors                               = "max_processors"
 	Attr_AccessConfig                                = "access_config"
 	Attr_Action                                      = "action"
 	Attr_Addresses                                   = "addresses"
@@ -205,8 +201,10 @@ const (
 	Attr_MaxCoresAvailable                           = "max_cores_available"
 	Attr_MaximumStorageAllocation                    = "max_storage_allocation"
 	Attr_MaxMem                                      = "maxmem"
+	Attr_MaxMemory                                   = "max_memory"
 	Attr_MaxMemoryAvailable                          = "max_memory_available"
 	Attr_MaxProc                                     = "maxproc"
+	Attr_MaxProcessors                               = "max_processors"
 	Attr_MaxVirtualCores                             = "max_virtual_cores"
 	Attr_Members                                     = "members"
 	Attr_Memory                                      = "memory"
@@ -215,7 +213,9 @@ const (
 	Attr_MigrationStatus                             = "migration_status"
 	Attr_Min                                         = "min"
 	Attr_MinMem                                      = "minmem"
+	Attr_MinMemory                                   = "min_memory"
 	Attr_MinProc                                     = "minproc"
+	Attr_MinProcessors                               = "min_processors"
 	Attr_MinVirtualCores                             = "min_virtual_cores"
 	Attr_MirroringState                              = "mirroring_state"
 	Attr_MTU                                         = "mtu"
@@ -393,8 +393,12 @@ const (
 	StatusShutoff             = "SHUTOFF"
 
 	// Allowed Values
+	DHCPVlan  = "dhcp-vlan"
 	Host      = "host"
 	HostGroup = "hostGroup"
+	PubVlan   = "pub-vlan"
+	Vlan      = "vlan"
+
 	// Health
 	Health_OK = "OK"
 
