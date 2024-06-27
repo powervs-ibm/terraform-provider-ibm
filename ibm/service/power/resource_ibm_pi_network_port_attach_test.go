@@ -10,14 +10,13 @@ import (
 	"testing"
 
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
+
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPINetworkPortAttachbasic(t *testing.T) {
@@ -72,6 +71,7 @@ func TestAccIBMPINetworkPortAttachVlanbasic(t *testing.T) {
 		},
 	})
 }
+
 func testAccCheckIBMPINetworkPortAttachDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -97,11 +97,10 @@ func testAccCheckIBMPINetworkPortAttachDestroy(s *terraform.State) error {
 
 	return nil
 }
+
 func testAccCheckIBMPINetworkPortAttachExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[n]
-
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
 		}
@@ -128,92 +127,91 @@ func testAccCheckIBMPINetworkPortAttachExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		return nil
-
 	}
 }
 
 func testAccCheckIBMPINetworkPortAttachConfig(name, networkName, networkName2, health string) string {
 	return fmt.Sprintf(`
-	data "ibm_pi_image" "power_image" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_image_name        = "%[3]s"
-	}
-
-	resource "ibm_pi_network" "power_networks" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_network_name      = "%[6]s"
-		pi_network_type      = "vlan"
-		pi_cidr              = "192.168.15.0/24"
-	}
-	resource "ibm_pi_network" "power_networks2" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_network_name      = "%[7]s"
-		pi_network_type      = "pub-vlan"
-		pi_cidr              = "192.97.57.0/24"
-	}
-	resource "ibm_pi_instance" "power_instance" {
-		pi_cloud_instance_id  = "%[1]s"
-		pi_image_id           = data.ibm_pi_image.power_image.id
-		pi_instance_name      = "%[2]s"
-		pi_memory             = "2"
-		pi_proc_type          = "shared"
-		pi_processors         = "0.25"
-		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
-		pi_storage_type       = "%[5]s"
-		pi_health_status      = "%[8]s"
-		pi_sys_type           = "s922"
-		pi_network {
-			network_id = resource.ibm_pi_network.power_networks.network_id
+		data "ibm_pi_image" "power_image" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_image_name        = "%[3]s"
 		}
-	}
-	resource "ibm_pi_network_port_attach" "power_network_port_attach" {
-		pi_cloud_instance_id  = "%[1]s"
-		pi_network_name       = resource.ibm_pi_network.power_networks2.pi_network_name 
-		pi_network_port_description = "IP Reserved for Test UAT"
-		pi_instance_id = resource.ibm_pi_instance.power_instance.instance_id
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, acc.PiStorageType, networkName, networkName2, health)
+
+		resource "ibm_pi_network" "power_networks" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_name      = "%[5]s"
+			pi_network_type      = "vlan"
+			pi_cidr              = "192.168.15.0/24"
+		}
+		resource "ibm_pi_network" "power_networks2" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_name      = "%[6]s"
+			pi_network_type      = "pub-vlan"
+			pi_cidr              = "192.97.57.0/24"
+		}
+		resource "ibm_pi_instance" "power_instance" {
+			pi_cloud_instance_id  = "%[1]s"
+			pi_image_id           = data.ibm_pi_image.power_image.id
+			pi_instance_name      = "%[2]s"
+			pi_memory             = "2"
+			pi_proc_type          = "shared"
+			pi_processors         = "0.25"
+			pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
+			pi_storage_type       = "%[4]s"
+			pi_health_status      = "%[7]s"
+			pi_sys_type           = "s922"
+			pi_network {
+				network_id = resource.ibm_pi_network.power_networks.network_id
+			}
+		}
+		resource "ibm_pi_network_port_attach" "power_network_port_attach" {
+			pi_cloud_instance_id  = "%[1]s"
+			pi_network_name       = resource.ibm_pi_network.power_networks2.pi_network_name 
+			pi_network_port_description = "IP Reserved for Test UAT"
+			pi_instance_id = resource.ibm_pi_instance.power_instance.instance_id
+		}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.PiStorageType, networkName, networkName2, health)
 }
 
 func testAccCheckIBMPINetworkPortAttachVlanConfig(name, networkName, networkName2, health string) string {
 	return fmt.Sprintf(`
-	data "ibm_pi_image" "power_image" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_image_name        = "%[3]s"
-	}
-
-	resource "ibm_pi_network" "power_networks" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_network_name      = "%[6]s"
-		pi_network_type      = "vlan"
-		pi_cidr              = "192.168.15.0/24"
-	}
-	resource "ibm_pi_network" "power_networks2" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_network_name      = "%[7]s"
-		pi_network_type      = "vlan"
-		pi_cidr              = "192.97.57.0/24"
-	}
-	resource "ibm_pi_instance" "power_instance" {
-		pi_cloud_instance_id  = "%[1]s"
-		pi_image_id           = data.ibm_pi_image.power_image.id
-		pi_instance_name      = "%[2]s"
-		pi_memory             = "2"
-		pi_proc_type          = "shared"
-		pi_processors         = "0.25"
-		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
-		pi_storage_type       = "%[5]s"
-		pi_health_status      = "%[8]s"
-		pi_sys_type           = "s922"
-		pi_network {
-			network_id = resource.ibm_pi_network.power_networks.network_id
+		data "ibm_pi_image" "power_image" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_image_name        = "%[3]s"
 		}
-	}
-	resource "ibm_pi_network_port_attach" "power_network_port_attach" {
-		pi_cloud_instance_id  = "%[1]s"
-		pi_network_name       = ibm_pi_network.power_networks2.pi_network_name
-		pi_network_port_description = "IP Reserved for Test UAT"
-		pi_instance_id = resource.ibm_pi_instance.power_instance.instance_id
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, acc.PiStorageType, networkName, networkName2, health)
+
+		resource "ibm_pi_network" "power_networks" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_name      = "%[5]s"
+			pi_network_type      = "vlan"
+			pi_cidr              = "192.168.15.0/24"
+		}
+		resource "ibm_pi_network" "power_networks2" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_name      = "%[6]s"
+			pi_network_type      = "vlan"
+			pi_cidr              = "192.97.57.0/24"
+		}
+		resource "ibm_pi_instance" "power_instance" {
+			pi_cloud_instance_id  = "%[1]s"
+			pi_image_id           = data.ibm_pi_image.power_image.id
+			pi_instance_name      = "%[2]s"
+			pi_memory             = "2"
+			pi_proc_type          = "shared"
+			pi_processors         = "0.25"
+			pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
+			pi_storage_type       = "%[4]s"
+			pi_health_status      = "%[7]s"
+			pi_sys_type           = "s922"
+			pi_network {
+				network_id = resource.ibm_pi_network.power_networks.network_id
+			}
+		}
+		resource "ibm_pi_network_port_attach" "power_network_port_attach" {
+			pi_cloud_instance_id  = "%[1]s"
+			pi_network_name       = ibm_pi_network.power_networks2.pi_network_name
+			pi_network_port_description = "IP Reserved for Test UAT"
+			pi_instance_id = resource.ibm_pi_instance.power_instance.instance_id
+		}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.PiStorageType, networkName, networkName2, health)
 }
