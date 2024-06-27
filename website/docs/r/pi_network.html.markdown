@@ -30,7 +30,7 @@ resource "ibm_pi_network" "power_networks" {
 }
 ```
 
-**Note**
+### Notes
 
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 - If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
@@ -59,34 +59,34 @@ The `ibm_pi_network` provides the following [Timeouts](https://www.terraform.io/
 
 Review the argument references that you can specify for your resource.
 
-- `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- `pi_network_name` - (Required, String) The name of the network.
-- `pi_network_type` - (Required, String) The type of network that you want to create, such as `pub-vlan` or `vlan`.
-- `pi_dns` - (Optional, Set of String) The DNS Servers for the network. If not specified, default is 127.0.0.1 for 'vlan' (private network) and 9.9.9.9 for 'pub-vlan' (public network). A maximum of one DNS server can be specified for private networks in Power Edge Router workspaces.
 - `pi_cidr` - (Optional, String) The network CIDR. Required for `vlan` network type.
+- `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_dns` - (Optional, Set of String) The DNS Servers for the network. If not specified, default is 127.0.0.1 for 'vlan' (private network) and 9.9.9.9 for 'pub-vlan' (public network). A maximum of one DNS server can be specified for private networks in Power Edge Router workspaces.
 - `pi_gateway` - (Optional, String) The gateway ip address.
 - `pi_ipaddress_range` - (Optional, List of Map) List of one or more ip address range. The `pi_ipaddress_range` object structure is documented below.
   The `pi_ipaddress_range` block supports:
   - `pi_ending_ip_address` - (Required, String) The ending ip address.
   - `pi_starting_ip_address` - (Required, String) The staring ip address. **Note** if the `pi_gateway` or `pi_ipaddress_range` is not provided, it will calculate the value based on CIDR respectively.
+- `pi_network_access_config` - (Optional, String) The network communication configuration option of the network (for satellite locations only).
 - `pi_network_jumbo` - (Deprecated, Optional, Bool) MTU Jumbo option of the network (for multi-zone locations only).
 - `pi_network_mtu` - (Optional, Integer) Maximum Transmission Unit option of the network, min size = 1450 & max size = 9000.
-- `pi_network_access_config` - (Optional, String) The network communication configuration option of the network (for satellite locations only).
+- `pi_network_name` - (Required, String) The name of the network.
+- `pi_network_type` - (Required, String) The type of network that you want to create, such as `pub-vlan` or `vlan`.
 
 ## Attribute reference
 
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
-- `id` - (String) The unique identifier of the network. The ID is composed of `<power_instance_id>/<network_id>`.
+- `id` - (String) The unique identifier of the network. The ID is composed of `<pi_cloud_instance_id>/<network_id>`.
 - `network_id` - (String) The unique identifier of the network.
 - `vlan_id` - (Integer) The ID of the VLAN that your network is attached to.
 
 ## Import
 
-The `ibm_pi_network` resource can be imported by using `power_instance_id` and `network_id`.
+The `ibm_pi_network` resource can be imported by using `pi_cloud_instance_id` and `network_id`.
 
-**Example**
+### Example
 
-```
-$ terraform import ibm_pi_network.example d7bec597-4726-451f-8a63-e62e6f19c32c/cea6651a-bc0a-4438-9f8a-a0770bbf3ebb
+```bash
+terraform import ibm_pi_network.example d7bec597-4726-451f-8a63-e62e6f19c32c/cea6651a-bc0a-4438-9f8a-a0770bbf3ebb
 ```
