@@ -47,7 +47,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 				Description: "Optional cidr for DHCP private network",
 				ForceNew:    true,
 			},
-			Arg_DhcpCloudConnectionID: {
+			Arg_CloudConnectionID: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Optional cloud connection uuid to connect with DHCP private network",
@@ -134,7 +134,7 @@ func resourceIBMPIDhcpCreate(ctx context.Context, d *schema.ResourceData, meta i
 		c := cidr.(string)
 		body.Cidr = &c
 	}
-	if cloudConnectionID, ok := d.GetOk(Arg_DhcpCloudConnectionID); ok {
+	if cloudConnectionID, ok := d.GetOk(Arg_CloudConnectionID); ok {
 		c := cloudConnectionID.(string)
 		body.CloudConnectionID = &c
 	}
