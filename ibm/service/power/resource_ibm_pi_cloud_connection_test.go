@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 )
 
 func TestAccIBMPICloudConnectionbasic(t *testing.T) {
@@ -55,7 +55,7 @@ func testAccCheckIBMPICloudConnectionDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 		_, err = client.Get(cloudConnectionID)
 		if err == nil {
 			return fmt.Errorf("Cloud Connection still exists: %s", rs.Primary.ID)
@@ -90,7 +90,7 @@ func testAccCheckIBMPICloudConnectionExists(n string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		client := st.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPICloudConnectionClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(cloudConnectionID)
 		if err != nil {

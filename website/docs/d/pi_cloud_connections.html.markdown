@@ -42,7 +42,7 @@ In addition to all argument reference list, you can access the following attribu
 - `connections` - (List) List of all the Cloud Connections.
 
   Nested scheme for `connections`:
-  - `classic_enabled` - (Bool) Enable classic endpoint destination.
+  - `classic_enabled` - (Boolean) Enable classic endpoint destination.
   - `cloud_connection_id` - (String) The unique identifier of the cloud connection.
   - `connection_mode` - (String) Type of service the gateway is attached to.
   - `global_routing` - (String) Enable global routing for this cloud connection.
@@ -57,4 +57,4 @@ In addition to all argument reference list, you can access the following attribu
   - `status` - (String) Link status.
   - `user_ip_address` - (String) User IP address.
   - `vpc_crns` - (Set) Set of VPCs attached to this cloud connection.
-  - `vpc_enabled` - (Bool) Enable VPC for this cloud connection.
+  - `vpc_enabled` - (Boolean) Enable VPC for this cloud connection.

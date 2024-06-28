@@ -48,14 +48,13 @@ Review the argument reference that you can specify for your resource.
 * `labels` - (Optional, List) Labels that you can use to search for secrets in your instance.Up to 30 labels can be created.
   * Constraints: The list items must match regular expression `/(.*?)/`. The maximum length is `30` items. The minimum length is `0` items.
 * `name` - (Required, String) The human-readable name of your secret.
-    * Constraints: The maximum length is `256` characters. The minimum length is `2` characters. The value must match regular expression `^[A-Za-z0-9][A-Za-z0-9]*(?:_*-*\\.*[A-Za-z0-9]+)*$`.
+    * Constraints: The maximum length is `256` characters. The minimum length is `2` characters. The value must match regular expression `^[A-Za-z0-9_][A-Za-z0-9_]*(?:_*-*\.*[A-Za-z0-9]*)*[A-Za-z0-9]+$`.
 * `reuse_api_key` - (Optional, Boolean) Determines whether to use the same service ID and API key for future read operations on an`iam_credentials` secret. Must be set to `true` for IAM credentials secrets managed by Terraform.
 * `rotation` - (Optional, List) Determines whether Secrets Manager rotates your secrets automatically.
 Nested scheme for **rotation**:
 	* `auto_rotate` - (Optional, Boolean) Determines whether Secrets Manager rotates your secret automatically.Default is `false`. If `auto_rotate` is set to `true` the service rotates your secret based on the defined interval.
 	* `interval` - (Optional, Integer) The length of the secret rotation time interval.
 	  * Constraints: The minimum value is `1`.
-	* `rotate_keys` - (Optional, Boolean) Determines whether Secrets Manager rotates the private key for your public certificate automatically.Default is `false`. If it is set to `true`, the service generates and stores a new private key for your rotated certificate.
 	* `unit` - (Optional, String) The units for the secret rotation time interval.
 	  * Constraints: Allowable values are: `day`, `month`.
 * `secret_group_id` - (Optional, Forces new resource, String) A v4 UUID identifier, or `default` secret group.
@@ -91,7 +90,8 @@ In addition to all argument references listed, you can access the following attr
     * Constraints: Allowable values are: `arbitrary`, `imported_cert`, `public_cert`, `iam_credentials`, `kv`, `username_password`, `private_cert`.
 * `updated_at` - (String) The date when a resource was recently modified. The date format follows RFC 3339.
 * `versions_total` - (Integer) The number of versions of the secret.
-  * Constraints: The maximum value is `50`. The minimum value is `0`.
+    * Constraints: The maximum value is `50`. The minimum value is `0`.
+* `expiration_date` - (String) The date a secret is expired. The date format follows RFC 3339.
 
 ## Provider Configuration
 

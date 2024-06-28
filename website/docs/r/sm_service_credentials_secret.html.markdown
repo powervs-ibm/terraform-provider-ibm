@@ -28,7 +28,7 @@ resource "ibm_sm_service_credentials_secret" "sm_service_credentials_secret" {
   secret_group_id = ibm_sm_secret_group.sm_secret_group.secret_group_id
   source_service {
 	instance {
-		crn = "crn:v1:staging:public:cloud-object-storage:global:a/111f5fb10986423e9saa8512f1db7e65:111133c8-49ea-41xe-8c40-122038246f5b::"
+		crn = "crn:v1:bluemix:public:cloud-object-storage:global:a/111f5fb10986423e9saa8512f1db7e65:111133c8-49ea-41xe-8c40-122038246f5b::"
 	}
 	role {
 		crn = "crn:v1:bluemix:public:iam::::serviceRole:Writer"
@@ -39,15 +39,45 @@ resource "ibm_sm_service_credentials_secret" "sm_service_credentials_secret" {
 }
 ```
 
+## Example Usage with existing service ID
+
+```hcl
+resource "ibm_sm_service_credentials_secret" "sm_service_credentials_secret" {
+  instance_id   = ibm_resource_instance.sm_instance.guid
+  region        = "us-south"
+  name 			= "secret-name"
+  custom_metadata = {"key":"value"}
+  description = "Extended description for this secret."
+  labels = ["my-label"]
+  rotation {
+		auto_rotate = true
+		interval = 1
+		unit = "day"
+  }
+  secret_group_id = ibm_sm_secret_group.sm_secret_group.secret_group_id
+  source_service {
+	instance {
+		crn = "crn:v1:bluemix:public:cloud-object-storage:global:a/111f5fb10986423e9saa8512f1db7e65:111133c8-49ea-41xe-8c40-122038246f5b::"
+	}
+	role {
+		crn = "crn:v1:bluemix:public:iam::::serviceRole:Writer"
+	}
+	parameters = {"HMAC": true, "serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/22222f3c34444ff155555d15ca616946::serviceid:ServiceId-1234f56e-1d23-45e6-123c-cfb456b87fyb"}
+  }
+  ttl = "1800"
+}
+```
+
 ### Example to access resource credentials using credentials attribute:
 
 ```terraform
 resource "ibm_sm_service_credentials_secret" "sm_service_credentials_secret" {
+  instance_id   = ibm_resource_instance.sm_instance.guid
   region        = "us-south"
   name 			= "secret-name"
   source_service {
 	instance {
-		crn = "crn:v1:staging:public:cloud-object-storage:global:a/111f5fb10986423e9saa8512f1db7e65:111133c8-49ea-41xe-8c40-122038246f5b::"
+		crn = "crn:v1:bluemix:public:cloud-object-storage:global:a/111f5fb10986423e9saa8512f1db7e65:111133c8-49ea-41xe-8c40-122038246f5b::"
 	}
 	role {
 		crn = "crn:v1:bluemix:public:iam::::serviceRole:Writer"
@@ -74,7 +104,7 @@ Review the argument reference that you can specify for your resource.
 * `endpoint_type` - (Optional, String) - The endpoint type. If not provided the endpoint type is determined by the `visibility` argument provided in the provider configuration.
     * Constraints: Allowable values are: `private`, `public`.
 * `name` - (Required, String) The human-readable name of your secret.
-    * Constraints: The maximum length is `256` characters. The minimum length is `2` characters. The value must match regular expression `^[A-Za-z0-9][A-Za-z0-9]*(?:_*-*\\.*[A-Za-z0-9]+)*$`.
+    * Constraints: The maximum length is `256` characters. The minimum length is `2` characters. The value must match regular expression `^[A-Za-z0-9_][A-Za-z0-9_]*(?:_*-*\.*[A-Za-z0-9]*)*[A-Za-z0-9]+$`.
 * `custom_metadata` - (Optional, Map) The secret metadata that a user can customize.
 * `description` - (Optional, String) An extended description of your secret.To protect your privacy, do not use personal data, such as your name or location, as a description for your secret group.
   * Constraints: The maximum length is `1024` characters. The minimum length is `0` characters. The value must match regular expression `/(.*?)/`.
@@ -89,11 +119,11 @@ Nested scheme for **rotation**:
 	  * Constraints: Allowable values are: `day`, `month`.
 * `secret_group_id` - (Optional, Forces new resource, String) A v4 UUID identifier, or `default` secret group.
   * Constraints: The maximum length is `36` characters. The minimum length is `7` characters. The value must match regular expression `/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|default)$/`.
-* `source_service` - (Optional, List) The properties required for creating the service credentials for the specified source service instance.
+* `source_service` - (Required, List) The properties required for creating the service credentials for the specified source service instance.
 Nested scheme for **source_service**:
-    * `instance` - (Optional, List) The source service instance identifier.
+    * `instance` - (Required, List) The source service instance identifier.
       Nested scheme for **instance**:
-          * `crn` - (Optional, String) A CRN that uniquely identifies a service credentials source.
+          * `crn` - (Required, String) A CRN that uniquely identifies a service credentials source.
     * `role` - (Optional, List) The service-specific custom role object, CRN role is accepted. Refer to the service’s documentation for supported roles.
       Nested scheme for **role**:
           * `crn` - (Optional, String) The service role CRN.
@@ -154,7 +184,8 @@ In addition to all argument references listed, you can access the following attr
     * Constraints: Allowable values are: `arbitrary`, `imported_cert`, `public_cert`, `iam_credentials`, `kv`, `username_password`, `private_cert`.
 * `updated_at` - (String) The date when a resource was recently modified. The date format follows RFC 3339.
 * `versions_total` - (Integer) The number of versions of the secret.
-  * Constraints: The maximum value is `50`. The minimum value is `0`.
+    * Constraints: The maximum value is `50`. The minimum value is `0`.
+* `expiration_date` - (String) The date a secret is expired. The date format follows RFC 3339.
 
 ## Provider Configuration
 

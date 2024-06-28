@@ -78,7 +78,7 @@ func TestAccIBMDatabaseInstance_Elasticsearch_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "databases-for-elasticsearch"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "18432"),
 					resource.TestCheckResourceAttr(name, "users.#", "0"),
 					resource.TestCheckResourceAttr(name, "connectionstrings.#", "1"),
@@ -213,7 +213,7 @@ func TestAccIBMDatabaseInstance_Elasticsearch_Group(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "3"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "18432"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "9"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
@@ -231,7 +231,7 @@ func TestAccIBMDatabaseInstance_Elasticsearch_Group(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "3"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "18432"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "9"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
@@ -248,7 +248,7 @@ func TestAccIBMDatabaseInstance_Elasticsearch_Group(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "4"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "4096"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "15360"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "24576"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "12"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
@@ -326,6 +326,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchBasic(databaseResourceGroup str
 		  description = "desc1"
 		}
 
+		group {
+			group_id = "member"
+			memory {
+				allocation_mb = 4096
+			}
+			host_flavor {
+				id = "multitenant"
+			}
+		}
+
 		timeouts {
 			create = "120m"
 			update = "120m"
@@ -366,6 +376,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchFullyspecified(databaseResource
 		  description = "desc"
 		}
 
+		group {
+			group_id = "member"
+			memory {
+				allocation_mb = 4096
+			}
+			host_flavor {
+				id = "multitenant"
+			}
+		}
+
 		timeouts {
 			create = "120m"
 			update = "120m"
@@ -390,6 +410,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchReduced(databaseResourceGroup s
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+
+		group {
+			group_id = "member"
+			memory {
+				allocation_mb = 4096
+			}
+			host_flavor {
+				id = "multitenant"
+			}
+		}
 
 		timeouts {
 			create = "120m"
@@ -419,7 +449,10 @@ func testAccCheckIBMDatabaseInstanceElasticsearchGroupMigration(databaseResource
 		  group_id = "member"
 
 		  memory {
-		    allocation_mb = 1024
+		    allocation_mb = 4096
+		  }
+		  host_flavor {
+			  id = "multitenant"
 		  }
 		  disk {
 		    allocation_mb = 6144
@@ -456,13 +489,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchNodeBasic(databaseResourceGroup
 			  allocation_count = 3
 			}
 			memory {
-			  allocation_mb = 1024
+			  allocation_mb = 4096
 			}
 			disk {
 			  allocation_mb = 5120
 			}
 			cpu {
 			  allocation_count = 3
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 		users {
@@ -503,13 +539,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchNodeFullyspecified(databaseReso
 			  allocation_count = 3
 			}
 			memory {
-			  allocation_mb = 1024
+			  allocation_mb = 5120
 			}
 			disk {
 			  allocation_mb = 6144
 			}
 			cpu {
 			  allocation_count = 3
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 		users {
@@ -558,13 +597,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchNodeReduced(databaseResourceGro
 			  allocation_count = 3
 			}
 			memory {
-			  allocation_mb = 1024
+			  allocation_mb = 4096
 			}
 			disk {
 			  allocation_mb = 6144
 			}
 			cpu {
 			  allocation_count = 3
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 
@@ -597,13 +639,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchNodeScaleOut(databaseResourceGr
 			  allocation_count = 4
 			}
 			memory {
-			  allocation_mb = 1024
+			  allocation_mb = 4096
 			}
 			disk {
 			  allocation_mb = 6144
 			}
 			cpu {
 			  allocation_count = 3
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 
@@ -637,13 +682,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchGroupBasic(databaseResourceGrou
 				allocation_count = 3
 			}
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
 			}
 			disk {
 				allocation_mb = 5120
 			}
 			cpu {
 				allocation_count = 3
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 
@@ -686,13 +734,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchGroupFullyspecified(databaseRes
 		    allocation_count = 3
 		  }
 		  memory {
-		    allocation_mb = 1024
+		    allocation_mb = 4096
 		  }
 		  disk {
 		    allocation_mb = 6144
 		  }
 		  cpu {
 		    allocation_count = 3
+		  }
+		  host_flavor {
+			  id = "multitenant"
 		  }
 		}
 		users {
@@ -743,13 +794,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchGroupReduced(databaseResourceGr
 		    allocation_count = 3
 		  }
 		  memory {
-		    allocation_mb = 1024
+		    allocation_mb = 4096
 		  }
 		  disk {
 		    allocation_mb = 6144
 		  }
 		  cpu {
 		    allocation_count = 3
+		  }
+		  host_flavor {
+			  id = "multitenant"
 		  }
 		}
 
@@ -783,13 +837,16 @@ func testAccCheckIBMDatabaseInstanceElasticsearchGroupScaleOut(databaseResourceG
 		    allocation_count = 4
 		  }
 		  memory {
-		    allocation_mb = 1024
+		    allocation_mb = 4096
 		  }
 		  disk {
 		    allocation_mb = 6144
 		  }
 		  cpu {
 		    allocation_count = 3
+		  }
+		  host_flavor {
+			  id = "multitenant"
 		  }
 		}
 		timeouts {

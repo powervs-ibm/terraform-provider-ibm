@@ -35,7 +35,7 @@ func TestAccIBMMysqlDatabaseInstanceBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "adminuser", "admin"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "61440"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "1"),
@@ -55,7 +55,7 @@ func TestAccIBMMysqlDatabaseInstanceBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "databases-for-mysql"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "6144"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "15360"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "92160"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public-and-private"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
@@ -90,7 +90,10 @@ func testAccCheckIBMDatabaseInstanceMysqlBasic(databaseResourceGroup string, nam
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 			disk {
 				allocation_mb = 20480
@@ -130,13 +133,16 @@ func testAccCheckIBMDatabaseInstanceMysqlFullyspecified(databaseResourceGroup st
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 2048
+				allocation_mb = 5120
 			}
 			disk {
 				allocation_mb = 30720
 			}
 			cpu {
 				allocation_count = 4
+			}
+			host_flavor {
+				id = "multitenant"
 			}
 		}
 		service_endpoints            = "public-and-private"
