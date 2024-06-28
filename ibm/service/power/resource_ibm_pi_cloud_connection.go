@@ -10,10 +10,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/errors"
 	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_cloud_connections"
@@ -21,6 +17,9 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 var (
@@ -432,17 +431,17 @@ func resourceIBMPICloudConnectionRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_CloudConnectionID, cloudConnection.CloudConnectionID)
-	d.Set(Arg_CloudConnectionName, cloudConnection.Name)
 	d.Set(Arg_CloudConnectionGlobalRouting, cloudConnection.GlobalRouting)
 	d.Set(Arg_CloudConnectionMetered, cloudConnection.Metered)
-	d.Set(Attr_IBMIPAddress, cloudConnection.IbmIPAddress)
-	d.Set(Attr_UserIPAddress, cloudConnection.UserIPAddress)
-	d.Set(Attr_Status, cloudConnection.LinkStatus)
-	d.Set(Attr_Port, cloudConnection.Port)
+	d.Set(Arg_CloudConnectionName, cloudConnection.Name)
 	d.Set(Arg_CloudConnectionSpeed, cloudConnection.Speed)
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
+	d.Set(Attr_CloudConnectionID, cloudConnection.CloudConnectionID)
 	d.Set(Attr_ConnectionMode, cloudConnection.ConnectionMode)
+	d.Set(Attr_IBMIPAddress, cloudConnection.IbmIPAddress)
+	d.Set(Attr_Port, cloudConnection.Port)
+	d.Set(Attr_Status, cloudConnection.LinkStatus)
+	d.Set(Attr_UserIPAddress, cloudConnection.UserIPAddress)
 	if cloudConnection.Networks != nil {
 		networks := make([]string, 0)
 		for _, ccNetwork := range cloudConnection.Networks {
@@ -472,6 +471,7 @@ func resourceIBMPICloudConnectionRead(ctx context.Context, d *schema.ResourceDat
 
 	return nil
 }
+
 func resourceIBMPICloudConnectionDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
