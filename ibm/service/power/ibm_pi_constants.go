@@ -11,6 +11,7 @@ const (
 	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
 	Arg_CloudInstanceID                     = "pi_cloud_instance_id"
+	Arg_ConsistencyGroupName                = "pi_consistency_group_name"
 	Arg_Datacenter                          = "pi_datacenter"
 	Arg_DatacenterZone                      = "pi_datacenter_zone"
 	Arg_DeploymentTarget                    = "pi_deployment_target"
@@ -64,6 +65,7 @@ const (
 	Arg_StoragePool                         = "pi_storage_pool"
 	Arg_StorageType                         = "pi_storage_type"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
+	Arg_VolumeGroupName                     = "pi_volume_group_name"
 	Arg_VolumeID                            = "pi_volume_id"
 	Arg_VolumeIDs                           = "pi_volume_ids"
 	Arg_VolumeName                          = "pi_volume_name"
@@ -345,8 +347,10 @@ const (
 	Attr_Vendor                                      = "vendor"
 	Attr_VirtualCoresAssigned                        = "virtual_cores_assigned"
 	Attr_VLanID                                      = "vlan_id"
+	Attr_VolumeGroupID                               = "volume_group_id"
 	Attr_VolumeGroupName                             = "volume_group_name"
 	Attr_VolumeGroups                                = "volume_groups"
+	Attr_VolumeGroupStatus                           = "volume_group_status"
 	Attr_VolumeID                                    = "volume_id"
 	Attr_VolumeIDs                                   = "volume_ids"
 	Attr_VolumePool                                  = "volume_pool"
@@ -384,8 +388,6 @@ const (
 
 	// States
 	NotFound                 = "not found"
-	SctionStart              = "start"
-	SctionStop               = "stop"
 	State_Active             = "active"
 	State_ACTIVE             = "ACTIVE"
 	State_Added              = "added"
@@ -407,7 +409,7 @@ const (
 	State_Removed            = "removed"
 	State_Retry              = "retry"
 	State_Up                 = "up"
-	Status_Deleting          = "deleting"
+	State_Updating           = "updating"
 	StatusActive             = "ACTIVE"
 	StatusBuild              = "BUILD"
 	StatusError              = "ERROR"
@@ -477,11 +479,10 @@ const (
 	PITargetStorageTier = "pi_target_storage_tier"
 
 	// IBM PI Volume Group
-	PIVolumeGroupName                 = "pi_volume_group_name"
-	PIVolumeGroupConsistencyGroupName = "pi_consistency_group_name"
-	PIVolumeGroupID                   = "pi_volume_group_id"
-	PIVolumeGroupAction               = "pi_volume_group_action"
-	PIVolumeOnboardingID              = "pi_volume_onboarding_id"
+
+	PIVolumeGroupID      = "pi_volume_group_id"
+	PIVolumeGroupAction  = "pi_volume_group_action"
+	PIVolumeOnboardingID = "pi_volume_onboarding_id"
 
 	// Disaster Recovery Location
 	PIDRLocation = "location"
