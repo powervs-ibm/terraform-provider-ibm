@@ -86,7 +86,6 @@ func testAccCheckIBMPIVolumeAttachDestroy(s *terraform.State) error {
 
 func testAccCheckIBMPIVolumeAttachExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -123,7 +122,7 @@ func testAccCheckIBMPIVolumeAttachConfig(name string) string {
 			pi_volume_size       = 2
 			pi_volume_name       = "%[2]s"
 			pi_volume_shareable  = true
-			pi_volume_pool       = "Tier3-Flash-1"
+			pi_volume_pool       = "General-Flash-12"
 			pi_cloud_instance_id = "%[1]s"
 		}
 		resource "ibm_pi_instance" "power_instance" {
@@ -134,7 +133,7 @@ func testAccCheckIBMPIVolumeAttachConfig(name string) string {
 			pi_image_id           = "%[3]s"
 			pi_sys_type           = "s922"
 			pi_cloud_instance_id  = "%[1]s"
-			pi_storage_pool       = "Tier3-Flash-1"
+			pi_storage_pool       = "General-Flash-12"
 			pi_network {
 				network_id = "%[4]s"
 			}
@@ -153,7 +152,7 @@ func testAccCheckIBMPIShareableVolumeAttachConfig(name string) string {
 			pi_volume_size       = 2
 			pi_volume_name       = "%[2]s"
 			pi_volume_shareable  = true
-			pi_volume_pool       = "Tier3-Flash-1"
+			pi_volume_pool       = "General-Flash-12"
 			pi_cloud_instance_id = "%[1]s"
 		}
 		resource "ibm_pi_instance" "power_instance" {
@@ -165,7 +164,7 @@ func testAccCheckIBMPIShareableVolumeAttachConfig(name string) string {
 			pi_image_id           = "%[3]s"
 			pi_sys_type           = "s922"
 			pi_cloud_instance_id  = "%[1]s"
-			pi_storage_pool       = "Tier3-Flash-1"
+			pi_storage_pool       = "General-Flash-12"
 			pi_volume_ids         =  count.index == 0 ? [ibm_pi_volume.power_volume.volume_id] : null
 			pi_network {
 				network_id = "%[4]s"
