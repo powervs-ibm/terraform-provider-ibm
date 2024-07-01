@@ -76,7 +76,7 @@ func ResourceIBMPIVolumeGroupAction() *schema.Resource {
 							Type:     schema.TypeList,
 						},
 						Attr_Reset: {
-							Description: "Performs reset action on the volume group to update its status value.",
+							Description: "Performs reset action on the volume group to update its  value.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									Attr_Status: {
