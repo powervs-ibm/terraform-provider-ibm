@@ -30,6 +30,7 @@ const (
 	Arg_IBMiRDSUsers                        = "pi_ibmi_rds_users"
 	Arg_ImageImportDetails                  = "pi_image_import_details"
 	Arg_ImageName                           = "pi_image_name"
+	Arg_InstanceId                          = "pi_instance_id"
 	Arg_InstanceName                        = "pi_instance_name"
 	Arg_Key                                 = "pi_ssh_key"
 	Arg_KeyName                             = "pi_key_name"
@@ -383,8 +384,6 @@ const (
 
 	// States
 	NotFound                 = "not found"
-	SctionStart              = "start"
-	SctionStop               = "stop"
 	State_Active             = "active"
 	State_ACTIVE             = "ACTIVE"
 	State_Added              = "added"
@@ -395,6 +394,7 @@ const (
 	State_Deleted            = "deleted"
 	State_Deleting           = "deleting"
 	State_DELETING           = "DELETING"
+	State_Detaching          = "detaching"
 	State_Down               = "down"
 	State_Failed             = "failed"
 	State_Inactive           = "inactive"
@@ -406,7 +406,6 @@ const (
 	State_Removed            = "removed"
 	State_Retry              = "retry"
 	State_Up                 = "up"
-	Status_Deleting          = "deleting"
 	StatusActive             = "ACTIVE"
 	StatusBuild              = "BUILD"
 	StatusError              = "ERROR"
