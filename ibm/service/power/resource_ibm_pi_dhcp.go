@@ -41,7 +41,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 			},
 
 			// Optional Arguments
-			Arg_DhcpCidr: {
+			Arg_Cidr: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Optional cidr for DHCP private network",
@@ -98,7 +98,7 @@ func ResourceIBMPIDhcp() *schema.Resource {
 					},
 				},
 			},
-			Attr_DhcpNetworkID: {
+			Attr_NetworkID: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the DHCP Server private network",
@@ -130,7 +130,7 @@ func resourceIBMPIDhcpCreate(ctx context.Context, d *schema.ResourceData, meta i
 
 	// arguments
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	if cidr, ok := d.GetOk(Arg_DhcpCidr); ok {
+	if cidr, ok := d.GetOk(Arg_Cidr); ok {
 		c := cidr.(string)
 		body.Cidr = &c
 	}
@@ -205,7 +205,7 @@ func resourceIBMPIDhcpRead(ctx context.Context, d *schema.ResourceData, meta int
 	if dhcpServer.Network != nil {
 		dhcpNetwork := dhcpServer.Network
 		if dhcpNetwork.ID != nil {
-			d.Set(Attr_DhcpNetworkID, *dhcpNetwork.ID)
+			d.Set(Attr_NetworkID, *dhcpNetwork.ID)
 		}
 		if dhcpNetwork.Name != nil {
 			d.Set(Attr_DhcpNetworkName, *dhcpNetwork.Name)

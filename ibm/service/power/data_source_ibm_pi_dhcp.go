@@ -58,7 +58,7 @@ func DataSourceIBMPIDhcp() *schema.Resource {
 				},
 				Type: schema.TypeList,
 			},
-			Attr_DhcpNetworkID: {
+			Attr_NetworkID: {
 				Computed:    true,
 				Description: "ID of the DHCP Server private network.",
 				Type:        schema.TypeString,
@@ -99,7 +99,7 @@ func dataSourceIBMPIDhcpRead(ctx context.Context, d *schema.ResourceData, meta i
 	if dhcpServer.Network != nil {
 		dhcpNetwork := dhcpServer.Network
 		if dhcpNetwork.ID != nil {
-			d.Set(Attr_DhcpNetworkID, *dhcpNetwork.ID)
+			d.Set(Attr_NetworkID, *dhcpNetwork.ID)
 		}
 		if dhcpNetwork.Name != nil {
 			d.Set(Attr_NetworkName, *dhcpNetwork.Name)
