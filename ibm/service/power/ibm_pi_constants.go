@@ -45,6 +45,8 @@ const (
 	Arg_Name                                = "pi_name"
 	Arg_Network                             = "pi_network"
 	Arg_NetworkName                         = "pi_network_name"
+	Arg_NetworkPortDescription              = "pi_network_port_description"
+	Arg_NetworkPortIPAddress                = "pi_network_port_ipaddress"
 	Arg_PIInstanceSharedProcessorPool       = "pi_shared_processor_pool"
 	Arg_PinPolicy                           = "pi_pin_policy"
 	Arg_PlacementGroupID                    = "pi_placement_group_id"
@@ -257,6 +259,7 @@ const (
 	Attr_NetworkID                                   = "network_id"
 	Attr_NetworkName                                 = "network_name"
 	Attr_NetworkPorts                                = "network_ports"
+	Attr_NetworkPortID                               = "network_port_id"
 	Attr_Networks                                    = "networks"
 	Attr_NumberOfVolumes                             = "number_of_volumes"
 	Attr_Onboardings                                 = "onboardings"
@@ -447,6 +450,7 @@ const (
 	State_Added              = "added"
 	State_Adding             = "adding"
 	State_Available          = "available"
+	State_Build              = "build"
 	State_BUILD              = "BUILD"
 	State_Completed          = "completed"
 	State_Creating           = "creating"
@@ -477,12 +481,6 @@ const (
 	Status_Error             = "ERROR"
 	Status_Pending           = "PENDING"
 	Status_Shutoff           = "SHUTOFF"
-	StatusActive             = "ACTIVE"
-	StatusBuild              = "BUILD"
-	StatusError              = "ERROR"
-	StatusPending            = "PENDING"
-	StatusResize             = "RESIZE"
-	StatusShutoff            = "SHUTOFF"
 
 	// TODO: Second Half Cleanup, remove extra variables
 
