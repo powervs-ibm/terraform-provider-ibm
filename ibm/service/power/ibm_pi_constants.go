@@ -396,6 +396,8 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
+	Attr_UpdatedDate                                 = "updated_date"
+	Attr_Snapshots                                   = "snapshots"
 
 	// OS Type
 	OS_IBMI  = "ibmi"

@@ -657,6 +657,8 @@ func Provider() *schema.Provider {
 			"ibm_pi_sap_profiles":                           power.DataSourceIBMPISAPProfiles(),
 			"ibm_pi_shared_processor_pool":                  power.DataSourceIBMPISharedProcessorPool(),
 			"ibm_pi_shared_processor_pools":                 power.DataSourceIBMPISharedProcessorPools(),
+			"ibm_pi_snapshot":                               power.DataSourceIBMPISnapshot(),
+			"ibm_pi_snapshots":                              power.DataSourceIBMPISnapshots(),
 			"ibm_pi_spp_placement_group":                    power.DataSourceIBMPISPPPlacementGroup(),
 			"ibm_pi_spp_placement_groups":                   power.DataSourceIBMPISPPPlacementGroups(),
 			"ibm_pi_storage_pool_capacity":                  power.DataSourceIBMPIStoragePoolCapacity(),
