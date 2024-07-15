@@ -11,17 +11,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/apparentlymart/go-cidr/cidr"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
+	"github.com/apparentlymart/go-cidr/cidr"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPINetwork() *schema.Resource {
@@ -42,42 +42,42 @@ func ResourceIBMPINetwork() *schema.Resource {
 			// Arguments
 			Arg_Cidr: {
 				Computed:    true,
-				Description: "PI network CIDR",
+				Description: "The network CIDR. Required for `vlan` network type.",
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
 			Arg_CloudInstanceID: {
-				Description:  "PI cloud instance ID",
+				Description:  "The GUID of the service instance associated with an account.",
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_DNS: {
 				Computed:    true,
-				Description: "List of PI network DNS name",
+				Description: "The DNS Servers for the network.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Optional:    true,
 				Type:        schema.TypeSet,
 			},
 			Arg_Gateway: {
 				Computed:    true,
-				Description: "PI network gateway",
+				Description: "The gateway ip address.",
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
 			Arg_IPAddressRange: {
 				Computed:    true,
-				Description: "List of one or more ip address range(s)",
+				Description: "List of one or more ip address range(s).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Arg_EndingIPAddress: {
-							Description:  "Ending ip address",
+							Description:  "The ending ip address.",
 							Required:     true,
 							Type:         schema.TypeString,
 							ValidateFunc: validation.NoZeroValues,
 						},
 						Arg_StartingIPAddress: {
-							Description:  "Starting ip address",
+							Description:  "The staring ip address.",
 							Required:     true,
 							Type:         schema.TypeString,
 							ValidateFunc: validation.NoZeroValues,
@@ -89,7 +89,7 @@ func ResourceIBMPINetwork() *schema.Resource {
 			},
 			Arg_NetworkAccessConfig: {
 				Computed:     true,
-				Description:  "PI network communication configuration",
+				Description:  "The network communication configuration option of the network (for satellite locations only).",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Internal_Only, Outbound_Only, Bidirectional_Static_Route, Bidirectional_BGP, Bidirectional_L2Out}),
@@ -98,40 +98,39 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Computed:      true,
 				ConflictsWith: []string{Arg_NetworkMTU},
 				Deprecated:    "This field is deprecated, use pi_network_mtu instead.",
-				Description:   "PI network enable MTU Jumbo option",
+				Description:   "MTU Jumbo option of the network (for multi-zone locations only).",
 				Optional:      true,
 				Type:          schema.TypeBool,
 			},
 			Arg_NetworkMTU: {
 				Computed:      true,
 				ConflictsWith: []string{Arg_NetworkJumbo},
-				Description:   "PI Maximum Transmission Unit",
+				Description:   "Maximum Transmission Unit option of the network. Minimum is 1450 and maximum is 9000.",
 				Optional:      true,
 				Type:          schema.TypeInt,
 			},
 			Arg_NetworkName: {
-				Description:  "PI network name",
+				Description:  "The name of the network.",
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
 			Arg_NetworkType: {
-				Description:  "PI network type",
+				Description:  "The type of network that you want to create. Valid values are `pub-vlan`, `vlan` and `dhcp-vlan`.",
 				Required:     true,
 				Type:         schema.TypeString,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{VLAN, Pub_VLAN}),
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{DHCPVlan, PubVlan, Vlan}),
 			},
 
 			// Attributes
 			Attr_NetworkID: {
 				Computed:    true,
-				Description: "PI network ID",
+				Description: "The unique identifier of the network.",
 				Type:        schema.TypeString,
 			},
 			Attr_VLanID: {
 				Computed:    true,
-				Description: "VLAN Id value",
+				Description: "The ID of the VLAN that your network is attached to.",
 				Type:        schema.TypeFloat,
 			},
 		},
@@ -170,7 +169,7 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		body.AccessConfig = models.AccessConfig(v.(string))
 	}
 
-	if networktype == VLAN {
+	if networktype == DHCPVlan || networktype == Vlan {
 		var networkcidr string
 		var ipBodyRanges []*models.IPAddressRange
 		if v, ok := d.GetOk(Arg_Cidr); ok {
@@ -233,16 +232,16 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_NetworkID, networkdata.NetworkID)
 	d.Set(Arg_Cidr, networkdata.Cidr)
 	d.Set(Arg_DNS, networkdata.DNSServers)
-	d.Set(Attr_VLanID, networkdata.VlanID)
-	d.Set(Arg_NetworkName, networkdata.Name)
-	d.Set(Arg_NetworkType, networkdata.Type)
+	d.Set(Arg_Gateway, networkdata.Gateway)
+	d.Set(Arg_NetworkAccessConfig, networkdata.AccessConfig)
 	d.Set(Arg_NetworkJumbo, networkdata.Jumbo)
 	d.Set(Arg_NetworkMTU, networkdata.Mtu)
-	d.Set(Arg_NetworkAccessConfig, networkdata.AccessConfig)
-	d.Set(Arg_Gateway, networkdata.Gateway)
+	d.Set(Arg_NetworkName, networkdata.Name)
+	d.Set(Arg_NetworkType, networkdata.Type)
+	d.Set(Attr_NetworkID, networkdata.NetworkID)
+	d.Set(Attr_VLanID, networkdata.VlanID)
 	ipRangesMap := []map[string]interface{}{}
 	if networkdata.IPAddressRanges != nil {
 		for _, n := range networkdata.IPAddressRanges {
@@ -258,7 +257,6 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	d.Set(Arg_IPAddressRange, ipRangesMap)
 
 	return nil
-
 }
 
 func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -272,14 +270,18 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(Arg_NetworkName, Arg_DNS, Arg_Gateway, Arg_IPAddressRange) {
+	if d.HasChanges(Arg_NetworkName, Arg_DNS, Arg_IPAddressRange) {
 		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 		body := &models.NetworkUpdate{
 			DNSServers: flex.ExpandStringList((d.Get(Arg_DNS).(*schema.Set)).List()),
 		}
-		if d.Get(Arg_NetworkType).(string) == VLAN {
-			body.Gateway = flex.PtrToString(d.Get(Arg_Gateway).(string))
-			body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_IPAddressRange).([]interface{}))
+		networkType := d.Get(Arg_NetworkType).(string)
+		if d.HasChange(Arg_IPAddressRange) {
+			if networkType == Vlan {
+				body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_IPAddressRange).([]interface{}))
+			} else {
+				return diag.Errorf("%v type does not allow ip-address range update", networkType)
+			}
 		}
 
 		if d.HasChange(Arg_NetworkName) {
@@ -296,7 +298,6 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 }
 
 func resourceIBMPINetworkDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	log.Printf("Calling the network delete functions. ")
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -308,12 +309,17 @@ func resourceIBMPINetworkDelete(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
-	err = networkC.Delete(networkID)
-
+	client := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
+	err = client.Delete(networkID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	_, err = isWaitForIBMPINetworkDeleted(ctx, client, networkID, d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId("")
 	return nil
 }
@@ -343,6 +349,29 @@ func isIBMPINetworkRefreshFunc(client *instance.IBMPINetworkClient, id string) r
 		}
 
 		return network, State_Build, nil
+	}
+}
+
+func isWaitForIBMPINetworkDeleted(ctx context.Context, client *instance.IBMPINetworkClient, id string, timeout time.Duration) (interface{}, error) {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Found},
+		Target:     []string{State_NotFound},
+		Refresh:    isIBMPINetworkRefreshDeleteFunc(client, id),
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}
+
+	return stateConf.WaitForStateContext(ctx)
+}
+
+func isIBMPINetworkRefreshDeleteFunc(client *instance.IBMPINetworkClient, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		network, err := client.Get(id)
+		if err != nil {
+			return network, State_NotFound, nil
+		}
+		return network, State_Found, nil
 	}
 }
 
