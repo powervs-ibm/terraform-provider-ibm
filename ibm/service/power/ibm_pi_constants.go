@@ -18,7 +18,7 @@ const (
 	Arg_DeploymentType                      = "pi_deployment_type"
 	Arg_Description                         = "pi_description"
 	Arg_DhcpCidr                            = "pi_cidr"
-	Arg_DhcpCloudConnectionID               = "pi_cloud_connection_id"
+	Arg_CloudConnectionID                   = "pi_cloud_connection_id"
 	Arg_DhcpDnsServer                       = "pi_dns_server"
 	Arg_DhcpID                              = "pi_dhcp_id"
 	Arg_DhcpName                            = "pi_dhcp_name"
@@ -99,6 +99,7 @@ const (
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
 	Arg_VTL                                 = "vtl"
+	Arg_NetworkID                           = "pi_network_id"
 
 	// Attributes
 	Attr_Access                                      = "access"
