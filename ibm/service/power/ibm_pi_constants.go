@@ -476,6 +476,12 @@ const (
 	Status_Pending           = "PENDING"
 	Status_Shutoff           = "SHUTOFF"
 
+	// Added timeout values for warning and active status
+	warningTimeOut   = 60 * time.Second
+	activeTimeOut    = 2 * time.Minute
+	vpcRetryCount    = 2
+	vpcRetryDuration = time.Minute
+
 	// TODO: Second Half Cleanup, remove extra variables
 
 	// SAP Profile
@@ -486,23 +492,10 @@ const (
 	PISAPProfileID        = "profile_id"
 	PISAPProfileType      = "type"
 
-	//Added timeout values for warning  and active status
-	warningTimeOut   = 60 * time.Second
-	activeTimeOut    = 2 * time.Minute
-	vpcRetryCount    = 2
-	vpcRetryDuration = time.Minute
-
-	PICloudConnectionClassicGreSource   = "gre_source_address"
-	PICloudConnectionConnectionMode     = "connection_mode"
-	PICloudConnectionIBMIPAddress       = "ibm_ip_address"
 	PICloudConnectionId                 = "cloud_connection_id"
 	PICloudConnectionPort               = "port"
-	PICloudConnectionStatus             = "status"
-	PICloudConnectionUserIPAddress      = "user_ip_address"
-	PIConsoleLanguageCode               = "pi_language_code"
 	PIInstanceDeploymentType            = "pi_deployment_type"
 	PIInstanceLicenseRepositoryCapacity = "pi_license_repository_capacity"
-	PIInstanceMigratable                = "pi_migratable"
 	PIInstanceNetwork                   = "pi_network"
 	PIInstanceSharedProcessorPool       = "pi_shared_processor_pool"
 	PIInstanceStorageConnection         = "pi_storage_connection"
@@ -539,9 +532,6 @@ const (
 	PIVolumeGroupAction               = "pi_volume_group_action"
 	PIVolumeOnboardingID              = "pi_volume_onboarding_id"
 
-	// Disaster Recovery Location
-	PIDRLocation = "location"
-
 	// VPN
 	PIVPNConnectionId                         = "connection_id"
 	PIVPNConnectionStatus                     = "connection_status"
@@ -551,19 +541,6 @@ const (
 	PIVPNConnectionDeadPeerDetectionThreshold = "threshold"
 	PIVPNConnectionLocalGatewayAddress        = "local_gateway_address"
 	PIVPNConnectionVpnGatewayAddress          = "gateway_address"
-
-	// status
-	// common status states
-	StatusShutoff = "SHUTOFF"
-	StatusActive  = "ACTIVE"
-	StatusResize  = "RESIZE"
-	StatusError   = "ERROR"
-	StatusBuild   = "BUILD"
-	StatusPending = "PENDING"
-	SctionStart   = "start"
-	SctionStop    = "stop"
-	// Cloud Connections
-	PICloudConnectionTransitEnabled = "pi_cloud_connection_transit_enabled"
 
 	// volume clone task status
 	VolumeCloneCompleted = "completed"
