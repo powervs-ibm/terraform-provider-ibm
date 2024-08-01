@@ -7,22 +7,26 @@ description: |-
 ---
 
 # ibm_pi_datacenter
+
 Retrieve information about a Power Systems Datacenter.
 
-## Example usage
+## Example Usage
+
 ```terraform
 data "ibm_pi_datacenter" "datacenter" {
   pi_datacenter_zone= "dal12"
 }
 ```
 
-**Notes**
+### Notes
+
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 - If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   - `region` - `lon`
   - `zone` - `lon04`
 
 Example usage:
+
   ```terraform
     provider "ibm" {
       region    =   "lon"
@@ -30,12 +34,14 @@ Example usage:
     }
   ```
   
-## Argument reference
+## Argument Reference
+
 Review the argument references that you can specify for your data source.
 
 - `pi_datacenter_zone` - (Optional, String) Datacenter zone you want to retrieve. If no value is supplied, the `zone` configured within the IBM provider will be utilized.
 
-## Attribute reference
+## Attribute Reference
+
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
 - `pi_datacenter_capabilities` - (Map) Datacenter Capabilities. Capabilities are `true` or `false`.
