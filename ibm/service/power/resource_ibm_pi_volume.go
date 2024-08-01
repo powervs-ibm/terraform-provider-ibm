@@ -87,6 +87,13 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
+			Arg_ReplicationSites: {
+				Computed:    true,
+				Description: "List of replication sites.",
+				Optional:    true,
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+			},
 			Arg_VolumeName: {
 				Description:  "The name of the volume.",
 				Required:     true,
@@ -240,6 +247,17 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		replicationEnabled := v.(bool)
 		body.ReplicationEnabled = &replicationEnabled
 	}
+	if v, ok := d.GetOk(Arg_ReplicationSites); ok {
+		if d.Get(Arg_ReplicationEnabled).(bool) {
+			replicationSites := make([]string, len(v.([]interface{})))
+			for i, site := range v.([]interface{}) {
+				replicationSites[i] = site.(string)
+			}
+			body.ReplicationSites = replicationSites
+		} else {
+			return diag.Errorf("Replication must be enabled if replication sites are specified.")
+		}
+	}
 	if ap, ok := d.GetOk(Arg_AffinityPolicy); ok {
 		policy := ap.(string)
 		body.AffinityPolicy = &policy
@@ -324,6 +342,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Attr_MirroringState, vol.MirroringState)
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
+	d.Set(Arg_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
 	d.Set(Attr_VolumeStatus, vol.State)
