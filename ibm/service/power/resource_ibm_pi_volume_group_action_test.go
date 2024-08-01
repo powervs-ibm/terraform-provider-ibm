@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"testing"
 
+	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
+
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
-	st "github.com/IBM-Cloud/power-go-client/clients/instance"
-	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 )
 
 func TestAccIBMPIVolumeGroupActionbasic(t *testing.T) {
@@ -68,7 +68,7 @@ func testAccCheckIBMPIVolumeGroupActionExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		cloudInstanceID, vgID := ids[0], ids[1]
-		client := st.NewIBMPIVolumeGroupClient(context.Background(), sess, cloudInstanceID)
+		client := instance.NewIBMPIVolumeGroupClient(context.Background(), sess, cloudInstanceID)
 
 		_, err = client.Get(vgID)
 		if err != nil {
@@ -80,28 +80,28 @@ func testAccCheckIBMPIVolumeGroupActionExists(n string) resource.TestCheckFunc {
 
 func testAccCheckIBMPIVolumeGroupStopActionConfig(name string) string {
 	return testAccCheckIBMPIVolumeGroupConfig(name) + fmt.Sprintf(`
-	  resource "ibm_pi_volume_group_action" "power_volume_group_action" {
-		pi_cloud_instance_id   = "%[1]s"
-		pi_volume_group_id     = ibm_pi_volume_group.power_volume_group.volume_group_id
-		pi_volume_group_action {
-			stop {
-				access = true
+		resource "ibm_pi_volume_group_action" "power_volume_group_action" {
+			pi_cloud_instance_id   = "%[1]s"
+			pi_volume_group_id     = ibm_pi_volume_group.power_volume_group.volume_group_id
+			pi_volume_group_action {
+				stop {
+					access = true
+				}
 			}
 		}
-	  }
 	`, acc.Pi_cloud_instance_id)
 }
 
 func testAccCheckIBMPIVolumeGroupStartActionConfig(name string) string {
 	return testAccCheckIBMPIVolumeGroupConfig(name) + fmt.Sprintf(`
-	  resource "ibm_pi_volume_group_action" "power_volume_group_action" {
-		pi_cloud_instance_id   = "%[1]s"
-		pi_volume_group_id     = ibm_pi_volume_group.power_volume_group.volume_group_id
-		pi_volume_group_action {
-			start {
-				source = "master"
+		resource "ibm_pi_volume_group_action" "power_volume_group_action" {
+			pi_cloud_instance_id   = "%[1]s"
+			pi_volume_group_id     = ibm_pi_volume_group.power_volume_group.volume_group_id
+			pi_volume_group_action {
+				start {
+					source = "master"
+				}
 			}
 		}
-	  }
 	`, acc.Pi_cloud_instance_id)
 }
