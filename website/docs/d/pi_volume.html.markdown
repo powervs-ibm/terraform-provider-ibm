@@ -52,15 +52,19 @@ In addition to all argument reference list, you can access the following attribu
 - `auxiliary_volume_name` - (String) The auxiliary volume name.
 - `bootable` -  (Boolean) Indicates if the volume is boot capable.
 - `consistency_group_name` - (String) Consistency group name if volume is a part of volume group.
+- `creation_date` - (String) Date of volume creation.
 - `disk_type` - (String) The disk type that is used for the volume.
+- `freeze_time` - (String) Time volume last replicated.
 - `group_id` - (String) The volume group id in which the volume belongs.
 - `id` - (String) The unique identifier of the volume.
 - `io_throttle_rate` - (String) Amount of iops assigned to the volume.
+- `last_update_date` - (String) The date when the volume last updated.
 - `master_volume_name` - (String) The master volume name.
 - `mirroring_state` - (String) Mirroring state for replication enabled volume.
 - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
 - `replication_enabled` - (Boolean) Indicates if the volume should be replication enabled or not.
 - `replication_status` - (String) The replication status of the volume.
+- `replication_sites` - ([]String) Replication sites for disaster recovery for volume. 
 - `replication_type` - (String) The replication type of the volume, `metro` or `global`.
 - `shareable` - (String) Indicates if the volume is shareable between VMs.
 - `size` - (Integer) The size of the volume in GB.

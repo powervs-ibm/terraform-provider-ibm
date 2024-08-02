@@ -53,8 +53,11 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `instance_volumes`:
   - `bootable`- (Boolean) Indicates if the volume is boot capable.
+  - `creation_date` - (String) Date of volume creation.
+  - `freeze_time` - (String) Time volume last replicated.
   - `href` - (String) The hyper link of the volume.
   - `id` - (String) The unique identifier of the volume.
+  - `last_update_date` - (String) The date when the volume last updated.
   - `name` - (String) The name of the volume.
   - `pool` - (String) Volume pool, name of storage pool where the volume is located.
   - `shareable` - (Boolean) Indicates if the volume is shareable between VMs.
