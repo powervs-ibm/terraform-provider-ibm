@@ -53,12 +53,12 @@ func DataSourceIBMPIDisasterRecoveryLocation() *schema.Resource {
 							Type:        schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									Attr_StoragePoolMapRemotePool: {
+									Attr_RemotePool: {
 										Computed:    true,
 										Description: "Remote pool.",
 										Type:        schema.TypeString,
 									},
-									Attr_StoragePoolMapVolumePool: {
+									Attr_VolumePool: {
 										Computed:    true,
 										Description: "Volume pool.",
 										Type:        schema.TypeString,
@@ -88,21 +88,21 @@ func dataSourceIBMPIDisasterRecoveryLocation(ctx context.Context, d *schema.Reso
 	}
 
 	result := make([]map[string]interface{}, 0, len(drLocationSite.ReplicationSites))
-	for _, i := range drLocationSite.ReplicationSites {
-		if i != nil {
+	for _, site := range drLocationSite.ReplicationSites {
+		if site != nil {
 			replicationPoolMap := make([]map[string]string, 0)
-			if i.ReplicationPoolMap != nil {
-				for _, rMap := range i.ReplicationPoolMap {
+			if site.ReplicationPoolMap != nil {
+				for _, rMap := range site.ReplicationPoolMap {
 					replicationPool := make(map[string]string)
-					replicationPool[Attr_StoragePoolMapRemotePool] = rMap.RemotePool
-					replicationPool[Attr_StoragePoolMapVolumePool] = rMap.VolumePool
+					replicationPool[Attr_RemotePool] = rMap.RemotePool
+					replicationPool[Attr_VolumePool] = rMap.VolumePool
 					replicationPoolMap = append(replicationPoolMap, replicationPool)
 				}
 			}
 
 			l := map[string]interface{}{
-				Attr_IsActive:           i.IsActive,
-				Attr_Location:           i.Location,
+				Attr_IsActive:           site.IsActive,
+				Attr_Location:           site.Location,
 				Attr_ReplicationPoolMap: replicationPoolMap,
 			}
 			result = append(result, l)
