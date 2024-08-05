@@ -49,18 +49,18 @@ func DataSourceIBMPIDisasterRecoveryLocation() *schema.Resource {
 						},
 						Attr_ReplicationPoolMap: {
 							Computed:    true,
-							Description: "Shows storage pool maps for replication sites.",
+							Description: "List of replication pool map.",
 							Type:        schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									Attr_StoragePoolMapRemotePool: {
 										Computed:    true,
-										Description: "Pool of remote replica of volume.",
+										Description: "Remote pool.",
 										Type:        schema.TypeString,
 									},
 									Attr_StoragePoolMapVolumePool: {
 										Computed:    true,
-										Description: "Storage pool of volume.",
+										Description: "Volume pool.",
 										Type:        schema.TypeString,
 									},
 								},
