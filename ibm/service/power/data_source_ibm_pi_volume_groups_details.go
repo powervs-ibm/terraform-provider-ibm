@@ -58,8 +58,8 @@ func DataSourceIBMPIVolumeGroupsDetails() *schema.Resource {
 						Attr_ReplicationSites: {
 							Computed:    true,
 							Description: "List of Replication Sites.",
-							Type:        schema.TypeList,
 							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeList,
 						},
 						Attr_Status: {
 							Computed:    true,
