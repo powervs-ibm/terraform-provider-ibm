@@ -168,7 +168,7 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 		if i.FreezeTime != nil {
 			l[Attr_FreezeTime] = i.FreezeTime.String()
 		} else {
-			l[Attr_FreezeTime] = nil
+			l[Attr_FreezeTime] = ""
 		}
 		result = append(result, l)
 	}
