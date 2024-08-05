@@ -38,7 +38,10 @@ In addition to all argument reference list, you can access the following attribu
   Nested scheme for `disaster_recovery_locations`:
   - `location` - (String) The region zone of a site.
   - `replication_sites` - List of Replication Sites.
-  
         Nested scheme for `replication_sites`:
         - `is_active` - (Boolean) Indicates the location is active or not, `true` if location is active, otherwise it is `false`.
         - `location` - (String) The region zone of the location.
+        - `replication_pool_map` - (List) List of maps containing information about volume and replica pools
+          Nested scheme for `replication_pool_map`:
+          - `remote_pool` - (String) Pool where remote volume is located
+          - `volume_pool` - (String) Pool where main volume is located
