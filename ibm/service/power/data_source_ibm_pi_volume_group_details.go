@@ -32,6 +32,11 @@ func DataSourceIBMPIVolumeGroupDetails() *schema.Resource {
 			},
 
 			// Attributes
+			Attr_Auxiliary: {
+				Computed:    true,
+				Description: "Indicates if the volume is auxiliary or not.",
+				Type:        schema.TypeBool,
+			},
 			Attr_ConsistencyGroupName: {
 				Computed:    true,
 				Description: "The name of consistency group at storage controller level.",
@@ -41,6 +46,12 @@ func DataSourceIBMPIVolumeGroupDetails() *schema.Resource {
 				Computed:    true,
 				Description: "The replication status of volume group.",
 				Type:        schema.TypeString,
+			},
+			Attr_ReplicationSites: {
+				Computed:    true,
+				Description: "List of Replication Sites.",
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			Attr_Status: {
 				Computed:    true,
@@ -72,6 +83,11 @@ func DataSourceIBMPIVolumeGroupDetails() *schema.Resource {
 				},
 				Type: schema.TypeSet,
 			},
+			Attr_StoragePool: {
+				Computed:    true,
+				Description: "Indicates the storage pool of the volume group",
+				Type:        schema.TypeString,
+			},
 			Attr_VolumeIDs: {
 				Computed:    true,
 				Description: "List of volume IDs, member of volume group.",
@@ -101,12 +117,15 @@ func dataSourceIBMPIVolumeGroupDetailsRead(ctx context.Context, d *schema.Resour
 	}
 
 	d.SetId(*vgData.ID)
+	d.Set(Attr_Auxiliary, vgData.Auxiliary)
 	d.Set(Attr_ConsistencyGroupName, vgData.ConsistencyGroupName)
 	d.Set(Attr_ReplicationStatus, vgData.ReplicationStatus)
+	d.Set(Attr_ReplicationSites, vgData.ReplicationSites)
 	d.Set(Attr_Status, vgData.Status)
 	if vgData.StatusDescription != nil {
 		d.Set(Attr_StatusDescriptionErrors, flattenVolumeGroupStatusDescription(vgData.StatusDescription.Errors))
 	}
+	d.Set(Attr_StoragePool, vgData.StoragePool)
 	d.Set(Attr_VolumeIDs, vgData.VolumeIDs)
 	d.Set(Attr_VolumeGroupName, vgData.Name)
 
