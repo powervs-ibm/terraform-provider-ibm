@@ -48,7 +48,7 @@ Review the argument references that you can specify for your data source.
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
-- `auxiliary` - (Boolean) Indicates if the volume is auxiliary or not.
+- `auxiliary` - (Boolean) Indicates if the volume is auxiliary.
 - `auxiliary_volume_name` - (String) The auxiliary volume name.
 - `bootable` -  (Boolean) Indicates if the volume is boot capable.
 - `consistency_group_name` - (String) Consistency group name if volume is a part of volume group.
@@ -64,7 +64,7 @@ In addition to all argument reference list, you can access the following attribu
 - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
 - `replication_enabled` - (Boolean) Indicates if the volume should be replication enabled or not.
 - `replication_status` - (String) The replication status of the volume.
-- `replication_sites` - ([]String) Replication sites for disaster recovery for volume. 
+- `replication_sites` - (List) List of replication sites for disaster recovery for volume. 
 - `replication_type` - (String) The replication type of the volume, `metro` or `global`.
 - `shareable` - (String) Indicates if the volume is shareable between VMs.
 - `size` - (Integer) The size of the volume in GB.
