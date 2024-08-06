@@ -59,7 +59,12 @@ Review the argument references that you can specify for your resource.
 - `pi_anti_affinity_volumes`- (Optional, String) List of volumes to base volume anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_instances` is not provided.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_replication_enabled` - (Optional, Boolean) Indicates if the volume should be replication enabled or not.
-- `pi_replication_sites` - (Optional, [String]) Specifies sites for volume replication. Note: If a site included in the list is not supported, it will be ommitted when the resource is created. 
+  **Note:**
+  - `replication_sites` may be automatically populated if enabled.
+- `pi_replication_sites` - (Optional, List) Specifies sites for volume replication.
+  **Notes:**
+  - `pi_replication_sites` will not update resource if changed.
+  - `replication_sites` sites may be automatically assigned or omitted compared to configuration.
 - `pi_volume_name` - (Required, String) The name of the volume.
 - `pi_volume_pool` - (Optional, String) Volume pool where the volume will be created; if provided then `pi_affinity_policy` values will be ignored.
 - `pi_volume_shareable` - (Required, Boolean) If set to **true**, the volume can be shared across Power Systems Virtual Server instances. If set to **false**, you can attach it only to one instance.
@@ -81,6 +86,7 @@ In addition to all argument reference list, you can access the following attribu
 - `mirroring_state` - (String) Mirroring state for replication enabled volume.
 - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
 - `replication_status` - (String) The replication status of the volume.
+- `replication_sites` - (List) List of replication sites for volume.
 - `replication_type` - (String) The replication type of the volume `metro` or `global`.
 - `volume_id` - (String) The unique identifier of the volume.
 - `volume_status` - (String) The status of the volume.
