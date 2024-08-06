@@ -105,8 +105,8 @@ func DataSourceIBMPIVolume() *schema.Resource {
 			Attr_ReplicationSites: {
 				Computed:    true,
 				Description: "Sites specified for volume replication.",
-				Type:        schema.TypeList,
 				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
 			},
 			Attr_ReplicationStatus: {
 				Computed:    true,
@@ -170,7 +170,7 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	if volumedata.FreezeTime != nil {
 		d.Set(Attr_FreezeTime, volumedata.FreezeTime.String())
 	} else {
-		d.Set(Attr_FreezeTime, "")
+		d.Set(Attr_FreezeTime, nil)
 	}
 	d.Set(Attr_GroupID, volumedata.GroupID)
 	d.Set(Attr_IOThrottleRate, volumedata.IoThrottleRate)

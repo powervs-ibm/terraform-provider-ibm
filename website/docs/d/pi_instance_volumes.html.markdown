@@ -61,7 +61,7 @@ In addition to all argument reference list, you can access the following attribu
   - `name` - (String) The name of the volume.
   - `pool` - (String) Volume pool, name of storage pool where the volume is located.
   - `replication_enabled` - (Boolean) Indicates whether replication is enabled on the volume.
-  - `replication_sites` - ([]String) Replication sites for disaster recovery for volume. 
+  - `replication_sites` - (List) List of replication sites for disaster recovery for volume. 
   - `shareable` - (Boolean) Indicates if the volume is shareable between VMs.
   - `size` - (Integer) The size of this volume in GB.
   - `state` - (String) The state of the volume.

@@ -92,8 +92,8 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 						Attr_ReplicationSites: {
 							Computed:    true,
 							Description: "Sites specified for volume replication.",
-							Type:        schema.TypeList,
 							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeList,
 						},
 						Attr_Shareable: {
 							Computed:    true,
@@ -168,7 +168,7 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 		if i.FreezeTime != nil {
 			l[Attr_FreezeTime] = i.FreezeTime.String()
 		} else {
-			l[Attr_FreezeTime] = ""
+			l[Attr_FreezeTime] = nil
 		}
 		result = append(result, l)
 	}
