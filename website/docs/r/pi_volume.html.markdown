@@ -64,7 +64,7 @@ Review the argument references that you can specify for your resource.
 - `pi_replication_sites` - (Optional, List) Specifies sites for volume replication.
   **Notes:**
   - `pi_replication_sites` will not update resource if changed.
-  - `replication_sites` sites may be automatically assigned or omitted compared to configuration.
+  - `replication_sites` sites may be automatically assigned and differ from configuration if given list is empty.
 - `pi_volume_name` - (Required, String) The name of the volume.
 - `pi_volume_pool` - (Optional, String) Volume pool where the volume will be created; if provided then `pi_affinity_policy` values will be ignored.
 - `pi_volume_shareable` - (Required, Boolean) If set to **true**, the volume can be shared across Power Systems Virtual Server instances. If set to **false**, you can attach it only to one instance.
