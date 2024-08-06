@@ -90,9 +90,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 			Arg_ReplicationSites: {
 				Computed:    true,
 				Description: "List of replication sites.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				MinItems:    1,
 				Optional:    true,
 				Type:        schema.TypeList,
-				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			Arg_VolumeName: {
 				Description:  "The name of the volume.",
@@ -177,6 +179,12 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Computed:    true,
 				Description: "The replication status of the volume.",
 				Type:        schema.TypeString,
+			},
+			Attr_ReplicationSites: {
+				Computed:    true,
+				Description: "List of replication sites.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
 			},
 			Attr_ReplicationType: {
 				Computed:    true,
@@ -343,6 +351,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
 	d.Set(Arg_ReplicationSites, vol.ReplicationSites)
+	d.Set(Attr_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
 	d.Set(Attr_VolumeStatus, vol.State)
