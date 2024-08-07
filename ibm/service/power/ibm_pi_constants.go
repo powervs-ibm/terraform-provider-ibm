@@ -398,6 +398,7 @@ const (
 	Attr_WorkspaceStatus                             = "pi_workspace_status"
 	Attr_WorkspaceType                               = "pi_workspace_type"
 	Attr_WWN                                         = "wwn"
+	Attr_NetworkSecurityGroups                       = "network_security_groups"
 
 	// Duplicate Attributes, will be removed as refactoring take course.
 	PICloudConnectionClassicGreSource      = "gre_source_address"
