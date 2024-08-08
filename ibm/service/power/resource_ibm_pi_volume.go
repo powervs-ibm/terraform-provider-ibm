@@ -88,7 +88,6 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			Arg_ReplicationSites: {
-				Computed:    true,
 				Description: "List of replication sites.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
@@ -350,7 +349,6 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Attr_MirroringState, vol.MirroringState)
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
-	d.Set(Arg_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
