@@ -244,6 +244,14 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Prefix, Suffix}),
 			},
+			Arg_ReplicationSites: {
+				Description: "List of replication sites for instance.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				MinItems:    1,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 			Arg_SAPProfileID: {
 				ConflictsWith: []string{Arg_Processors, Arg_Memory, Arg_ProcType},
 				Description:   "SAP Profile ID for the amount of cores and memory",
@@ -1333,6 +1341,14 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
+
+	replicationSites := make([]string, 0)
+	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
+		for _, site := range sites.([]interface{}) {
+			replicationSites = append(replicationSites, site.(string))
+		}
+	}
+
 	instances := &models.PVMInstanceMultiCreate{
 		AffinityPolicy: &replicationpolicy,
 		Count:          replicants,
@@ -1340,11 +1356,12 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	}
 
 	body := &models.SAPCreate{
-		ImageID:   &imageid,
-		Instances: instances,
-		Name:      &name,
-		Networks:  pvmNetworks,
-		ProfileID: &profileID,
+		ImageID:          &imageid,
+		Instances:        instances,
+		Name:             &name,
+		Networks:         pvmNetworks,
+		ProfileID:        &profileID,
+		ReplicationSites: replicationSites,
 	}
 
 	if v, ok := d.GetOk(Arg_SAPDeploymentType); ok {
@@ -1473,6 +1490,14 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
+
+	replicationSites := make([]string, 0)
+	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
+		for _, site := range sites.([]interface{}) {
+			replicationSites = append(replicationSites, site.(string))
+		}
+	}
+
 	var pinpolicy string
 	if p, ok := d.GetOk(Arg_PinPolicy); ok {
 		pinpolicy = p.(string)
@@ -1497,6 +1522,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		UserData:                encodeBase64(userData),
 		ReplicantNamingScheme:   flex.PtrToString(replicationNamingScheme),
 		ReplicantAffinityPolicy: flex.PtrToString(replicationpolicy),
+		ReplicationSites:        replicationSites,
 		Networks:                pvmNetworks,
 	}
 	if s, ok := d.GetOk(Arg_KeyPairName); ok {
