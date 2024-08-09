@@ -47,6 +47,11 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Description: "Indicates if the volume is boot capable.",
 				Type:        schema.TypeBool,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_ConsistencyGroupName: {
 				Computed:    true,
 				Description: "Consistency group name if volume is a part of volume group.",
@@ -112,6 +117,12 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Description: "The state of the volume.",
 				Type:        schema.TypeString,
 			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+			},
 			Attr_VolumePool: {
 				Computed:    true,
 				Description: "Volume pool, name of storage pool where the volume is located.",
@@ -144,6 +155,7 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_AuxiliaryVolumeName, volumedata.AuxVolumeName)
 	d.Set(Attr_Bootable, volumedata.Bootable)
 	d.Set(Attr_ConsistencyGroupName, volumedata.ConsistencyGroupName)
+	d.Set(Attr_CRN, volumedata.Crn)
 	d.Set(Attr_DiskType, volumedata.DiskType)
 	d.Set(Attr_GroupID, volumedata.GroupID)
 	d.Set(Attr_IOThrottleRate, volumedata.IoThrottleRate)
@@ -156,6 +168,7 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, volumedata.State)
 	d.Set(Attr_Shareable, volumedata.Shareable)
 	d.Set(Attr_Size, volumedata.Size)
+	d.Set(Attr_UserTags, volumedata.UserTags)
 	d.Set(Attr_VolumePool, volumedata.VolumePool)
 	d.Set(Attr_WWN, volumedata.Wwn)
 

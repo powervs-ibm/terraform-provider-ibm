@@ -49,6 +49,11 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 							Description: "Indicates if the volume is boot capable.",
 							Type:        schema.TypeBool,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "CRN of resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_Href: {
 							Computed:    true,
 							Description: "The hyper link of the volume.",
@@ -89,6 +94,12 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 							Description: "The disk type that is used for this volume.",
 							Type:        schema.TypeString,
 						},
+						Attr_UserTags: {
+							Computed:    true,
+							Description: "List of user tags.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeList,
+						},
 					},
 				},
 				Type: schema.TypeList,
@@ -124,6 +135,7 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 	for _, i := range list {
 		l := map[string]interface{}{
 			Attr_Bootable:  *i.Bootable,
+			Attr_CRN:       i.Crn,
 			Attr_Href:      *i.Href,
 			Attr_ID:        *i.VolumeID,
 			Attr_Name:      *i.Name,
@@ -132,6 +144,7 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 			Attr_Size:      *i.Size,
 			Attr_State:     *i.State,
 			Attr_Type:      *i.DiskType,
+			Attr_UserTags:  i.UserTags,
 		}
 		result = append(result, l)
 	}

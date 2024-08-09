@@ -87,6 +87,13 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
+			Arg_UserTags: {
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 			Arg_VolumeName: {
 				Description:  "The name of the volume.",
 				Required:     true,
@@ -136,6 +143,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Description: "The consistency group name if volume is a part of volume group.",
 				Type:        schema.TypeString,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_DeleteOnTermination: {
 				Computed:    true,
 				Description: "Indicates if the volume should be deleted when the server terminates.",
@@ -175,6 +187,12 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Computed:    true,
 				Description: "The replication type of the volume 'metro' or 'global'.",
 				Type:        schema.TypeString,
+			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
 			},
 			Attr_VolumeID: {
 				Computed:    true,
@@ -266,6 +284,14 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 
 	}
 
+	if v, ok := d.GetOk(Arg_UserTags); ok {
+		userTags := make([]string, 0)
+		for _, tag := range v.([]interface{}) {
+			userTags = append(userTags, tag.(string))
+		}
+		body.UserTags = userTags
+	}
+
 	client := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
 	vol, err := client.CreateVolume(body)
 	if err != nil {
@@ -304,6 +330,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	if vol.VolumeID != nil {
 		d.Set(Attr_VolumeID, vol.VolumeID)
 	}
+	d.Set(Attr_CRN, vol.Crn)
 	d.Set(Arg_VolumeName, vol.Name)
 	d.Set(Arg_VolumePool, vol.VolumePool)
 	if vol.Shareable != nil {
@@ -326,6 +353,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
+	d.Set(Attr_UserTags, vol.UserTags)
 	d.Set(Attr_VolumeStatus, vol.State)
 	d.Set(Attr_WWN, vol.Wwn)
 
