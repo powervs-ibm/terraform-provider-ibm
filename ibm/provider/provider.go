@@ -649,6 +649,8 @@ func Provider() *schema.Provider {
 			"ibm_pi_instances":                              power.DataSourceIBMPIInstances(),
 			"ibm_pi_key":                                    power.DataSourceIBMPIKey(),
 			"ibm_pi_keys":                                   power.DataSourceIBMPIKeys(),
+			"ibm_pi_network_address_group":                  power.DataSourceIBMPINetworkAddressGroup(),
+			"ibm_pi_network_address_groups":                 power.DataSourceIBMPINetworkAddressGroups(),
 			"ibm_pi_network_port":                           power.DataSourceIBMPINetworkPort(),
 			"ibm_pi_network":                                power.DataSourceIBMPINetwork(),
 			"ibm_pi_networks":                               power.DataSourceIBMPINetworks(),
