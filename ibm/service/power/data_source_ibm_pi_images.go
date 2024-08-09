@@ -34,6 +34,11 @@ func DataSourceIBMPIImages() *schema.Resource {
 				Description: "List of all supported images.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_CRN: {
+							Computed:    true,
+							Description: "CRN of image.",
+							Type:        schema.TypeString,
+						},
 						Attr_Href: {
 							Computed:    true,
 							Description: "The hyper link of an image.",
@@ -102,6 +107,7 @@ func flattenStockImages(list []*models.ImageReference) []map[string]interface{} 
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, i := range list {
 		l := map[string]interface{}{
+			Attr_CRN:         i.Crn,
 			Attr_Href:        *i.Href,
 			Attr_ID:          *i.ImageID,
 			Attr_ImageType:   i.Specifications.ImageType,
