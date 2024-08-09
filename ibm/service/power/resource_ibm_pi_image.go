@@ -188,8 +188,20 @@ func ResourceIBMPIImage() *schema.Resource {
 					},
 				},
 			},
+			Arg_UserTags: {
+				Description: "List of user specified tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 
 			// Computed Attribute
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of image.",
+				Type:        schema.TypeString,
+			},
 			"image_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -240,12 +252,17 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 		bucketImageFileName := d.Get(helpers.PIImageBucketFileName).(string)
 		bucketRegion := d.Get(helpers.PIImageBucketRegion).(string)
 		bucketAccess := d.Get(helpers.PIImageBucketAccess).(string)
+		var userTags []string
+		if tags, ok := d.GetOk(Arg_UserTags); ok {
+			userTags = flex.ExpandStringList(tags.([]interface{}))
+		}
 		body := &models.CreateCosImageImportJob{
 			ImageName:     &imageName,
 			BucketName:    &bucketName,
 			BucketAccess:  &bucketAccess,
 			ImageFilename: &bucketImageFileName,
 			Region:        &bucketRegion,
+			UserTags:      userTags,
 		}
 
 		if v, ok := d.GetOk(helpers.PIImageAccessKey); ok {
@@ -345,7 +362,9 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	imageid := *imagedata.ImageID
+	d.Set(Attr_CRN, imagedata.Crn)
 	d.Set("image_id", imageid)
+	d.Set(Arg_UserTags, imagedata.UserTags)
 	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
 
 	return nil

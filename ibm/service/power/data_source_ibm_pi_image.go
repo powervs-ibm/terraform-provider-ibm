@@ -37,6 +37,11 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Description: "The CPU architecture that the image is designed for. ",
 				Type:        schema.TypeString,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of image.",
+				Type:        schema.TypeString,
+			},
 			Attr_Hypervisor: {
 				Computed:    true,
 				Description: "Hypervision Type.",
@@ -73,6 +78,12 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Description: "The storage type for this image.",
 				Type:        schema.TypeString,
 			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user specified tags",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+			},
 		},
 	}
 }
@@ -93,6 +104,7 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 
 	d.SetId(*imagedata.ImageID)
 	d.Set(Attr_Architecture, imagedata.Specifications.Architecture)
+	d.Set(Attr_CRN, imagedata.Crn)
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
 	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
@@ -100,6 +112,7 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, imagedata.State)
 	d.Set(Attr_StoragePool, imagedata.StoragePool)
 	d.Set(Attr_StorageType, imagedata.StorageType)
+	d.Set(Attr_UserTags, imagedata.UserTags)
 
 	return nil
 }
