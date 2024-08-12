@@ -17,12 +17,21 @@ run "mock_pi_key_resource" {
     error_message = "incorrect ssh key"
   }
 }
+# Adding override
+override_data {
+  target = data.ibm_pi_key.ds_instance
+
+  values = {
+   creation_date = "date2"
+   
+  }
+}
 run "mock_pi_key_datasource" {
    providers = {
     ibm = ibm.fake
   }
     assert {
-    condition     = data.ibm_pi_key.ds_instance.creation_date == "date1"
+    condition     = data.ibm_pi_key.ds_instance.creation_date == "date2"
     error_message = "incorrect creation date"
   }
      
