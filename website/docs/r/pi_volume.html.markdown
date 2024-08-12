@@ -60,11 +60,9 @@ Review the argument references that you can specify for your resource.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_replication_enabled` - (Optional, Boolean) Indicates if the volume should be replication enabled or not.
 
-  ~> **Note:** `replication_sites` will be populated automatically if set to true and sites are not specified.
+  **Note:** `replication_sites` will be populated automatically if set to true and sites are not specified.
 
 - `pi_replication_sites` - (Optional, List) Specifies sites for volume replication.
-
-  ~> **Note:** `pi_replication_sites` will destroy then create new resource if changed.
 
 - `pi_volume_name` - (Required, String) The name of the volume.
 - `pi_volume_pool` - (Optional, String) Volume pool where the volume will be created; if provided then `pi_affinity_policy` values will be ignored.
