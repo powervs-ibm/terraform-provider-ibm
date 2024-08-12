@@ -54,7 +54,7 @@ In addition to all argument reference list, you can access the following attribu
   Nested scheme for `instance_volumes`:
   - `bootable`- (Boolean) Indicates if the volume is boot capable.
   - `creation_date` - (String) Date of volume creation.
-  - `freeze_time` - (String) Time volume last replicated.
+  - `freeze_time` - (String) Time of remote copy relationship.
   - `href` - (String) The hyper link of the volume.
   - `id` - (String) The unique identifier of the volume.
   - `last_update_date` - (String) The date when the volume last updated.

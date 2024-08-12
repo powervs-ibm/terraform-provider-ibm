@@ -54,7 +54,7 @@ In addition to all argument reference list, you can access the following attribu
 - `consistency_group_name` - (String) Consistency group name if volume is a part of volume group.
 - `creation_date` - (String) Date of volume creation.
 - `disk_type` - (String) The disk type that is used for the volume.
-- `freeze_time` - (String) Time volume last replicated.
+- `freeze_time` - (String) Time of remote copy relationship.
 - `group_id` - (String) The volume group id in which the volume belongs.
 - `id` - (String) The unique identifier of the volume.
 - `io_throttle_rate` - (String) Amount of iops assigned to the volume.
