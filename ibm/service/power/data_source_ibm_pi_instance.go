@@ -208,6 +208,12 @@ func DataSourceIBMPIInstance() *schema.Resource {
 				Description: "The storage type where server is deployed.",
 				Type:        schema.TypeString,
 			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+			},
 			Attr_VirtualCoresAssigned: {
 				Computed:    true,
 				Description: "The virtual cores that are assigned to the instance.",
@@ -283,6 +289,7 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	if powervmdata.Fault != nil {
 		d.Set(Attr_Fault, flattenPvmInstanceFault(powervmdata.Fault))
 	}
+	d.Set(Attr_UserTags, powervmdata.UserTags)
 
 	return nil
 }
