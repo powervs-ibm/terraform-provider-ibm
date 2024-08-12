@@ -10,6 +10,7 @@ const (
 	Arg_AffinityVolume                      = "pi_affinity_volume"
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
 	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
+	Arg_BootVolumeReplicationEnabled        = "pi_boot_volume_replication_enabled"
 	Arg_Cidr                                = "pi_cidr"
 	Arg_CloudConnectionID                   = "pi_cloud_connection_id"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"

@@ -71,6 +71,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:      true,
 				Type:          schema.TypeList,
 			},
+			Arg_BootVolumeReplicationEnabled: {
+				Description: "Determines if instance boot volume is replication enabled when created.",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeBool,
+			},
 			Arg_CloudInstanceID: {
 				Description: "This is the Power Instance id that is assigned to the account",
 				ForceNew:    true,
@@ -1341,11 +1347,16 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
-
-	replicationSites := make([]string, 0)
+	var bootVolumeReplicationEnabled bool
+	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
+		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
+	}
+	var replicationSites []string
 	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
-		for _, site := range sites.([]interface{}) {
-			replicationSites = append(replicationSites, site.(string))
+		if !bootVolumeReplicationEnabled {
+			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
+		} else {
+			replicationSites = flex.ExpandStringList(sites.([]interface{}))
 		}
 	}
 
@@ -1356,12 +1367,13 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	}
 
 	body := &models.SAPCreate{
-		ImageID:          &imageid,
-		Instances:        instances,
-		Name:             &name,
-		Networks:         pvmNetworks,
-		ProfileID:        &profileID,
-		ReplicationSites: replicationSites,
+		BootVolumeReplicationEnabled: &bootVolumeReplicationEnabled,
+		ImageID:                      &imageid,
+		Instances:                    instances,
+		Name:                         &name,
+		Networks:                     pvmNetworks,
+		ProfileID:                    &profileID,
+		ReplicationSites:             replicationSites,
 	}
 
 	if v, ok := d.GetOk(Arg_SAPDeploymentType); ok {
@@ -1491,10 +1503,17 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		replicationNamingScheme = r.(string)
 	}
 
-	replicationSites := make([]string, 0)
+	var bootVolumeReplicationEnabled bool
+	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
+		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
+	}
+
+	var replicationSites []string
 	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
-		for _, site := range sites.([]interface{}) {
-			replicationSites = append(replicationSites, site.(string))
+		if !bootVolumeReplicationEnabled {
+			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
+		} else {
+			replicationSites = flex.ExpandStringList(sites.([]interface{}))
 		}
 	}
 
@@ -1512,18 +1531,19 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 
 	body := &models.PVMInstanceCreate{
-		Processors:              &procs,
-		Memory:                  &mem,
-		ServerName:              flex.PtrToString(name),
-		SysType:                 systype,
-		ImageID:                 flex.PtrToString(imageid),
-		ProcType:                flex.PtrToString(processortype),
-		Replicants:              replicants,
-		UserData:                encodeBase64(userData),
-		ReplicantNamingScheme:   flex.PtrToString(replicationNamingScheme),
-		ReplicantAffinityPolicy: flex.PtrToString(replicationpolicy),
-		ReplicationSites:        replicationSites,
-		Networks:                pvmNetworks,
+		BootVolumeReplicationEnabled: &bootVolumeReplicationEnabled,
+		Processors:                   &procs,
+		Memory:                       &mem,
+		ServerName:                   flex.PtrToString(name),
+		SysType:                      systype,
+		ImageID:                      flex.PtrToString(imageid),
+		ProcType:                     flex.PtrToString(processortype),
+		Replicants:                   replicants,
+		UserData:                     encodeBase64(userData),
+		ReplicantNamingScheme:        flex.PtrToString(replicationNamingScheme),
+		ReplicantAffinityPolicy:      flex.PtrToString(replicationpolicy),
+		ReplicationSites:             replicationSites,
+		Networks:                     pvmNetworks,
 	}
 	if s, ok := d.GetOk(Arg_KeyPairName); ok {
 		sshkey := s.(string)
