@@ -77,6 +77,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of instance.",
+				Type:        schema.TypeString,
+			},
 			Arg_DeploymentTarget: {
 				Description: "The deployment of a dedicated host.",
 				Elem: &schema.Resource{
@@ -404,6 +409,13 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "Fault information.",
 				Type:        schema.TypeMap,
 			},
+			Arg_UserTags: {
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 		},
 	}
 }
@@ -510,6 +522,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
+	d.Set(Attr_CRN, powervmdata.Crn)
 	d.Set(Arg_Memory, powervmdata.Memory)
 	d.Set(Arg_Processors, powervmdata.Processors)
 	if powervmdata.Status != nil {
@@ -587,6 +600,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	} else {
 		d.Set(Attr_Fault, nil)
 	}
+	d.Set(Arg_UserTags, powervmdata.UserTags)
 	return nil
 }
 
@@ -1416,6 +1430,10 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if deploymentTarget, ok := d.GetOk(Arg_DeploymentTarget); ok {
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
 	}
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		userTags := flex.ExpandStringList(tags.([]interface{}))
+		body.UserTags = userTags
+	}
 	pvmList, err := sapClient.Create(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to provision: %v", err)
@@ -1609,6 +1627,10 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 	if deploymentTarget, ok := d.GetOk(Arg_DeploymentTarget); ok {
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
+	}
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		userTags := flex.ExpandStringList(tags.([]interface{}))
+		body.UserTags = userTags
 	}
 	pvmList, err := client.Create(body)
 
