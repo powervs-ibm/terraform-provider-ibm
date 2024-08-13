@@ -1035,7 +1035,7 @@ func init() {
 	Pi_image_bucket_region = os.Getenv("PI_IMAGE_BUCKET_REGION")
 	if Pi_image_bucket_region == "" {
 		Pi_image_bucket_region = "us-east"
-		fmt.Println("[INFO] Set the environment variable PI_IMAGE_BUCKET_REGION for testing ibm_pi_image_export resource else it is set to default value 'us-east'")
+		fmt.Println("[INFO] Set the environment variable PI_IMAGE_BUCKET_REGION for testing ibm_pi_image resource else it is set to default value 'us-east'")
 	}
 
 	Pi_image_id = os.Getenv("PI_IMAGE_ID")
