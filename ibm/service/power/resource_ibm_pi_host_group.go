@@ -60,6 +60,13 @@ func ResourceIBMPIHostGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							ValidateFunc: validation.NoZeroValues,
 						},
+						Attr_UserTags: {
+							Description: "List of user tags.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							ForceNew:    true,
+							Optional:    true,
+							Type:        schema.TypeList,
+						},
 					},
 				},
 				Required: true,

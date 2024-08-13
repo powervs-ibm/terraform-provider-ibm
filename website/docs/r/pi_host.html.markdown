@@ -59,6 +59,7 @@ You can specify the following arguments for this resource.
   * `display_name` - (Required, String) Name of the host chosen by the user.
   * `sys_type` - (Required, String) System type.
 * `pi_host_group_id` - (Required, String) ID of the host group to which the host should be added.
+* `pi_user_tags` - (Optional, String) List of user tags for the host.
 
 ## Attribute Reference
 
@@ -75,6 +76,8 @@ In addition to all argument reference list, you can access the following attribu
   * `total_memory` - (Float) Total amount of memory of the host (in GB).
   * `used_core` - (Float) Number of cores in use on the host.
   * `used_memory` - (Float) Amount of memory used on the host (in GB).
+
+* `crn` - (String) CRN of the host.
 * `host_group` - (Map)  Information about the owning host group.
   
      Nested schema for `host_group`:
