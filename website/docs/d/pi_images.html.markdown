@@ -43,6 +43,7 @@ In addition to all argument reference list, you can access the following attribu
 - `image_info` - (List) List of all supported images. 
 
   Nested scheme for `image_info`:
+  - `crn` - (String) CRN of the image.
   - `href` - (String) The hyper link of an image. 
   - `id` - (String) The unique identifier of an image.
   - `image_type` - (String) The identifier of this image type.
