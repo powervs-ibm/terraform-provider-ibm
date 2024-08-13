@@ -188,12 +188,6 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Description: "The replication type of the volume 'metro' or 'global'.",
 				Type:        schema.TypeString,
 			},
-			Attr_UserTags: {
-				Computed:    true,
-				Description: "List of user tags.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
 			Attr_VolumeID: {
 				Computed:    true,
 				Description: "The unique identifier of the volume.",
@@ -285,10 +279,7 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
-		userTags := make([]string, 0)
-		for _, tag := range v.([]interface{}) {
-			userTags = append(userTags, tag.(string))
-		}
+		userTags := flex.ExpandStringList(v.([]interface{}))
 		body.UserTags = userTags
 	}
 
@@ -353,7 +344,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
-	d.Set(Attr_UserTags, vol.UserTags)
+	d.Set(Arg_UserTags, vol.UserTags)
 	d.Set(Attr_VolumeStatus, vol.State)
 	d.Set(Attr_WWN, vol.Wwn)
 

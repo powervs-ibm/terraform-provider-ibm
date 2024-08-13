@@ -143,10 +143,7 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
-		userTags := make([]string, 0)
-		for _, tag := range v.([]interface{}) {
-			userTags = append(userTags, tag.(string))
-		}
+		userTags := flex.ExpandStringList(v.([]interface{}))
 		body.UserTags = userTags
 	}
 
