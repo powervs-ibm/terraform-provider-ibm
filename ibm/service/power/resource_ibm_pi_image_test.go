@@ -164,7 +164,7 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 		pi_image_bucket_access = "private"
 		pi_image_bucket_file_name = "%[4]s" 
 		pi_image_bucket_name = "%[3]s" 
-		pi_image_bucket_region = "us-east"
+		pi_image_bucket_region = "%[7]s"
 		pi_image_name       = "%[1]s"
 		pi_image_secret_key = "%[6]s"
 		pi_image_storage_type = "tier3"
@@ -174,5 +174,5 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 			vendor = "SAP"
 		}
 	}
-	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key)
+	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region)
 }
