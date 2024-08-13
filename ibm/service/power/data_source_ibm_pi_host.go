@@ -84,6 +84,11 @@ func DataSourceIBMPIHost() *schema.Resource {
 				},
 				Type: schema.TypeList,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of the host.",
+				Type:        schema.TypeString,
+			},
 			Attr_DisplayName: {
 				Computed:    true,
 				Description: "Name of the host (chosen by the user).",
@@ -109,6 +114,12 @@ func DataSourceIBMPIHost() *schema.Resource {
 				Description: "System type.",
 				Type:        schema.TypeString,
 			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+			},
 		},
 	}
 }
@@ -131,6 +142,9 @@ func dataSourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta i
 	if host.Capacity != nil {
 		d.Set(Attr_Capacity, hostCapacityToMap(host.Capacity))
 	}
+	if host.Crn != "" {
+		d.Set(Attr_CRN, host.Crn)
+	}
 	if host.DisplayName != "" {
 		d.Set(Attr_DisplayName, host.DisplayName)
 	}
@@ -145,6 +159,9 @@ func dataSourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta i
 	}
 	if host.SysType != "" {
 		d.Set(Attr_SysType, host.SysType)
+	}
+	if host.UserTags != nil {
+		d.Set(Attr_UserTags, host.UserTags)
 	}
 
 	return nil

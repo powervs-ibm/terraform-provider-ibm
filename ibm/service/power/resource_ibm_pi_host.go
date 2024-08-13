@@ -18,6 +18,7 @@ import (
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM/go-sdk-core/v5/core"
 )
 
@@ -64,6 +65,13 @@ func ResourceIBMPIHost() *schema.Resource {
 							ForceNew:    true,
 							Required:    true,
 							Description: "System type.",
+						},
+						Attr_UserTags: {
+							Description: "List of user tags.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							ForceNew:    true,
+							Optional:    true,
+							Type:        schema.TypeList,
 						},
 					},
 				},
@@ -119,6 +127,11 @@ func ResourceIBMPIHost() *schema.Resource {
 				},
 				Type: schema.TypeList,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of the host.",
+				Type:        schema.TypeString,
+			},
 			Attr_DisplayName: {
 				Computed:    true,
 				Description: "Name of the host (chosen by the user).",
@@ -169,6 +182,7 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 		hs := models.AddHost{
 			DisplayName: core.StringPtr(host[Attr_DisplayName].(string)),
 			SysType:     core.StringPtr(host[Attr_SysType].(string)),
+			UserTags:    flex.ExpandStringList(host[Attr_UserTags].([]interface{})),
 		}
 		hostBody = append(hostBody, &hs)
 	}
@@ -212,6 +226,9 @@ func resourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta int
 	if host.Capacity != nil {
 		d.Set(Attr_Capacity, hostCapacityToMap(host.Capacity))
 	}
+	if host.Crn != "" {
+		d.Set(Attr_CRN, host.Crn)
+	}
 	if host.DisplayName != "" {
 		d.Set(Attr_DisplayName, host.DisplayName)
 	}
@@ -226,6 +243,9 @@ func resourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	if host.SysType != "" {
 		d.Set(Attr_SysType, host.SysType)
+	}
+	if len(host.UserTags) > 0 {
+		d.Set(Attr_UserTags, host.UserTags)
 	}
 
 	return nil
