@@ -788,7 +788,7 @@ func TestAccIBMPIInstanceDeploymentTypeNoStorage(t *testing.T) {
 
 func TestAccIBMPIInstanceDeploymentGRS(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
-	bootVolumeData := "data.ibm_pi_volume.power_boot_volume"
+	bootVolumeData := "data.ibm_pi_volume.power_boot_volume_data"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
@@ -817,11 +817,11 @@ func testAccIBMPIInstanceGRSConfig(name string, instanceHealthStatus string, mem
 		pi_cloud_instance_id = "%[1]s"
 		pi_network_name      = "%[4]s"
 	}  
-	data "ibm_pi_volume" "power_boot_volume" {
+	data "ibm_pi_volume" "power_boot_volume_data" {
 		pi_cloud_instance_id = "%[1]s"
-		pi_volume_name 		 = data.ibm_pi_instance.power_instance_data.volumes[0]
+		pi_volume_name       = data.ibm_pi_instance_volumes.power_instance_volumes_data.instance_volumes[0].name
 	}
-	data "ibm_pi_instance" "power_instance_data" {
+	data "ibm_pi_instance_volumes" "power_instance_volumes_data" {
 		pi_cloud_instance_id = "%[1]s"
 		pi_instance_name     = ibm_pi_instance.power_instance.pi_instance_name
 	}
