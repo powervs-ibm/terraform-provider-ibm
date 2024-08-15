@@ -796,7 +796,7 @@ func TestAccIBMPIInstanceDeploymentGRS(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIBMPIInstanceGRSConfig(name, helpers.PIInstanceHealthOk, "2", "0.25"),
+				Config: testAccIBMPIInstanceGRSConfig(name, power.OK, "2", "0.25"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
