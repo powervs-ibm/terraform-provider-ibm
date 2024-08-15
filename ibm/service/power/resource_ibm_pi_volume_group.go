@@ -68,6 +68,12 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 				Description: "Consistency Group Name if volume is a part of volume group",
 				Type:        schema.TypeString,
 			},
+			Attr_ReplicationSites: {
+				Computed:    true,
+				Description: "List of replication sites for volume group.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+			},
 			Attr_ReplicationStatus: {
 				Computed:    true,
 				Description: "Volume Group Replication Status",
@@ -165,9 +171,8 @@ func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	d.Set(Arg_VolumeGroupName, vg.Name)
-	d.Set(Arg_VolumeIDs, vg.VolumeIDs)
 	d.Set(Attr_ConsistencyGroupName, vg.ConsistencyGroupName)
+	d.Set(Attr_ReplicationSites, vg.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vg.ReplicationStatus)
 	if vg.StatusDescription != nil {
 		d.Set(Attr_StatusDescriptionErrors, flattenVolumeGroupStatusDescription(vg.StatusDescription.Errors))

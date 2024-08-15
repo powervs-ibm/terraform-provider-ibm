@@ -71,6 +71,7 @@ In addition to all argument reference list, you can access the following attribu
   - `message` - (String) The failure message providing more details about the error key.
   - `volume_ids` - (List of String) List of volume IDs, which failed to be added to or removed from the volume group, with the given error.
 - `storage_pool` - (String) Storage pool of the volume group.
+- `replication_sites` - (List) List of replication sites for the volume group.
 - `volume_group_id` - (String) The unique identifier of the volume group.
 - `volume_group_status` - (String) The status of the volume group.
 - `volume_group_name` - (String) The name of the volume group.
