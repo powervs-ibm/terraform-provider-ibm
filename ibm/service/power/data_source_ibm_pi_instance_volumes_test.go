@@ -23,6 +23,7 @@ func TestAccIBMPIVolumesDataSource_basic(t *testing.T) {
 				Config: testAccCheckIBMPIVolumesDataSourceConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_volumes.testacc_ds_volumes", "id"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_volumes.testacc_ds_volumes", "instance_volumes.0.crn"),
 				),
 			},
 		},
