@@ -32,6 +32,11 @@ func DataSourceIBMPIInstance() *schema.Resource {
 			},
 
 			// Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of the pvm instance.",
+				Type:        schema.TypeString,
+			},
 			Attr_DeploymentType: {
 				Computed:    true,
 				Description: "The custom deployment type.",
@@ -245,6 +250,7 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 
 	pvminstanceid := *powervmdata.PvmInstanceID
 	d.SetId(pvminstanceid)
+	d.Set(Attr_CRN, powervmdata.Crn)
 	d.Set(Attr_DeploymentType, powervmdata.DeploymentType)
 	d.Set(Attr_LicenseRepositoryCapacity, powervmdata.LicenseRepositoryCapacity)
 	d.Set(Attr_MaxMem, powervmdata.Maxmem)
@@ -289,7 +295,9 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	if powervmdata.Fault != nil {
 		d.Set(Attr_Fault, flattenPvmInstanceFault(powervmdata.Fault))
 	}
-	d.Set(Attr_UserTags, powervmdata.UserTags)
+	if len(powervmdata.UserTags) > 0 {
+		d.Set(Attr_UserTags, powervmdata.UserTags)
+	}
 
 	return nil
 }

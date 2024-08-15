@@ -331,6 +331,7 @@ func TestAccIBMPIInstanceBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttrSet(instanceRes, "crn"),
 				),
 			},
 		},
@@ -550,6 +551,27 @@ func TestAccIBMPIInstanceMixedStorage(t *testing.T) {
 		},
 	})
 }
+func TestAccIBMPIInstanceUserTags(t *testing.T) {
+	instanceRes := "ibm_pi_instance.power_instance"
+	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	userTagsString := `["env:test","test_tag"]`
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIInstanceConfigUserTags(name, power.Warning, userTagsString),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.#", "2"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.1", "env:test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.2", "test_tag"),
+				),
+			},
+		},
+	})
+}
 
 func testAccIBMPIInstanceMixedStorage(name, healthStatus string) string {
 	return fmt.Sprintf(`
@@ -727,6 +749,50 @@ func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, pr
   		pi_instance_id       = ibm_pi_instance.power_instance.instance_id
 	}
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, proc, memory, action)
+}
+
+func testAccCheckIBMPIInstanceConfigUserTags(name, instanceHealthStatus string, userTagsString string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_key" "key" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_key_name          = "%[2]s"
+		pi_ssh_key           = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR"
+	  }
+	  data "ibm_pi_image" "power_image" {
+		pi_image_name        = "%[3]s"
+		pi_cloud_instance_id = "%[1]s"
+	  }
+	  data "ibm_pi_network" "power_networks" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_network_name      = "%[4]s"
+	  }
+	  resource "ibm_pi_volume" "power_volume" {
+		pi_volume_size       = 20
+		pi_volume_name       = "%[2]s"
+		pi_volume_shareable  = true
+		pi_volume_pool       = data.ibm_pi_image.power_image.storage_pool
+		pi_volume_type       = "%[6]s"
+		pi_cloud_instance_id = "%[1]s"
+	  }
+	  resource "ibm_pi_instance" "power_instance" {
+		pi_memory             = "2"
+		pi_processors         = "0.25"
+		pi_instance_name      = "%[2]s"
+		pi_proc_type          = "shared"
+		pi_image_id           = data.ibm_pi_image.power_image.id
+		pi_key_pair_name      = ibm_pi_key.key.name
+		pi_sys_type           = "s922"
+		pi_cloud_instance_id  = "%[1]s"
+		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
+		pi_storage_type       = "%[6]s"
+		pi_health_status      = "%[5]s"
+		pi_volume_ids         = [ibm_pi_volume.power_volume.volume_id]
+		pi_network {
+			network_id = data.ibm_pi_network.power_networks.id
+		}
+		pi_user_tags 		  = %[7]s
+	  }
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType, userTagsString)
 }
 
 func testAccCheckIBMPIInstanceStatus(n, status string) resource.TestCheckFunc {
