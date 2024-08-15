@@ -1347,18 +1347,6 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
-	var bootVolumeReplicationEnabled bool
-	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
-		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
-	}
-	var replicationSites []string
-	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
-		if !bootVolumeReplicationEnabled {
-			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
-		} else {
-			replicationSites = flex.ExpandStringList(sites.([]interface{}))
-		}
-	}
 
 	instances := &models.PVMInstanceMultiCreate{
 		AffinityPolicy: &replicationpolicy,
@@ -1367,13 +1355,11 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	}
 
 	body := &models.SAPCreate{
-		BootVolumeReplicationEnabled: &bootVolumeReplicationEnabled,
-		ImageID:                      &imageid,
-		Instances:                    instances,
-		Name:                         &name,
-		Networks:                     pvmNetworks,
-		ProfileID:                    &profileID,
-		ReplicationSites:             replicationSites,
+		ImageID:   &imageid,
+		Instances: instances,
+		Name:      &name,
+		Networks:  pvmNetworks,
+		ProfileID: &profileID,
 	}
 
 	if v, ok := d.GetOk(Arg_SAPDeploymentType); ok {
@@ -1406,6 +1392,20 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 
 	if st, ok := d.GetOk(Arg_StorageType); ok {
 		body.StorageType = st.(string)
+	}
+	var bootVolumeReplicationEnabled bool
+	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
+		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
+		body.BootVolumeReplicationEnabled = &bootVolumeReplicationEnabled
+	}
+	var replicationSites []string
+	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
+		if !bootVolumeReplicationEnabled {
+			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
+		} else {
+			replicationSites = flex.ExpandStringList(sites.([]interface{}))
+			body.ReplicationSites = replicationSites
+		}
 	}
 	if sp, ok := d.GetOk(Arg_StoragePool); ok {
 		body.StoragePool = sp.(string)
@@ -1502,21 +1502,6 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
-
-	var bootVolumeReplicationEnabled bool
-	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
-		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
-	}
-
-	var replicationSites []string
-	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
-		if !bootVolumeReplicationEnabled {
-			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
-		} else {
-			replicationSites = flex.ExpandStringList(sites.([]interface{}))
-		}
-	}
-
 	var pinpolicy string
 	if p, ok := d.GetOk(Arg_PinPolicy); ok {
 		pinpolicy = p.(string)
@@ -1531,19 +1516,17 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 
 	body := &models.PVMInstanceCreate{
-		BootVolumeReplicationEnabled: &bootVolumeReplicationEnabled,
-		Processors:                   &procs,
-		Memory:                       &mem,
-		ServerName:                   flex.PtrToString(name),
-		SysType:                      systype,
-		ImageID:                      flex.PtrToString(imageid),
-		ProcType:                     flex.PtrToString(processortype),
-		Replicants:                   replicants,
-		UserData:                     encodeBase64(userData),
-		ReplicantNamingScheme:        flex.PtrToString(replicationNamingScheme),
-		ReplicantAffinityPolicy:      flex.PtrToString(replicationpolicy),
-		ReplicationSites:             replicationSites,
-		Networks:                     pvmNetworks,
+		Processors:              &procs,
+		Memory:                  &mem,
+		ServerName:              flex.PtrToString(name),
+		SysType:                 systype,
+		ImageID:                 flex.PtrToString(imageid),
+		ProcType:                flex.PtrToString(processortype),
+		Replicants:              replicants,
+		UserData:                encodeBase64(userData),
+		ReplicantNamingScheme:   flex.PtrToString(replicationNamingScheme),
+		ReplicantAffinityPolicy: flex.PtrToString(replicationpolicy),
+		Networks:                pvmNetworks,
 	}
 	if s, ok := d.GetOk(Arg_KeyPairName); ok {
 		sshkey := s.(string)
@@ -1656,6 +1639,21 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	if deploymentTarget, ok := d.GetOk(Arg_DeploymentTarget); ok {
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
 	}
+	var bootVolumeReplicationEnabled bool
+	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
+		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
+		body.BootVolumeReplicationEnabled = &bootVolumeReplicationEnabled
+	}
+	var replicationSites []string
+	if sites, ok := d.GetOk(Arg_ReplicationSites); ok {
+		if !bootVolumeReplicationEnabled {
+			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
+		} else {
+			replicationSites = flex.ExpandStringList(sites.([]interface{}))
+			body.ReplicationSites = replicationSites
+		}
+	}
+
 	pvmList, err := client.Create(body)
 
 	if err != nil {
