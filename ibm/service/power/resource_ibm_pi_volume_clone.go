@@ -144,7 +144,9 @@ func resourceIBMPIVolumeCloneCreate(ctx context.Context, d *schema.ResourceData,
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
 		userTags := flex.ExpandStringList(v.([]interface{}))
-		body.UserTags = userTags
+		if len(userTags) > 0 {
+			body.UserTags = userTags
+		}
 	}
 
 	client := instance.NewIBMPICloneVolumeClient(ctx, sess, cloudInstanceID)

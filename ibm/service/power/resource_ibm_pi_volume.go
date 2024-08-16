@@ -280,7 +280,9 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
 		userTags := flex.ExpandStringList(v.([]interface{}))
-		body.UserTags = userTags
+		if len(userTags) > 0 {
+			body.UserTags = userTags
+		}
 	}
 
 	client := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
@@ -344,7 +346,6 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
-	d.Set(Arg_UserTags, vol.UserTags)
 	d.Set(Attr_VolumeStatus, vol.State)
 	d.Set(Attr_WWN, vol.Wwn)
 
