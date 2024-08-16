@@ -1347,7 +1347,6 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if r, ok := d.GetOk(Arg_ReplicationScheme); ok {
 		replicationNamingScheme = r.(string)
 	}
-
 	instances := &models.PVMInstanceMultiCreate{
 		AffinityPolicy: &replicationpolicy,
 		Count:          replicants,
