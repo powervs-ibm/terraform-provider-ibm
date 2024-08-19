@@ -1285,6 +1285,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_ipsec_policy":                    power.ResourceIBMPIIPSecPolicy(),
 			"ibm_pi_key":                             power.ResourceIBMPIKey(),
 			"ibm_pi_network_port_attach":             power.ResourceIBMPINetworkPortAttach(),
+			"ibm_pi_network_security_group_rule":     power.ResourceIBMPINetworkSecurityGroupRule(),
 			"ibm_pi_network":                         power.ResourceIBMPINetwork(),
 			"ibm_pi_placement_group":                 power.ResourceIBMPIPlacementGroup(),
 			"ibm_pi_shared_processor_pool":           power.ResourceIBMPISharedProcessorPool(),

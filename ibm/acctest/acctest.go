@@ -217,6 +217,7 @@ var (
 	Pi_instance_name                string
 	Pi_key_name                     string
 	Pi_network_name                 string
+	Pi_network_security_group_id    string
 	Pi_placement_group_name         string
 	Pi_replication_volume_name      string
 	Pi_resource_group_id            string
@@ -1047,6 +1048,12 @@ func init() {
 	if Pi_network_name == "" {
 		Pi_network_name = "terraform-test-power"
 		fmt.Println("[INFO] Set the environment variable PI_NETWORK_NAME for testing ibm_pi_network_name resource else it is set to default value 'terraform-test-power'")
+	}
+
+	Pi_network_security_group_id = os.Getenv("PI_NETWORK_SECURITY_GROUP_ID")
+	if Pi_network_security_group_id == "" {
+		Pi_network_security_group_id = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_NETWORK_SECURITY_GROUP_ID for testing ibm_pi_network_security_group resource else it is set to default value 'terraform-test-power'")
 	}
 
 	Pi_volume_name = os.Getenv("PI_VOLUME_NAME")

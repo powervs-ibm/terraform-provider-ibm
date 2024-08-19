@@ -103,6 +103,14 @@ func ExpandStringList(input []interface{}) []string {
 	return vs
 }
 
+func ExpandFloat64List(input []interface{}) []float64 {
+	vs := make([]float64, len(input))
+	for i, v := range input {
+		vs[i] = v.(float64)
+	}
+	return vs
+}
+
 func FlattenStringList(list []string) []interface{} {
 	vs := make([]interface{}, len(list))
 	for i, v := range list {
