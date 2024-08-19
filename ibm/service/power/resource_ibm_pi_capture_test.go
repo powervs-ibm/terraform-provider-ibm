@@ -228,11 +228,11 @@ func testAccCheckIBMPICaptureUserTagsConfig(name string, userTagsString string) 
 func testAccCheckIBMPICaptureCloudStorageConfig(name string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_capture" "capture_instance" {
-		pi_cloud_instance_id="%[1]s"
+		pi_cloud_instance_id="%s"
 		pi_capture_name  = "%s"
 		pi_instance_name = "%s"
 		pi_capture_destination = "cloud-storage"
-		pi_capture_cloud_storage_region = "us-east"
+		pi_capture_cloud_storage_region = "%s"
 		pi_capture_cloud_storage_access_key = "%s"
 		pi_capture_cloud_storage_secret_key = "%s"
 		pi_capture_storage_image_path = "%s"
@@ -243,7 +243,7 @@ func testAccCheckIBMPICaptureCloudStorageConfig(name string) string {
 func testAccCheckIBMPICaptureBothConfig(name string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_capture" "capture_instance" {
-		pi_cloud_instance_id="%[1]s"
+		pi_cloud_instance_id="%s"
 		pi_capture_name = "%s"
 		pi_instance_name = "%s"
 		pi_capture_destination  = "both"
