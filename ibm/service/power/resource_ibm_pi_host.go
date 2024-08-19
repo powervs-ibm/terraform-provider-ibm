@@ -56,15 +56,15 @@ func ResourceIBMPIHost() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_DisplayName: {
-							Type:        schema.TypeString,
-							Required:    true,
 							Description: "Name of the host chosen by the user.",
+							Required:    true,
+							Type:        schema.TypeString,
 						},
 						Attr_SysType: {
-							Type:        schema.TypeString,
+							Description: "System type.",
 							ForceNew:    true,
 							Required:    true,
-							Description: "System type.",
+							Type:        schema.TypeString,
 						},
 						Attr_UserTags: {
 							Description: "List of user tags.",
@@ -75,6 +75,7 @@ func ResourceIBMPIHost() *schema.Resource {
 						},
 					},
 				},
+				MaxItems: 1,
 				Required: true,
 				Type:     schema.TypeSet,
 			},
@@ -161,6 +162,12 @@ func ResourceIBMPIHost() *schema.Resource {
 				Computed:    true,
 				Description: "System type.",
 				Type:        schema.TypeString,
+			},
+			Attr_UserTags: {
+				Computed:    true,
+				Description: "List of user tags for the host.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
 			},
 		},
 	}

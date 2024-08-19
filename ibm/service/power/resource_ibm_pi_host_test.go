@@ -19,6 +19,7 @@ import (
 
 func TestAccIBMIHostBasic(t *testing.T) {
 	displayName := fmt.Sprintf("tf_display_name_%d", acctest.RandIntRange(10, 100))
+	hostRes := "ibm_pi_host.host"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.TestAccPreCheck(t)
@@ -29,8 +30,34 @@ func TestAccIBMIHostBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIHostConfig(displayName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPIHostExists("ibm_pi_host.host"),
-					resource.TestCheckResourceAttr("ibm_pi_host.host", "display_name", displayName),
+					testAccCheckIBMPIHostExists(hostRes),
+					resource.TestCheckResourceAttr(hostRes, "display_name", displayName),
+					resource.TestCheckResourceAttr(hostRes, "crn", displayName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIBMIHostBasicUserTags(t *testing.T) {
+	displayName := fmt.Sprintf("tf_display_name_%d", acctest.RandIntRange(10, 100))
+	hostRes := "ibm_pi_host.host"
+	hostResData := "data.ibm_pi_host.host_data"
+	userTagsString := `["env:test","test_tag"]`
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.TestAccPreCheck(t)
+		},
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIHostDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIHostConfigUserTags(displayName, userTagsString),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMPIHostExists(hostRes),
+					resource.TestCheckResourceAttr(hostResData, "user_tags.#", "2"),
+					resource.TestCheckResourceAttr(hostResData, "user_tags.1", "env:dev"),
+					resource.TestCheckResourceAttr(hostResData, "user_tags.2", "test_tag"),
 				),
 			},
 		},
@@ -47,6 +74,26 @@ func testAccCheckIBMPIHostConfig(name string) string {
 		pi_host_group_id = "%[3]s"
 	  }
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_host_group_id)
+}
+
+func testAccCheckIBMPIHostConfigUserTags(name string, userTagsString string) string {
+	return fmt.Sprintf(`
+
+	data "ibm_pi_host" "host_data" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_host_id           = ibm_pi_host.host.host_id
+	}
+
+	resource "ibm_pi_host" "host" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_host            {
+		  display_name = "%[2]s"
+		  sys_type = "s922"
+		  user_tags = %[4]s
+		}
+		pi_host_group_id = "%[3]s"
+	  }
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_host_group_id, userTagsString)
 }
 
 func testAccCheckIBMPIHostDestroy(s *terraform.State) error {

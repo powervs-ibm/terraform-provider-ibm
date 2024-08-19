@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM/go-sdk-core/v5/core"
 )
 
@@ -360,6 +361,7 @@ func hostMapToAddHost(modelMap map[string]interface{}) *models.AddHost {
 	host := &models.AddHost{}
 	host.DisplayName = core.StringPtr(modelMap[Attr_DisplayName].(string))
 	host.SysType = core.StringPtr(modelMap[Attr_SysType].(string))
+	host.UserTags = flex.ExpandStringList(modelMap[Attr_UserTags].([]interface{}))
 	return host
 }
 
