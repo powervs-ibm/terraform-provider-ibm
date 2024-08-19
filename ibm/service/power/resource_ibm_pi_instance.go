@@ -600,7 +600,6 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	} else {
 		d.Set(Attr_Fault, nil)
 	}
-	d.Set(Arg_UserTags, powervmdata.UserTags)
 	return nil
 }
 

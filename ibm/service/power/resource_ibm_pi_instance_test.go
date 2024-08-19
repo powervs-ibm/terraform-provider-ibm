@@ -553,6 +553,7 @@ func TestAccIBMPIInstanceMixedStorage(t *testing.T) {
 }
 func TestAccIBMPIInstanceUserTags(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
+	instanceResData := "data.ibm_pi_instance.power_instance_data"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
 	userTagsString := `["env:test","test_tag"]`
 	resource.Test(t, resource.TestCase{
@@ -564,9 +565,9 @@ func TestAccIBMPIInstanceUserTags(t *testing.T) {
 				Config: testAccCheckIBMPIInstanceConfigUserTags(name, power.Warning, userTagsString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
-					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.#", "2"),
-					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.1", "env:test"),
-					resource.TestCheckResourceAttr(instanceRes, "pi_user_tags.2", "test_tag"),
+					resource.TestCheckResourceAttr(instanceResData, "user_tags.#", "2"),
+					resource.TestCheckResourceAttr(instanceResData, "user_tags.1", "env:test"),
+					resource.TestCheckResourceAttr(instanceResData, "user_tags.2", "test_tag"),
 				),
 			},
 		},
@@ -773,6 +774,10 @@ func testAccCheckIBMPIInstanceConfigUserTags(name, instanceHealthStatus string, 
 		pi_volume_pool       = data.ibm_pi_image.power_image.storage_pool
 		pi_volume_type       = "%[6]s"
 		pi_cloud_instance_id = "%[1]s"
+	  }
+	  data "ibm_pi_instance" "power_instance_data" {
+	  	pi_cloud_instance_id  = "%[1]s"
+		pi_instance_name      = ibm_pi_instance.power_instance.pi_instance_name
 	  }
 	  resource "ibm_pi_instance" "power_instance" {
 		pi_memory             = "2"
