@@ -364,7 +364,6 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 	imageid := *imagedata.ImageID
 	d.Set(Attr_CRN, imagedata.Crn)
 	d.Set("image_id", imageid)
-	d.Set(Arg_UserTags, imagedata.UserTags)
 	d.Set(helpers.PICloudInstanceId, cloudInstanceID)
 
 	return nil
