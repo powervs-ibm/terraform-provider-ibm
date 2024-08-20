@@ -47,7 +47,7 @@ Review the argument references that you can specify for your resource.
       - `pi_maximum` - (Float) The end of the port range, if applicable, If values are not present then all ports are in the range.
       - `pi_minimum` - (Float) The start of the port range, if applicable. If values are not present then all ports are in the range.
 - `pi_network_security_group_id` - (Required, String) The unique identifier of the network security group.
-- `pi_network_security_group_rule_id` - (Optional, String) The network address group rule id to remove. Required if none of the other optional fields are provided.
+- `pi_network_security_group_rule_id` - (Optional, String) The network security group rule id to remove. Required if none of the other optional fields are provided.
 - `pi_protocol` - (List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_protocol`:

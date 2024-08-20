@@ -476,6 +476,12 @@ const (
 	vSCSI                     = "vSCSI"
 	Warning                   = "WARNING"
 
+	// Protocol Type
+	All  = "all"
+	ICMP = "icmp"
+	TCP  = "tcp"
+	UDP  = "udp"
+
 	// Actions
 	Action_HardReboot        = "hard-reboot"
 	Action_ImmediateShutdown = "immediate-shutdown"

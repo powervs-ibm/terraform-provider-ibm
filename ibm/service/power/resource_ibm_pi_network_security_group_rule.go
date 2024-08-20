@@ -50,12 +50,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Description:   "Destination port ranges.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Arg_Maximum: {
+						Attr_Maximum: {
 							Computed:    true,
 							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
 							Type:        schema.TypeFloat,
 						},
-						Arg_Minimum: {
+						Attr_Minimum: {
 							Computed:    true,
 							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
 							Type:        schema.TypeFloat,
@@ -73,7 +73,7 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 			},
 			Arg_NetworkSecurityGroupRuleID: {
 				ConflictsWith: []string{Arg_Action, Arg_DestinationPorts, Arg_Protocol, Arg_Remote, Arg_Name, Arg_SourcePorts},
-				Description:   "The network security group member id to remove.",
+				Description:   "The network security group rule id to remove.",
 				Optional:      true,
 				Type:          schema.TypeString,
 			},
@@ -82,13 +82,13 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Description:   "The protocol of the network traffic.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Arg_ICMPTypes: {
+						Attr_ICMPTypes: {
 							Description: "If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.",
 							Elem:        &schema.Schema{Type: schema.TypeFloat},
 							Optional:    true,
 							Type:        schema.TypeList,
 						},
-						Arg_TCPFlags: {
+						Attr_TCPFlags: {
 							Description: "If tcp type is chosen, the list of TCP flags and if not present then all flags are matched.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -102,11 +102,11 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 							Optional: true,
 							Type:     schema.TypeList,
 						},
-						Arg_Type: {
+						Attr_Type: {
 							Description:  "The protocol of the network traffic.",
 							Optional:     true,
 							Type:         schema.TypeString,
-							ValidateFunc: validate.ValidateAllowedStringValues([]string{"all", "icmp", "tcp", "udp"}),
+							ValidateFunc: validate.ValidateAllowedStringValues([]string{All, ICMP, TCP, UDP}),
 						},
 					},
 				},
@@ -118,12 +118,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Description:   "The protocol of the network traffic.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Arg_ID: {
+						Attr_ID: {
 							Description: "The ID of the remote network address group or network security group the rules apply to. Not required for default-network-address-group.",
 							Optional:    true,
 							Type:        schema.TypeString,
 						},
-						Arg_Type: {
+						Attr_Type: {
 							Description:  "The type of remote group (MAC addresses, IP addresses, CIDRs, external CIDRs) that are the originators of rule's network traffic to match.",
 							Optional:     true,
 							Type:         schema.TypeString,
@@ -146,12 +146,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Description:   "Source port ranges.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Arg_Maximum: {
+						Attr_Maximum: {
 							Computed:    true,
 							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
 							Type:        schema.TypeFloat,
 						},
-						Arg_Minimum: {
+						Attr_Minimum: {
 							Computed:    true,
 							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
 							Type:        schema.TypeFloat,
@@ -373,14 +373,16 @@ func resourceIBMPINetworkSecurityGroupRuleCreate(ctx context.Context, d *schema.
 		networkSecurityGroupAddRule.SourcePorts = networkSecurityGroupRuleMapToPort(sourcePort)
 
 		networkSecurityGroup, err := nsgClient.AddRule(nsgID, &networkSecurityGroupAddRule)
+		// ruleID = *networkSecurityGroup.RuleID
+		ruleID := *networkSecurityGroup.ID
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		_, err = isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx, nsgClient, nsgID, *networkSecurityGroup.ID, d.Timeout(schema.TimeoutCreate))
+		_, err = isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx, nsgClient, nsgID, ruleID, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		d.SetId(fmt.Sprintf("%s/%s/%s", cloudInstanceID, nsgID, *networkSecurityGroup.ID))
+		d.SetId(fmt.Sprintf("%s/%s/%s", cloudInstanceID, nsgID, ruleID))
 	}
 
 	return resourceIBMPINetworkSecurityGroupRuleRead(ctx, d, meta)
@@ -424,17 +426,39 @@ func resourceIBMPINetworkSecurityGroupRuleRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
+// TODO: delete all rules
 func resourceIBMPINetworkSecurityGroupRuleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	d.SetId("")
+	sess, err := meta.(conns.ClientSession).IBMPISession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	nsgClient := instance.NewIBMIPINetworkSecurityGroupClient(ctx, sess, cloudInstanceID)
+	nsgID := d.Get(Arg_NetworkSecurityGroupID).(string)
+
+	nsgRules := d.Get(Attr_Rules).([]models.NetworkSecurityGroupRule)
+	for _, nsgRule := range nsgRules {
+		_, err := nsgClient.DeleteRule(nsgID, *nsgRule.ID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		_, err = isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx, nsgClient, nsgID, *nsgRule.ID, d.Timeout(schema.TimeoutDelete))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, nsgID))
+
 	return nil
 }
 
-func isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx context.Context, client *instance.IBMPINetworkSecurityGroupClient, id, memberID string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx context.Context, client *instance.IBMPINetworkSecurityGroupClient, id, ruleID string, timeout time.Duration) (interface{}, error) {
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Pending},
 		Target:     []string{State_Available},
-		Refresh:    isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client, id, memberID),
+		Refresh:    isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client, id, ruleID),
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 10 * time.Minute,
@@ -443,7 +467,7 @@ func isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx context.Context, client *inst
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client *instance.IBMPINetworkSecurityGroupClient, id, memberID string) retry.StateRefreshFunc {
+func isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client *instance.IBMPINetworkSecurityGroupClient, id, ruleID string) retry.StateRefreshFunc {
 
 	return func() (interface{}, string, error) {
 		networkSecurityGroup, err := client.Get(id)
@@ -451,9 +475,9 @@ func isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client *instance.IBMPINetwork
 			return nil, "", err
 		}
 
-		if networkSecurityGroup.Members != nil {
-			for _, mbr := range networkSecurityGroup.Members {
-				if *mbr.ID == memberID {
+		if networkSecurityGroup.Rules != nil {
+			for _, rule := range networkSecurityGroup.Rules {
+				if *rule.ID == ruleID {
 					return networkSecurityGroup, State_Available, nil
 				}
 
@@ -463,12 +487,12 @@ func isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client *instance.IBMPINetwork
 	}
 }
 
-func isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx context.Context, client *instance.IBMPINetworkSecurityGroupClient, id, memberID string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx context.Context, client *instance.IBMPINetworkSecurityGroupClient, id, ruleID string, timeout time.Duration) (interface{}, error) {
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Pending},
 		Target:     []string{State_Removed},
-		Refresh:    isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client, id, memberID),
+		Refresh:    isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client, id, ruleID),
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
 		MinTimeout: 10 * time.Minute,
@@ -477,7 +501,7 @@ func isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx context.Context, client *i
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client *instance.IBMPINetworkSecurityGroupClient, id, memberID string) retry.StateRefreshFunc {
+func isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client *instance.IBMPINetworkSecurityGroupClient, id, ruleID string) retry.StateRefreshFunc {
 
 	return func() (interface{}, string, error) {
 		networkSecurityGroup, err := client.Get(id)
@@ -485,15 +509,15 @@ func isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client *instance.IBMPINetw
 			return nil, "", err
 		}
 
-		if networkSecurityGroup.Members != nil {
-			isMember := false
-			for _, mbr := range networkSecurityGroup.Members {
-				if *mbr.ID == memberID {
-					isMember = true
+		if networkSecurityGroup.Rules != nil {
+			isRule := false
+			for _, rule := range networkSecurityGroup.Rules {
+				if *rule.ID == ruleID {
+					isRule = true
 					return networkSecurityGroup, State_Pending, nil
 				}
 			}
-			if !isMember {
+			if !isRule {
 				return networkSecurityGroup, State_Removed, nil
 			}
 		}
@@ -577,27 +601,33 @@ func networkSecurityGroupRuleRemoteToMap(remote *models.NetworkSecurityGroupRule
 
 func networkSecurityGroupRuleMapToPort(portMap map[string]interface{}) *models.NetworkSecurityGroupRulePort {
 	networkSecurityGroupRulePort := models.NetworkSecurityGroupRulePort{}
-	networkSecurityGroupRulePort.Maximum = portMap[Attr_Maximum].(float64)
-	networkSecurityGroupRulePort.Minimum = portMap[Attr_Minimum].(float64)
+	if portMap[Attr_Maximum].(float64) != 0 {
+		networkSecurityGroupRulePort.Maximum = portMap[Attr_Maximum].(float64)
+	}
+	if portMap[Attr_Minimum].(float64) != 0 {
+		networkSecurityGroupRulePort.Minimum = portMap[Attr_Minimum].(float64)
+	}
 	return &networkSecurityGroupRulePort
 }
 
 func networkSecurityGroupRuleMapToRemote(remoteMap map[string]interface{}) *models.NetworkSecurityGroupRuleRemote {
 	networkSecurityGroupRuleRemote := models.NetworkSecurityGroupRuleRemote{}
-	networkSecurityGroupRuleRemote.ID = remoteMap[Arg_ID].(string)
-	networkSecurityGroupRuleRemote.Type = remoteMap[Arg_Type].(string)
+	if remoteMap[Attr_ID].(string) != "" {
+		networkSecurityGroupRuleRemote.ID = remoteMap[Attr_ID].(string)
+	}
+	networkSecurityGroupRuleRemote.Type = remoteMap[Attr_Type].(string)
 	return &networkSecurityGroupRuleRemote
 }
 
 func networkSecurityGroupRuleMapToProtocol(protocolMap map[string]interface{}) *models.NetworkSecurityGroupRuleProtocol {
 	networkSecurityGroupRuleProtocol := models.NetworkSecurityGroupRuleProtocol{}
-	networkSecurityGroupRuleProtocol.Type = protocolMap[Arg_Type].(string)
+	networkSecurityGroupRuleProtocol.Type = protocolMap[Attr_Type].(string)
 
-	if networkSecurityGroupRuleProtocol.Type == "icmp" {
-		icmpTypes := flex.ExpandFloat64List(protocolMap[Arg_ICMPTypes].([]interface{}))
+	if networkSecurityGroupRuleProtocol.Type == ICMP {
+		icmpTypes := flex.ExpandFloat64List(protocolMap[Attr_ICMPTypes].([]interface{}))
 		networkSecurityGroupRuleProtocol.IcmpTypes = icmpTypes
-	} else if networkSecurityGroupRuleProtocol.Type == "tcp" {
-		tcpFlags := flex.ExpandStringList(protocolMap[Arg_TCPFlags].([]interface{}))
+	} else if networkSecurityGroupRuleProtocol.Type == TCP {
+		tcpFlags := flex.ExpandStringList(protocolMap[Attr_TCPFlags].([]interface{}))
 		networkSecurityGroupRuleProtocolTCPFlagArray := []*models.NetworkSecurityGroupRuleProtocolTCPFlag{}
 		for _, tcp := range tcpFlags {
 			networkSecurityGroupRuleProtocolTCPFlag := models.NetworkSecurityGroupRuleProtocolTCPFlag{}
