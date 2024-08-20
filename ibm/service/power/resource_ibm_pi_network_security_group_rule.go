@@ -426,30 +426,34 @@ func resourceIBMPINetworkSecurityGroupRuleRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-// TODO: delete all rules
 func resourceIBMPINetworkSecurityGroupRuleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	sess, err := meta.(conns.ClientSession).IBMPISession()
+	ids, err := flex.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	nsgClient := instance.NewIBMIPINetworkSecurityGroupClient(ctx, sess, cloudInstanceID)
-	nsgID := d.Get(Arg_NetworkSecurityGroupID).(string)
 
-	nsgRules := d.Get(Attr_Rules).([]models.NetworkSecurityGroupRule)
-	for _, nsgRule := range nsgRules {
-		_, err := nsgClient.DeleteRule(nsgID, *nsgRule.ID)
+	if len(ids) == 3 {
+		cloudInstanceID := ids[0]
+		nsgID := ids[1]
+		ruleID := ids[2]
+
+		sess, err := meta.(conns.ClientSession).IBMPISession()
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		_, err = isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx, nsgClient, nsgID, *nsgRule.ID, d.Timeout(schema.TimeoutDelete))
+		nsgClient := instance.NewIBMIPINetworkSecurityGroupClient(ctx, sess, cloudInstanceID)
+
+		_, err = nsgClient.DeleteRule(nsgID, ruleID)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		_, err = isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx, nsgClient, nsgID, ruleID, d.Timeout(schema.TimeoutDelete))
 		if err != nil {
 			return diag.FromErr(err)
 		}
 	}
-
-	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, nsgID))
-
+	d.SetId("")
 	return nil
 }
 
