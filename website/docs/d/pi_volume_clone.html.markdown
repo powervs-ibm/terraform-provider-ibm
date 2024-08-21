@@ -10,7 +10,7 @@ description: |-
 
 Retrieves information about a volume clone. For more information, about managing volume clone, see [getting started with IBM Power Systems Virtual Servers](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-getting-started).
 
-## Example usage
+## Example Usage
 
 The following example retrieves information about the volume clone task that is present in Power Systems Virtual Server.
 
@@ -37,14 +37,14 @@ Example usage:
     }
   ```
 
-## Argument reference
+## Argument Reference
 
 Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_volume_clone_task_id` - (Required, String) The ID of the volume clone task.
 
-## Attribute reference
+## Attribute Reference
 
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 

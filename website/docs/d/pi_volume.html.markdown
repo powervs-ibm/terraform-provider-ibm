@@ -10,7 +10,7 @@ description: |-
 
 Retrieves information about a persistent storage volume that is mounted to a Power Systems Virtual Server instance. For more information, about managin a volume, see [moving data to the cloud](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-moving-data-to-the-cloud).
 
-## Example usage
+## Example Usage
 
 The following example retrieves information about the `volume_1` volume that is mounted to the Power Systems Virtual Server instance with the ID.
 
@@ -37,14 +37,14 @@ Example usage:
     }
   ```
   
-## Argument reference
+## Argument Reference
 
 Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_volume_name` - (Required, String) The name of the volume for which you want to retrieve detailed information.
 
-## Attribute reference
+## Attribute Reference
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 

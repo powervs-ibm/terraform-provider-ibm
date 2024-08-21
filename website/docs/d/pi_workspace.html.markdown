@@ -7,22 +7,26 @@ description: |-
 ---
 
 # ibm_pi_workspace
+
 Retrieve information about your Power Systems account workspace.
 
-## Example usage
+## Example Usage
+
 ```terraform
 data "ibm_pi_workspace" "workspace" {
   pi_cloud_instance_id = "99fba9c9-66f9-99bc-9999-aca999ee9d9b"
 }
 ```
 
-**Notes**
+### Notes
+
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
 - If a Power cloud instance is provisioned at `lon04`, The provider level attributes should be as follows:
   - `region` - `lon`
   - `zone` - `lon04`
 
 Example usage:
+
   ```terraform
     provider "ibm" {
       region    =   "lon"
@@ -30,12 +34,14 @@ Example usage:
     }
   ```
 
-## Argument reference
+## Argument Reference
+
 Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) Cloud Instance ID of a PCloud Instance under your account.
 
-## Attribute reference
+## Attribute Reference
+
 In addition to all argument reference listed, you can access the following attribute references after your data source is created.
 
 - `id` - (String) Workspace ID.
@@ -52,9 +58,9 @@ In addition to all argument reference listed, you can access the following attri
   - `power_edge_router` - (List) Power Edge Router information.
 
       Nested schema for `power_edge_router`:
-      - `migration_status` - (String) The migration status of a Power Edge Router.
-      - `status` - (String) The state of a Power Edge Router.
-      - `type` - (String) The Power Edge Router type.
+        - `migration_status` - (String) The migration status of a Power Edge Router.
+        - `status` - (String) The state of a Power Edge Router.
+        - `type` - (String) The Power Edge Router type.
 - `pi_workspace_location` - (Map) Workspace location.
 
     Nested schema for `Workspace location`:
