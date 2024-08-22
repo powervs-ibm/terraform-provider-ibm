@@ -155,7 +155,9 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_AuxiliaryVolumeName, volumedata.AuxVolumeName)
 	d.Set(Attr_Bootable, volumedata.Bootable)
 	d.Set(Attr_ConsistencyGroupName, volumedata.ConsistencyGroupName)
-	d.Set(Attr_CRN, volumedata.Crn)
+	if volumedata.Crn != "" {
+		d.Set(Attr_CRN, volumedata.Crn)
+	}
 	d.Set(Attr_DiskType, volumedata.DiskType)
 	d.Set(Attr_GroupID, volumedata.GroupID)
 	d.Set(Attr_IOThrottleRate, volumedata.IoThrottleRate)
