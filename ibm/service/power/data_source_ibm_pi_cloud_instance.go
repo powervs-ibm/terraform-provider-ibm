@@ -156,12 +156,14 @@ func flattenpvminstances(list []*models.PVMInstanceReference) []map[string]inter
 	for _, lpars := range list {
 		l := map[string]interface{}{
 			Attr_CreationDate: lpars.CreationDate.String(),
-			Attr_CRN:          lpars.Crn,
 			Attr_ID:           *lpars.PvmInstanceID,
 			Attr_Href:         *lpars.Href,
 			Attr_Name:         *lpars.ServerName,
 			Attr_Status:       *lpars.Status,
 			Attr_Systype:      lpars.SysType,
+		}
+		if lpars.Crn != "" {
+			l[Attr_CRN] = lpars.Crn
 		}
 		pvms = append(pvms, l)
 	}

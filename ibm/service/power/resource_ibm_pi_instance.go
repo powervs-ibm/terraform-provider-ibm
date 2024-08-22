@@ -522,7 +522,9 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_CRN, powervmdata.Crn)
+	if powervmdata.Crn != "" {
+		d.Set(Attr_CRN, powervmdata.Crn)
+	}
 	d.Set(Arg_Memory, powervmdata.Memory)
 	d.Set(Arg_Processors, powervmdata.Processors)
 	if powervmdata.Status != nil {
