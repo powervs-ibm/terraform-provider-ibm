@@ -39,7 +39,7 @@ func DataSourceIBMPIImage() *schema.Resource {
 			},
 			Attr_CRN: {
 				Computed:    true,
-				Description: "CRN of image.",
+				Description: "CRN of the image.",
 				Type:        schema.TypeString,
 			},
 			Attr_Hypervisor: {
