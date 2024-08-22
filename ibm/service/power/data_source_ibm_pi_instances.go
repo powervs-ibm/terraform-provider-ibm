@@ -234,7 +234,6 @@ func flattenPvmInstances(list []*models.PVMInstanceReference) []map[string]inter
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, i := range list {
 		l := map[string]interface{}{
-			Attr_CRN:                       i.Crn,
 			Attr_LicenseRepositoryCapacity: i.LicenseRepositoryCapacity,
 			Attr_MaxMem:                    i.Maxmem,
 			Attr_MaxProc:                   i.Maxproc,
@@ -257,6 +256,10 @@ func flattenPvmInstances(list []*models.PVMInstanceReference) []map[string]inter
 			Attr_StoragePoolAffinity:       i.StoragePoolAffinity,
 			Attr_StorageType:               i.StorageType,
 			Attr_VirtualCoresAssigned:      i.VirtualCores.Assigned,
+		}
+
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 
 		if i.Health != nil {
