@@ -84,7 +84,7 @@ func DataSourceIBMPIHosts() *schema.Resource {
 						},
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of host.",
+							Description: "CRN of the host.",
 							Type:        schema.TypeString,
 						},
 						Attr_DisplayName: {
