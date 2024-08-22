@@ -321,7 +321,9 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	if vol.VolumeID != nil {
 		d.Set(Attr_VolumeID, vol.VolumeID)
 	}
-	d.Set(Attr_CRN, vol.Crn)
+	if vol.Crn != "" {
+		d.Set(Attr_CRN, vol.Crn)
+	}
 	d.Set(Arg_VolumeName, vol.Name)
 	d.Set(Arg_VolumePool, vol.VolumePool)
 	if vol.Shareable != nil {

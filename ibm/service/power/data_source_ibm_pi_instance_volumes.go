@@ -135,7 +135,6 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 	for _, i := range list {
 		l := map[string]interface{}{
 			Attr_Bootable:  *i.Bootable,
-			Attr_CRN:       i.Crn,
 			Attr_Href:      *i.Href,
 			Attr_ID:        *i.VolumeID,
 			Attr_Name:      *i.Name,
@@ -144,6 +143,9 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 			Attr_Size:      *i.Size,
 			Attr_State:     *i.State,
 			Attr_Type:      *i.DiskType,
+		}
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 		if len(i.UserTags) > 0 {
 			l[Attr_UserTags] = i.UserTags
