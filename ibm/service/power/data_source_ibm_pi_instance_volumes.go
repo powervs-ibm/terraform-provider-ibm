@@ -51,7 +51,7 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 						},
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of resource.",
+							Description: "The CRN of this resource.",
 							Type:        schema.TypeString,
 						},
 						Attr_Href: {
@@ -96,7 +96,7 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 						},
 						Attr_UserTags: {
 							Computed:    true,
-							Description: "List of user tags.",
+							Description: "The user tags associated with this resource.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Type:        schema.TypeList,
 						},

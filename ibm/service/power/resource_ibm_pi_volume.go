@@ -88,7 +88,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			Arg_UserTags: {
-				Description: "List of user tags.",
+				Description: "The user tags associated with this resource.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
@@ -145,7 +145,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 			},
 			Attr_CRN: {
 				Computed:    true,
-				Description: "CRN of resource.",
+				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
 			Attr_DeleteOnTermination: {
@@ -277,11 +277,9 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		}
 
 	}
-
 	if v, ok := d.GetOk(Arg_UserTags); ok {
-		userTags := flex.ExpandStringList(v.([]interface{}))
-		if len(userTags) > 0 {
-			body.UserTags = userTags
+		if len(v.([]interface{})) > 0 {
+			body.UserTags = flex.ExpandStringList(v.([]interface{}))
 		}
 	}
 
