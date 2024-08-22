@@ -361,7 +361,9 @@ func hostMapToAddHost(modelMap map[string]interface{}) *models.AddHost {
 	host := &models.AddHost{}
 	host.DisplayName = core.StringPtr(modelMap[Attr_DisplayName].(string))
 	host.SysType = core.StringPtr(modelMap[Attr_SysType].(string))
-	host.UserTags = flex.ExpandStringList(modelMap[Attr_UserTags].([]interface{}))
+	if len(modelMap[Attr_UserTags].([]interface{})) > 0 {
+		host.UserTags = flex.ExpandStringList(modelMap[Attr_UserTags].([]interface{}))
+	}
 	return host
 }
 

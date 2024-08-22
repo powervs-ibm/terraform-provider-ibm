@@ -189,7 +189,9 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 		hs := models.AddHost{
 			DisplayName: core.StringPtr(host[Attr_DisplayName].(string)),
 			SysType:     core.StringPtr(host[Attr_SysType].(string)),
-			UserTags:    flex.ExpandStringList(host[Attr_UserTags].([]interface{})),
+		}
+		if len(host[Attr_UserTags].([]interface{})) > 0 {
+			hs.UserTags = flex.ExpandStringList(host[Attr_UserTags].([]interface{}))
 		}
 		hostBody = append(hostBody, &hs)
 	}
