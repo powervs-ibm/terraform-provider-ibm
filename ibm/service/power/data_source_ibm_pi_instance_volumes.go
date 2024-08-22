@@ -144,7 +144,9 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 			Attr_Size:      *i.Size,
 			Attr_State:     *i.State,
 			Attr_Type:      *i.DiskType,
-			Attr_UserTags:  i.UserTags,
+		}
+		if len(i.UserTags) > 0 {
+			l[Attr_UserTags] = i.UserTags
 		}
 		result = append(result, l)
 	}
