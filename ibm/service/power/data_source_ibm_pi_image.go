@@ -114,7 +114,9 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, imagedata.State)
 	d.Set(Attr_StoragePool, imagedata.StoragePool)
 	d.Set(Attr_StorageType, imagedata.StorageType)
-	d.Set(Attr_UserTags, imagedata.UserTags)
+	if len(imagedata.UserTags) > 0 {
+		d.Set(Attr_UserTags, imagedata.UserTags)
+	}
 
 	return nil
 }
