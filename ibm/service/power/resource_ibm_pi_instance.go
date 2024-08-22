@@ -77,11 +77,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-			Attr_CRN: {
-				Computed:    true,
-				Description: "CRN of instance.",
-				Type:        schema.TypeString,
-			},
 			Arg_DeploymentTarget: {
 				Description: "The deployment of a dedicated host.",
 				Elem: &schema.Resource{
@@ -305,6 +300,13 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
+			Arg_UserTags: {
+				Description: "List of user tags.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 			Arg_VirtualCoresAssigned: {
 				Computed:    true,
 				Description: "Virtual Cores Assigned to the PVMInstance",
@@ -327,6 +329,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 			},
 
 			// Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "CRN of instance.",
+				Type:        schema.TypeString,
+			},
 			Attr_HealthStatus: {
 				Computed:    true,
 				Description: "PI Instance health status",
@@ -408,13 +415,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "Fault information.",
 				Type:        schema.TypeMap,
-			},
-			Arg_UserTags: {
-				Description: "List of user tags.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeList,
 			},
 		},
 	}
@@ -1430,8 +1430,9 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
 	}
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
-		userTags := flex.ExpandStringList(tags.([]interface{}))
-		body.UserTags = userTags
+		if len(tags.([]interface{})) > 0 {
+			body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+		}
 	}
 	pvmList, err := sapClient.Create(body)
 	if err != nil {
@@ -1628,8 +1629,9 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
 	}
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
-		userTags := flex.ExpandStringList(tags.([]interface{}))
-		body.UserTags = userTags
+		if len(tags.([]interface{})) > 0 {
+			body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+		}
 	}
 	pvmList, err := client.Create(body)
 
