@@ -160,7 +160,7 @@ func dataSourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta i
 	if host.SysType != "" {
 		d.Set(Attr_SysType, host.SysType)
 	}
-	if host.UserTags != nil {
+	if len(host.UserTags) > 0 {
 		d.Set(Attr_UserTags, host.UserTags)
 	}
 
