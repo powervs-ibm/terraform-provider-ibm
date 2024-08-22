@@ -107,7 +107,6 @@ func flattenStockImages(list []*models.ImageReference) []map[string]interface{} 
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, i := range list {
 		l := map[string]interface{}{
-			Attr_CRN:         i.Crn,
 			Attr_Href:        *i.Href,
 			Attr_ID:          *i.ImageID,
 			Attr_ImageType:   i.Specifications.ImageType,
@@ -115,6 +114,9 @@ func flattenStockImages(list []*models.ImageReference) []map[string]interface{} 
 			Attr_State:       *i.State,
 			Attr_StoragePool: *i.StoragePool,
 			Attr_StorageType: *i.StorageType,
+		}
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 		result = append(result, l)
 	}

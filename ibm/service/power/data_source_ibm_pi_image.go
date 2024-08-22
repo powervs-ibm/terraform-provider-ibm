@@ -104,7 +104,9 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 
 	d.SetId(*imagedata.ImageID)
 	d.Set(Attr_Architecture, imagedata.Specifications.Architecture)
-	d.Set(Attr_CRN, imagedata.Crn)
+	if imagedata.Crn != "" {
+		d.Set(Attr_CRN, imagedata.Crn)
+	}
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
 	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
