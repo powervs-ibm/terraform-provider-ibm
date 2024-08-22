@@ -61,7 +61,7 @@ func DataSourceIBMPICatalogImages() *schema.Resource {
 						},
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of resource.",
+							Description: "CRN of this resource.",
 							Type:        schema.TypeString,
 						},
 						Attr_Description: {
