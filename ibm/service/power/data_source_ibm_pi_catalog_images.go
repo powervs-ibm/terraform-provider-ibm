@@ -164,9 +164,9 @@ func dataSourceIBMPICatalogImagesRead(ctx context.Context, d *schema.ResourceDat
 		if i.CreationDate != nil {
 			image[Attr_CreationDate] = i.CreationDate.String()
 		}
-
-		image[Attr_CRN] = i.Crn
-
+		if i.Crn != "" {
+			image[Attr_CRN] = i.Crn
+		}
 		if i.Href != nil {
 			image[Attr_Href] = *i.Href
 		}

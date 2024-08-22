@@ -252,17 +252,13 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 		bucketImageFileName := d.Get(helpers.PIImageBucketFileName).(string)
 		bucketRegion := d.Get(helpers.PIImageBucketRegion).(string)
 		bucketAccess := d.Get(helpers.PIImageBucketAccess).(string)
-		var userTags []string
-		if tags, ok := d.GetOk(Arg_UserTags); ok {
-			userTags = flex.ExpandStringList(tags.([]interface{}))
-		}
+
 		body := &models.CreateCosImageImportJob{
 			ImageName:     &imageName,
 			BucketName:    &bucketName,
 			BucketAccess:  &bucketAccess,
 			ImageFilename: &bucketImageFileName,
 			Region:        &bucketRegion,
-			UserTags:      userTags,
 		}
 
 		if v, ok := d.GetOk(helpers.PIImageAccessKey); ok {
@@ -313,6 +309,11 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 				Vendor:      core.StringPtr(details[Attr_Vendor].(string)),
 			}
 			body.ImportDetails = &importDetailsModel
+		}
+		if tags, ok := d.GetOk(Arg_UserTags); ok {
+			if len(tags.([]interface{})) > 0 {
+				body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+			}
 		}
 		imageResponse, err := client.CreateCosImage(body)
 		if err != nil {
