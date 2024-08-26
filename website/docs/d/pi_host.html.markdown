@@ -59,7 +59,7 @@ After your data source is created, you can read values from the following attrib
   - `used_core` - (Float) Number of cores in use on the host.
   - `used_memory` - (Float) Amount of memory used on the host (in GB).
 
-- `crn` - (String) CRN of the host.
+- `crn` - (String) The CRN of this resource.
 - `display_name` - (String) Name of the host.
 - `host_group` - (Map)  Information about the owning host group.
   
@@ -76,4 +76,4 @@ After your data source is created, you can read values from the following attrib
 
 - `sys_type` - (String) System type.
 
-- `user_tags` - (List) List of user tags associated with the host.
+- `user_tags` - (List) The user tags associated with this resource.

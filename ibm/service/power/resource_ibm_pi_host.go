@@ -130,7 +130,7 @@ func ResourceIBMPIHost() *schema.Resource {
 			},
 			Attr_CRN: {
 				Computed:    true,
-				Description: "CRN of the host.",
+				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
 			Attr_DisplayName: {
@@ -165,7 +165,7 @@ func ResourceIBMPIHost() *schema.Resource {
 			},
 			Attr_UserTags: {
 				Computed:    true,
-				Description: "List of user tags for the host.",
+				Description: "The user tags associated with this resource.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
