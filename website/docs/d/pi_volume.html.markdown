@@ -52,7 +52,7 @@ In addition to all argument reference list, you can access the following attribu
 - `auxiliary_volume_name` - (String) The auxiliary volume name.
 - `bootable` -  (Boolean) Indicates if the volume is boot capable.
 - `consistency_group_name` - (String) Consistency group name if volume is a part of volume group.
-- `crn` - (String) CRN of the volume.
+- `crn` - (String) The CRN of this resource.
 - `disk_type` - (String) The disk type that is used for the volume.
 - `group_id` - (String) The volume group id in which the volume belongs.
 - `id` - (String) The unique identifier of the volume.
@@ -66,6 +66,6 @@ In addition to all argument reference list, you can access the following attribu
 - `shareable` - (String) Indicates if the volume is shareable between VMs.
 - `size` - (Integer) The size of the volume in GB.
 - `state` - (String) The state of the volume.
-- `user_tags` - (List) List of user tags associated with the volume.
+- `user_tags` - (List) The user tags associated with this resource.
 - `volume_pool` - (String) Volume pool, name of storage pool where the volume is located.
 - `wwn` - (String) The world wide name of the volume.
