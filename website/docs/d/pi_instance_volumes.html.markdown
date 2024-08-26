@@ -53,7 +53,7 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `instance_volumes`:
   - `bootable`- (Boolean) Indicates if the volume is boot capable.
-  - `crn` - (String) CRN of the volume.
+  - `crn` - (String) The CRN of this resource.
   - `href` - (String) The hyper link of the volume.
   - `id` - (String) The unique identifier of the volume.
   - `name` - (String) The name of the volume.
@@ -62,4 +62,4 @@ In addition to all argument reference list, you can access the following attribu
   - `size` - (Integer) The size of this volume in GB.
   - `state` - (String) The state of the volume.
   - `type` - (String) The disk type that is used for this volume.
-  - `user_tags` - (List) List of user tags associated with the volume.
+  - `user_tags` - (List) The user tags associated with this resource.
