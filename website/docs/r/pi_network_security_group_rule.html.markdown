@@ -44,8 +44,8 @@ Review the argument references that you can specify for your resource.
 - `pi_destination_port` - (Optional, List) The list of destination port.
 
     Nested schema for `pi_destination_port`:
-      - `pi_maximum` - (Float) The end of the port range, if applicable, If values are not present then all ports are in the range.
-      - `pi_minimum` - (Float) The start of the port range, if applicable. If values are not present then all ports are in the range.
+      - `pi_maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+      - `pi_minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
 - `pi_network_security_group_id` - (Required, String) The unique identifier of the network security group.
 - `pi_network_security_group_rule_id` - (Optional, String) The network security group rule id to remove. Required if none of the other optional fields are provided.
 - `pi_protocol` - (List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
@@ -62,8 +62,8 @@ Review the argument references that you can specify for your resource.
 - `pi_source_port` - (List) List of source port
 
     Nested schema for `pi_source_port`:
-    - `pi_maximum` - (Float) The end of the port range, if applicable, If values are not present then all ports are in the range.
-    - `pi_minimum` - (Float) The start of the port range, if applicable. If values are not present then all ports are in the range.
+    - `pi_maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+    - `pi_minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
 
 - `pi_name` - (Optional, String) The name of the network security group rule. Required if `pi_network_security_group_rule_id` is not provided.
 
@@ -89,8 +89,8 @@ In addition to all argument reference list, you can access the following attribu
   - `destination_port` - (List) The list of destination port.
 
         Nested schema for `destination_port`:
-          - `maximum` - (Float) The end of the port range, if applicable, If values are not present then all ports are in the range.
-          - `minimum` - (Float) The start of the port range, if applicable. If values are not present then all ports are in the range.
+          - `maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+          - `minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
   - `id` - (String) The id of the rule in a network security group.
   - `name` - (String) The unique name of the network security group rule.
   - `protocol` - (List) The list of protocol.
@@ -107,5 +107,5 @@ In addition to all argument reference list, you can access the following attribu
   - `source_port` - (List) List of source port
 
         Nested schema for `source_port`:
-        - `maximum` - (Float) The end of the port range, if applicable, If values are not present then all ports are in the range.
-        - `minimum` - (Float) The start of the port range, if applicable. If values are not present then all ports are in the range.
+        - `maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+        - `minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.

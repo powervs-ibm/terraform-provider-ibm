@@ -53,12 +53,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 						Attr_Maximum: {
 							Computed:    true,
 							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
-							Type:        schema.TypeFloat,
+							Type:        schema.TypeInt,
 						},
 						Attr_Minimum: {
 							Computed:    true,
 							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
-							Type:        schema.TypeFloat,
+							Type:        schema.TypeInt,
 						},
 					},
 				},
@@ -149,12 +149,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 						Attr_Maximum: {
 							Computed:    true,
 							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
-							Type:        schema.TypeFloat,
+							Type:        schema.TypeInt,
 						},
 						Attr_Minimum: {
 							Computed:    true,
 							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
-							Type:        schema.TypeFloat,
+							Type:        schema.TypeInt,
 						},
 					},
 				},
@@ -339,7 +339,7 @@ func resourceIBMPINetworkSecurityGroupRuleCreate(ctx context.Context, d *schema.
 
 	if v, ok := d.GetOk(Arg_NetworkSecurityGroupRuleID); ok {
 		ruleID := v.(string)
-		_, err := nsgClient.DeleteRule(nsgID, ruleID)
+		err := nsgClient.DeleteRule(nsgID, ruleID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -443,7 +443,7 @@ func resourceIBMPINetworkSecurityGroupRuleDelete(ctx context.Context, d *schema.
 		}
 		nsgClient := instance.NewIBMIPINetworkSecurityGroupClient(ctx, sess, cloudInstanceID)
 
-		_, err = nsgClient.DeleteRule(nsgID, ruleID)
+		err = nsgClient.DeleteRule(nsgID, ruleID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -605,11 +605,11 @@ func networkSecurityGroupRuleRemoteToMap(remote *models.NetworkSecurityGroupRule
 
 func networkSecurityGroupRuleMapToPort(portMap map[string]interface{}) *models.NetworkSecurityGroupRulePort {
 	networkSecurityGroupRulePort := models.NetworkSecurityGroupRulePort{}
-	if portMap[Attr_Maximum].(float64) != 0 {
-		networkSecurityGroupRulePort.Maximum = portMap[Attr_Maximum].(float64)
+	if portMap[Attr_Maximum].(int64) != 0 {
+		networkSecurityGroupRulePort.Maximum = portMap[Attr_Maximum].(int64)
 	}
-	if portMap[Attr_Minimum].(float64) != 0 {
-		networkSecurityGroupRulePort.Minimum = portMap[Attr_Minimum].(float64)
+	if portMap[Attr_Minimum].(int64) != 0 {
+		networkSecurityGroupRulePort.Minimum = portMap[Attr_Minimum].(int64)
 	}
 	return &networkSecurityGroupRulePort
 }
