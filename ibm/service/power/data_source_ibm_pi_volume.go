@@ -169,8 +169,6 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_DiskType, volumedata.DiskType)
 	if volumedata.FreezeTime != nil {
 		d.Set(Attr_FreezeTime, volumedata.FreezeTime.String())
-	} else {
-		d.Set(Attr_FreezeTime, nil)
 	}
 	d.Set(Attr_GroupID, volumedata.GroupID)
 	d.Set(Attr_IOThrottleRate, volumedata.IoThrottleRate)
