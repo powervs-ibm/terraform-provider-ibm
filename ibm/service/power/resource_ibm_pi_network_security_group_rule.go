@@ -373,7 +373,6 @@ func resourceIBMPINetworkSecurityGroupRuleCreate(ctx context.Context, d *schema.
 		networkSecurityGroupAddRule.SourcePorts = networkSecurityGroupRuleMapToPort(sourcePort)
 
 		networkSecurityGroup, err := nsgClient.AddRule(nsgID, &networkSecurityGroupAddRule)
-		// ruleID = *networkSecurityGroup.RuleID
 		ruleID := *networkSecurityGroup.ID
 		if err != nil {
 			return diag.FromErr(err)
