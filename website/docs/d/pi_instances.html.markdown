@@ -47,6 +47,7 @@ In addition to all argument reference list, you can access the following attribu
 - `pvm_instances` - (List) List of power virtual server instances for the respective cloud instance.
 
   Nested scheme for `pvm_instances`:
+  - `crn` - (String) The CRN of this resource.
   - `fault` - (Map) Fault information, if any.
 
       Nested scheme for `fault`:

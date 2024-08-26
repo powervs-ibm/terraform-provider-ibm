@@ -50,7 +50,7 @@ func DataSourceIBMPICloudInstance() *schema.Resource {
 						},
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of PVM instance.",
+							Description: "The CRN of this resource.",
 							Type:        schema.TypeString,
 						},
 						Attr_Href: {
