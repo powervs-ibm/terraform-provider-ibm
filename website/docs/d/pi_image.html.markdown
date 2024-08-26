@@ -42,7 +42,7 @@ Review the argument references that you can specify for your data source.
 In addition to all argument reference list, you can access the following attribute references after your data source is created. 
 
 - `architecture` - (String) The CPU architecture that the image is designed for. 
-- `crn` - (String) CRN of the image.
+- `crn` - (String) The CRN of this resource.
 - `hypervisor` - (String) Hypervisor type.
 - `id` - (String) The unique identifier of the image.
 - `image_type` - (String) The identifier of this image type.
@@ -51,4 +51,4 @@ In addition to all argument reference list, you can access the following attribu
 - `state` - (String) The state for this image. 
 - `storage_type` - (String) The storage type for this image.
 - `storage_pool` - (String) Storage pool where image resides.
-- `user_tags` - (List) List of user tags associated with the image.
+- `user_tags` - (List) The user tags associated with this resource.

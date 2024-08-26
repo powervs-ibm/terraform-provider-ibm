@@ -36,7 +36,7 @@ func DataSourceIBMPIImages() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of the image.",
+							Description: "The CRN of this resource.",
 							Type:        schema.TypeString,
 						},
 						Attr_Href: {
