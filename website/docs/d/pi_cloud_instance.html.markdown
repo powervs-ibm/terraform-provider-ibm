@@ -45,6 +45,7 @@ In addition to the argument reference list, you can access the following attribu
 
   Nested scheme for `pvm_instances`:
   - `creation_date` - (String) Date of PVM instance creation.
+  - `crn` - (String) The CRN of this resource.
   - `href` - (String) Link to Cloud Instance resource.
   - `id` - (String) PVM Instance ID.
   - `name` - (String) Name of the server.

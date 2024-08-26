@@ -301,7 +301,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_UserTags: {
-				Description: "List of user tags.",
+				Description: "The user tags associated with this resource.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
@@ -331,7 +331,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 			// Attributes
 			Attr_CRN: {
 				Computed:    true,
-				Description: "CRN of instance.",
+				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
 			Attr_HealthStatus: {

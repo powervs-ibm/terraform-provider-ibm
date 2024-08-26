@@ -36,7 +36,7 @@ func DataSourceIBMPIInstances() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						Attr_CRN: {
 							Computed:    true,
-							Description: "CRN of VM instance.",
+							Description: "The CRN of this resource.",
 							Type:        schema.TypeString,
 						},
 						Attr_Fault: {
