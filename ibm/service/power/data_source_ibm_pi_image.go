@@ -39,7 +39,7 @@ func DataSourceIBMPIImage() *schema.Resource {
 			},
 			Attr_CRN: {
 				Computed:    true,
-				Description: "CRN of the image.",
+				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
 			Attr_Hypervisor: {
@@ -80,7 +80,7 @@ func DataSourceIBMPIImage() *schema.Resource {
 			},
 			Attr_UserTags: {
 				Computed:    true,
-				Description: "List of user specified tags",
+				Description: "The user tags associated with this resource.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
