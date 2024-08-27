@@ -91,7 +91,6 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Description: "List of replication sites.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
-				MinItems:    1,
 				Optional:    true,
 				Type:        schema.TypeList,
 			},
@@ -256,11 +255,9 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 	}
 	if v, ok := d.GetOk(Arg_ReplicationSites); ok {
 		if d.Get(Arg_ReplicationEnabled).(bool) {
-			replicationSites := make([]string, len(v.([]interface{})))
-			for i, site := range v.([]interface{}) {
-				replicationSites[i] = site.(string)
+			if len(v.([]interface{})) > 0 {
+				body.ReplicationSites = flex.ExpandStringList(v.([]interface{}))
 			}
-			body.ReplicationSites = replicationSites
 		} else {
 			return diag.Errorf("Replication must be enabled if replication sites are specified.")
 		}
