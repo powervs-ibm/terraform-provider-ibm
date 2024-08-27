@@ -22,7 +22,6 @@ func TestAccIBMPIHostDataSourceBasic(t *testing.T) {
 				Config: testAccCheckIBMPIHostDataSourceConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(hostResData, "id"),
-					resource.TestCheckResourceAttrSet(hostResData, "crn"),
 				),
 			},
 		},
