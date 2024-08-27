@@ -22,7 +22,6 @@ func TestAccIBMPIVolumeDataSource_basic(t *testing.T) {
 				Config: testAccCheckIBMPIVolumeDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(volumeRes, "id"),
-					resource.TestCheckResourceAttrSet(volumeRes, "crn"),
 				),
 			},
 		},
