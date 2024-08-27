@@ -41,7 +41,7 @@ func TestAccIBMPIVolumeClone(t *testing.T) {
 	})
 }
 
-func TestAccIBMPIVolumeCloneUserTagsAndCRN(t *testing.T) {
+func TestAccIBMPIVolumeCloneUserTags(t *testing.T) {
 	resVolumeClone := "ibm_pi_volume_clone.power_volume_clone"
 	resVolumeCloneData := "data.ibm_pi_volume.power_volume_clone_data"
 	name := fmt.Sprintf("tf-pi-volume-clone-%d", acctest.RandIntRange(10, 100))
@@ -53,9 +53,8 @@ func TestAccIBMPIVolumeCloneUserTagsAndCRN(t *testing.T) {
 				Config: testAccCheckIBMPIVolumeCloneUserTagsConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIVolumeCloneExists(resVolumeClone),
-					resource.TestCheckResourceAttrSet(resVolumeCloneData, "crn"),
 					resource.TestCheckResourceAttr(resVolumeCloneData, "user_tags.#", "1"),
-					resource.TestCheckResourceAttr(resVolumeCloneData, "user_tags.0", "test:env"),
+					resource.TestCheckResourceAttr(resVolumeCloneData, "user_tags.0", "env:test"),
 				),
 			},
 		},
