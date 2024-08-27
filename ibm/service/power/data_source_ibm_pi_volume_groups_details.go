@@ -143,7 +143,6 @@ func flattenVolumeGroupsDetails(list []*models.VolumeGroupDetails) []map[string]
 			Attr_Auxiliary:              i.Auxiliary,
 			Attr_ConsistencyGroupName:   i.ConsistencyGroupName,
 			Attr_ID:                     *i.ID,
-			Attr_ReplicationSites:       i.ReplicationSites,
 			Attr_ReplicationStatus:      i.ReplicationStatus,
 			Attr_Status:                 i.Status,
 			Attr_StoragePool:            i.StoragePool,
@@ -151,6 +150,10 @@ func flattenVolumeGroupsDetails(list []*models.VolumeGroupDetails) []map[string]
 			Attr_VolumeGroupName:        i.Name,
 			Attr_VolumeIDs:              i.VolumeIDs,
 		}
+		if len(i.ReplicationSites) > 0 {
+			l[Attr_ReplicationSites] = i.ReplicationSites
+		}
+
 		result = append(result, l)
 	}
 	return result

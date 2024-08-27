@@ -137,13 +137,16 @@ func flattenVolumeGroups(list []*models.VolumeGroup) []map[string]interface{} {
 			Attr_Auxiliary:               i.Auxiliary,
 			Attr_ConsistencyGroupName:    i.ConsistencyGroupName,
 			Attr_ID:                      *i.ID,
-			Attr_ReplicationSites:        i.ReplicationSites,
 			Attr_ReplicationStatus:       i.ReplicationStatus,
 			Attr_Status:                  i.Status,
 			Attr_StatusDescriptionErrors: flattenVolumeGroupStatusDescription(i.StatusDescription.Errors),
 			Attr_StoragePool:             i.StoragePool,
 			Attr_VolumeGroupName:         i.Name,
 		}
+		if len(i.ReplicationSites) > 0 {
+			l[Attr_ReplicationSites] = i.ReplicationSites
+		}
+
 		result = append(result, l)
 	}
 	return result
