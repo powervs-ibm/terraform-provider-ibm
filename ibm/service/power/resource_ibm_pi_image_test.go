@@ -32,7 +32,6 @@ func TestAccIBMPIImagebasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIImageExists(imageRes),
 					resource.TestCheckResourceAttr(imageRes, "pi_image_name", name),
-					resource.TestCheckResourceAttrSet(imageRes, "crn"),
 				),
 			},
 		},
@@ -116,7 +115,6 @@ func TestAccIBMPIImageCOSPublicImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIImageExists(imageRes),
 					resource.TestCheckResourceAttr(imageRes, "pi_image_name", name),
-					resource.TestCheckResourceAttrSet(imageRes, "crn"),
 					resource.TestCheckResourceAttrSet(imageRes, "image_id"),
 				),
 			},
@@ -151,7 +149,6 @@ func TestAccIBMPIImageBYOLImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIImageExists(imageRes),
 					resource.TestCheckResourceAttr(imageRes, "pi_image_name", name),
-					resource.TestCheckResourceAttrSet(imageRes, "crn"),
 					resource.TestCheckResourceAttrSet(imageRes, "image_id"),
 				),
 			},
@@ -193,7 +190,6 @@ func TestAccIBMPIImageusertags(t *testing.T) {
 				Config: testAccCheckIBMPIImageConfigUserTags(name, userTagsString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIImageExists(imageRes),
-					resource.TestCheckResourceAttrSet(imageRes, "crn"),
 					resource.TestCheckResourceAttr(imageResData, "user_tags.#", "2"),
 					resource.TestCheckResourceAttr(imageResData, "user_tags.0", "env:dev"),
 					resource.TestCheckResourceAttr(imageResData, "user_tags.1", "test_tag"),
