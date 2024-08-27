@@ -84,7 +84,7 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						Attr_ICMPTypes: {
 							Description: "If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.",
-							Elem:        &schema.Schema{Type: schema.TypeFloat},
+							Elem:        &schema.Schema{Type: schema.TypeInt},
 							Optional:    true,
 							Type:        schema.TypeList,
 						},
@@ -627,7 +627,7 @@ func networkSecurityGroupRuleMapToProtocol(protocolMap map[string]interface{}) *
 	networkSecurityGroupRuleProtocol.Type = protocolMap[Attr_Type].(string)
 
 	if networkSecurityGroupRuleProtocol.Type == ICMP {
-		icmpTypes := flex.ExpandFloat64List(protocolMap[Attr_ICMPTypes].([]interface{}))
+		icmpTypes := flex.ExpandInt64List(protocolMap[Attr_ICMPTypes].([]interface{}))
 		networkSecurityGroupRuleProtocol.IcmpTypes = icmpTypes
 	} else if networkSecurityGroupRuleProtocol.Type == TCP {
 		tcpFlags := flex.ExpandStringList(protocolMap[Attr_TCPFlags].([]interface{}))
