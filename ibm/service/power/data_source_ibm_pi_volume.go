@@ -178,7 +178,9 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_PrimaryRole, volumedata.PrimaryRole)
 	d.Set(Attr_ReplicationEnabled, volumedata.ReplicationEnabled)
 	d.Set(Attr_ReplicationType, volumedata.ReplicationType)
-	d.Set(Attr_ReplicationSites, volumedata.ReplicationSites)
+	if len(volumedata.ReplicationSites) > 0 {
+		d.Set(Attr_ReplicationSites, volumedata.ReplicationSites)
+	}
 	d.Set(Attr_ReplicationStatus, volumedata.ReplicationStatus)
 	d.Set(Attr_State, volumedata.State)
 	d.Set(Attr_Shareable, volumedata.Shareable)

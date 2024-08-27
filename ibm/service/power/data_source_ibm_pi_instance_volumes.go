@@ -158,7 +158,6 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 			Attr_Name:               *i.Name,
 			Attr_Pool:               i.VolumePool,
 			Attr_ReplicationEnabled: i.ReplicationEnabled,
-			Attr_ReplicationSites:   i.ReplicationSites,
 			Attr_Shareable:          *i.Shareable,
 			Attr_Size:               *i.Size,
 			Attr_State:              *i.State,
@@ -166,6 +165,9 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 		}
 		if i.FreezeTime != nil {
 			l[Attr_FreezeTime] = i.FreezeTime.String()
+		}
+		if len(i.ReplicationSites) > 0 {
+			l[Attr_ReplicationSites] = i.ReplicationSites
 		}
 
 		result = append(result, l)
