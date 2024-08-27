@@ -254,7 +254,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "List of replication sites for instance.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
-				MinItems:    1,
 				Optional:    true,
 				Type:        schema.TypeList,
 			},
@@ -1402,8 +1401,10 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 		if !bootVolumeReplicationEnabled {
 			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
 		} else {
-			replicationSites = flex.ExpandStringList(sites.([]interface{}))
-			body.ReplicationSites = replicationSites
+			if len(sites.([]interface{})) > 0 {
+				replicationSites = flex.ExpandStringList(sites.([]interface{}))
+				body.ReplicationSites = replicationSites
+			}
 		}
 	}
 	if sp, ok := d.GetOk(Arg_StoragePool); ok {
