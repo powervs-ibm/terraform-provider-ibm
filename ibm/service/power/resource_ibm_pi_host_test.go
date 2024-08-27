@@ -32,7 +32,6 @@ func TestAccIBMIHostBasic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckIBMPIHostExists(hostRes),
 					resource.TestCheckResourceAttr(hostRes, "display_name", displayName),
-					resource.TestCheckResourceAttr(hostRes, "crn", displayName),
 				),
 			},
 		},
