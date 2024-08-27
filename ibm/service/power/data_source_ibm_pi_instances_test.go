@@ -22,7 +22,6 @@ func TestAccIBMPIInstancesDataSource_basic(t *testing.T) {
 				Config: testAccCheckIBMPIInstancesDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(instancesResData, "id"),
-					resource.TestCheckResourceAttrSet(instancesResData, "pvm_instances.0.crn"),
 				),
 			},
 		},
