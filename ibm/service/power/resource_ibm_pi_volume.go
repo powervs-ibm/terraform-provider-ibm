@@ -349,7 +349,9 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Attr_MirroringState, vol.MirroringState)
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
-	d.Set(Attr_ReplicationSites, vol.ReplicationSites)
+	if len(vol.ReplicationSites) > 0 {
+		d.Set(Attr_ReplicationSites, vol.ReplicationSites)
+	}
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
 	d.Set(Attr_VolumeStatus, vol.State)
