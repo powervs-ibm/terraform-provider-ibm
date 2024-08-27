@@ -265,14 +265,14 @@ func TestAccIBMPIVolumeUserTags(t *testing.T) {
 	name := fmt.Sprintf("tf-pi-volume-%d", acctest.RandIntRange(10, 100))
 	volumeRes := "ibm_pi_volume.power_volume"
 	volumeResData := "data.ibm_pi_volume.power_volume_data"
-	userTags := []string{"test:env", "test2"}
+	userTagsString := `["test:env","test2"]`
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
 		CheckDestroy: testAccCheckIBMPIVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIBMPIVolumeUserTagsConfig(name, userTags),
+				Config: testAccIBMPIVolumeUserTagsConfig(name, userTagsString),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIVolumeExists(volumeRes),
 					resource.TestCheckResourceAttr(volumeResData, "user_tags.#", "2"),
@@ -284,7 +284,7 @@ func TestAccIBMPIVolumeUserTags(t *testing.T) {
 	})
 }
 
-func testAccIBMPIVolumeUserTagsConfig(name string, userTags []string) string {
+func testAccIBMPIVolumeUserTagsConfig(name string, userTagsString string) string {
 	return fmt.Sprintf(`
 
 		data "ibm_pi_volume" "power_volume_data" {
@@ -299,5 +299,5 @@ func testAccIBMPIVolumeUserTagsConfig(name string, userTags []string) string {
 			pi_volume_size       	= 20
 			pi_volume_type       	= "tier1"
 			pi_user_tags 			= %[3]s
-		}`, name, acc.Pi_cloud_instance_id, userTags)
+		}`, name, acc.Pi_cloud_instance_id, userTagsString)
 }
