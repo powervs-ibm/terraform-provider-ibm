@@ -115,7 +115,9 @@ func dataSourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData,
 	d.Set(Attr_Auxiliary, vgData.Auxiliary)
 	d.Set(Attr_ConsistencyGroupName, vgData.ConsistencyGroupName)
 	d.Set(Attr_ReplicationStatus, vgData.ReplicationStatus)
-	d.Set(Attr_ReplicationSites, vgData.ReplicationSites)
+	if len(vgData.ReplicationSites) > 0 {
+		d.Set(Attr_ReplicationSites, vgData.ReplicationSites)
+	}
 	d.Set(Attr_Status, vgData.Status)
 	if vgData.StatusDescription != nil {
 		d.Set(Attr_StatusDescriptionErrors, flattenVolumeGroupStatusDescription(vgData.StatusDescription.Errors))
