@@ -1649,8 +1649,10 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		if !bootVolumeReplicationEnabled {
 			return nil, fmt.Errorf("must set %s to true in order to specify replication sites", Arg_BootVolumeReplicationEnabled)
 		} else {
-			replicationSites = flex.ExpandStringList(sites.([]interface{}))
-			body.ReplicationSites = replicationSites
+			if len(sites.([]interface{})) > 0 {
+				replicationSites = flex.ExpandStringList(sites.([]interface{}))
+				body.ReplicationSites = replicationSites
+			}
 		}
 	}
 
