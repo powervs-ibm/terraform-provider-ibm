@@ -58,7 +58,7 @@ You can specify the following arguments for this resource.
     Nested schema for `pi_host`:
   * `display_name` - (Required, String) Name of the host chosen by the user.
   * `sys_type` - (Required, String) System type.
-  * `user_tags` - (Optional, List) The user tags associated with this resource.
+  * `user_tags` - (Optional, List) The user tags attached to this resource.
 * `pi_host_group_id` - (Required, String) ID of the host group to which the host should be added.
 
 
