@@ -107,7 +107,7 @@ Review the argument references that you can specify for your resource.
 - `pi_replicants` - (Optional, Integer) The number of instances that you want to provision with the same configuration. If this parameter is not set,  `1` is used by default.
 - `pi_replication_policy` - (Optional, String) The replication policy that you want to use, either `affinity`, `anti-affinity` or `none`. If this parameter is not set, `none` is used by default.
 - `pi_replication_scheme` - (Optional, String) The replication scheme that you want to set, either `prefix` or `suffix`.
-- `pi_replication_sites` - (Optional, List) Indicates the replication site of the boot volume.
+- `pi_replication_sites` - (Optional, List) Indicates the replication sites of the boot volume.
 - `pi_sap_profile_id` - (Optional, String) SAP Profile ID for the amount of cores and memory.
   - Required only when creating SAP instances.
 - `pi_sap_deployment_type` - (Optional, String) Custom SAP deployment type information (For Internal Use Only).
