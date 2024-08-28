@@ -73,7 +73,6 @@ In addition to all argument reference list, you can access the following attribu
 - `storage_pool` - (String) Storage pool of the volume group.
 - `volume_group_id` - (String) The unique identifier of the volume group.
 - `volume_group_status` - (String) The status of the volume group.
-- `volume_group_name` - (String) The name of the volume group.
 
 ## Import
 
