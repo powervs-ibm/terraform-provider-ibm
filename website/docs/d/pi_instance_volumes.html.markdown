@@ -62,4 +62,4 @@ In addition to all argument reference list, you can access the following attribu
   - `size` - (Integer) The size of this volume in GB.
   - `state` - (String) The state of the volume.
   - `type` - (String) The disk type that is used for this volume.
-  - `user_tags` - (List) The user tags associated with this resource.
+  - `user_tags` - (List) The user tags attached to this resource.
