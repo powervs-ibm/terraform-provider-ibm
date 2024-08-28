@@ -47,7 +47,7 @@ In addition to all argument reference list, you can access the following attribu
   - `consistency_group_name` - (String) The name of consistency group at storage controller level.
   - `id` - (String) The unique identifier of the volume group.
   - `replication_status` - (String) The replication status of volume group.
-  - `replication_sites` - (List) List of replication sites for the volume group.
+  - `replication_sites` - (List) Indicates the replication sites of the volume group.
   - `status` - (String) The status of the volume group.
   - `status_description_errors` - (List) The status details of the volume group.
 

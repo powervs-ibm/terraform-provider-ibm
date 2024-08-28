@@ -70,7 +70,7 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			},
 			Attr_ReplicationSites: {
 				Computed:    true,
-				Description: "List of replication sites for volume group.",
+				Description: "Indicates the replication sites of the volume group.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
