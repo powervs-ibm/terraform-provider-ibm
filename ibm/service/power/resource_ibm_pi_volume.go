@@ -88,7 +88,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			Arg_ReplicationSites: {
-				Description: "List of replication sites.",
+				Description: "List of replication site for volume replication.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
@@ -180,7 +180,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 			},
 			Attr_ReplicationSites: {
 				Computed:    true,
-				Description: "List of replication sites.",
+				Description: "List of replication site for volume replication.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
