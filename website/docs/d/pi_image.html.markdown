@@ -51,4 +51,4 @@ In addition to all argument reference list, you can access the following attribu
 - `state` - (String) The state for this image. 
 - `storage_type` - (String) The storage type for this image.
 - `storage_pool` - (String) Storage pool where image resides.
-- `user_tags` - (List) The user tags associated with this resource.
+- `user_tags` - (List) The user tags attached to this resource.
