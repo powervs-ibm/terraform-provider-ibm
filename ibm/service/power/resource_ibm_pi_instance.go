@@ -251,7 +251,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Prefix, Suffix}),
 			},
 			Arg_ReplicationSites: {
-				Description: "List of replication sites for instance.",
+				Description: "List of replication sites for the boot volume of the instance.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,

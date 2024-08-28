@@ -67,7 +67,7 @@ Review the argument references that you can specify for your resource.
 - `pi_affinity_volume`- (Optional, String) Volume (ID or Name) to base storage affinity policy against; required if requesting `affinity` and `pi_affinity_instance` is not provided.
 - `pi_anti_affinity_instances` - (Optional, String) List of pvmInstances to base storage anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_volumes` is not provided.
 - `pi_anti_affinity_volumes`- (Optional, String) List of volumes to base storage anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_instances` is not provided.
-- `pi_boot_volume_replication_enabled` - (Optional, Boolean) Specifies whether the boot volume of the created VSI will be replication enabled. Destroys and creates new instance if changed.
+- `pi_boot_volume_replication_enabled` - (Optional, Boolean) Determines if instance boot volume is replication enabled when created.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_deployment_target` - (Optional, List) The deployment of a dedicated host. Max items: 1.
   
