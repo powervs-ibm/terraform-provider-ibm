@@ -62,7 +62,7 @@ Review the argument references that you can specify for your resource.
 
   **Note:** `replication_sites` will be populated automatically if set to true and sites are not specified.
 
-- `pi_replication_sites` - (Optional, List) List of replication site for volume replication.
+- `pi_replication_sites` - (Optional, List) List of replication sites for volume replication.
 
 - `pi_volume_name` - (Required, String) The name of the volume.
 - `pi_volume_pool` - (Optional, String) Volume pool where the volume will be created; if provided then `pi_affinity_policy` values will be ignored.
@@ -85,7 +85,7 @@ In addition to all argument reference list, you can access the following attribu
 - `mirroring_state` - (String) Mirroring state for replication enabled volume.
 - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
 - `replication_status` - (String) The replication status of the volume.
-- `replication_sites` - (List) List of replication site for volume replication.
+- `replication_sites` - (List) List of replication sites for volume replication.
 - `replication_type` - (String) The replication type of the volume `metro` or `global`.
 - `volume_id` - (String) The unique identifier of the volume.
 - `volume_status` - (String) The status of the volume.
