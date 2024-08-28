@@ -66,6 +66,6 @@ In addition to all argument reference list, you can access the following attribu
 - `shareable` - (String) Indicates if the volume is shareable between VMs.
 - `size` - (Integer) The size of the volume in GB.
 - `state` - (String) The state of the volume.
-- `user_tags` - (List) The user tags associated with this resource.
+- `user_tags` - (List) The user tags attached to this resource.
 - `volume_pool` - (String) Volume pool, name of storage pool where the volume is located.
 - `wwn` - (String) The world wide name of the volume.
