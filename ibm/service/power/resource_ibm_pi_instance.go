@@ -72,7 +72,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Type:          schema.TypeList,
 			},
 			Arg_BootVolumeReplicationEnabled: {
-				Description: "Determines if instance boot volume is replication enabled when created.",
+				Description: "Indicates if the boot volume should be replication enabled or not.",
 				ForceNew:    true,
 				Optional:    true,
 				Type:        schema.TypeBool,
@@ -251,7 +251,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Prefix, Suffix}),
 			},
 			Arg_ReplicationSites: {
-				Description: "List of replication sites for the boot volume of the instance.",
+				Description: "Indicates the replication site of the boot volume.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
