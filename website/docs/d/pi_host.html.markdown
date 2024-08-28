@@ -76,4 +76,4 @@ After your data source is created, you can read values from the following attrib
 
 - `sys_type` - (String) System type.
 
-- `user_tags` - (List) The user tags associated with this resource.
+- `user_tags` - (List) The user tags attached to this resource.
