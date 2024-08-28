@@ -63,7 +63,7 @@ In addition to all argument reference list, you can access the following attribu
 - `mirroring_state` - (String) Mirroring state for replication enabled volume.
 - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
 - `replication_enabled` - (Boolean) Indicates if the volume should be replication enabled or not.
-- `replication_sites` - (List) List of replication sites for disaster recovery for volume.
+- `replication_sites` - (List) List of replication sites.
 - `replication_status` - (String) The replication status of the volume. 
 - `replication_type` - (String) The replication type of the volume, `metro` or `global`.
 - `shareable` - (String) Indicates if the volume is shareable between VMs.
