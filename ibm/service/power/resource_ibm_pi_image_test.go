@@ -176,6 +176,7 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region)
 }
 
+// NOTE: Test is currently not used. This is due to GET requests not returning user tags yet.
 func TestAccIBMPIImageusertags(t *testing.T) {
 	imageRes := "ibm_pi_image.power_image"
 	imageResData := "data.ibm_pi_image.power_image_data"
