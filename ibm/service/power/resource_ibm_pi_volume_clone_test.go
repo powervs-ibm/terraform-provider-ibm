@@ -41,6 +41,7 @@ func TestAccIBMPIVolumeClone(t *testing.T) {
 	})
 }
 
+// NOTE: Test not currently used. GET requests do not yet return user tags.
 func TestAccIBMPIVolumeCloneUserTags(t *testing.T) {
 	resVolumeClone := "ibm_pi_volume_clone.power_volume_clone"
 	resVolumeCloneData := "data.ibm_pi_volume.power_volume_clone_data"
