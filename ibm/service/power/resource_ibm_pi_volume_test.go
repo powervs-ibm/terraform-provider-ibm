@@ -260,6 +260,7 @@ func testAccCheckIBMPIVolumeUpdateBasicConfig(name, piCloudInstanceId, piStorage
 }
 
 // TestAccIBMPIVolumeUserTags tests user tags
+// NOTE: Test is not currently used. UserTags are not returned from GET request yet.
 func TestAccIBMPIVolumeUserTags(t *testing.T) {
 	name := fmt.Sprintf("tf-pi-volume-%d", acctest.RandIntRange(10, 100))
 	volumeRes := "ibm_pi_volume.power_volume"
