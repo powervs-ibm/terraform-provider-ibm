@@ -829,7 +829,7 @@ func testAccIBMPIInstanceGRSConfig(name string, instanceHealthStatus string, mem
 		pi_boot_volume_replication_enabled = true
 		pi_memory            			   = "%[7]s"
 		pi_processors        			   = "%[6]s"
-		pi_instance_name                   = "%[2]s"
+		pi_instance_name                           = "%[2]s"
 		pi_proc_type          			   = "shared"
 		pi_image_id           			   = data.ibm_pi_image.power_image.id
 		pi_sys_type          			   = "e980"
