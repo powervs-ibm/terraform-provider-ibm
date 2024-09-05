@@ -117,12 +117,6 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Description: "The state of the volume.",
 				Type:        schema.TypeString,
 			},
-			Attr_UserTags: {
-				Computed:    true,
-				Description: "The user tags attached to this resource.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
 			Attr_VolumePool: {
 				Computed:    true,
 				Description: "Volume pool, name of storage pool where the volume is located.",
@@ -170,9 +164,6 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, volumedata.State)
 	d.Set(Attr_Shareable, volumedata.Shareable)
 	d.Set(Attr_Size, volumedata.Size)
-	if len(volumedata.UserTags) > 0 {
-		d.Set(Attr_UserTags, volumedata.UserTags)
-	}
 	d.Set(Attr_VolumePool, volumedata.VolumePool)
 	d.Set(Attr_WWN, volumedata.Wwn)
 
