@@ -24,22 +24,45 @@ func TestAccIBMPINetworkSecurityGroupRuleBasic(t *testing.T) {
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRule(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMPINetworkSecurityGroupRuleExists("ibm_pi_network_security_group_rule.network_security_group_rule"),
+					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
+				),
+			},
+			{
 				Config: testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule(),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckIBMPINetworkSecurityGroupRuleExists("ibm_pi_network_security_group_rule.network_security_group_rule"),
-					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_member_rule", power.Arg_NetworkSecurityGroupID),
+					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
 				),
 			},
 		},
 	})
 }
 
+func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRule() string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
+  			pi_cloud_instance_id = "%[1]s"
+  			pi_network_security_group_id = "%[2]s"
+ 			pi_action = "allow"
+			pi_protocol {
+				type = "all"
+			}
+			pi_remote {
+				id = "%[3]s"
+				type = "%[4]s"
+			}
+		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id, acc.Pi_remote_id, acc.Pi_remote_type)
+}
+
 func testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule() string {
 	return fmt.Sprintf(`
-		resource "ibm_pi_network_security_group_member_rule" "network_security_group_member_rule" {
-			pi_cloud_instance_id = "%s"
-			pi_network_security_group_id = "%s"
-		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id)
+		resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_security_group_rule_id = "%[2]s"
+		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_rule_id)
 }
 
 func testAccCheckIBMPINetworkSecurityGroupRuleExists(n string) resource.TestCheckFunc {

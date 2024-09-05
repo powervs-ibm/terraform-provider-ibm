@@ -203,40 +203,43 @@ var (
 // For Power Colo
 
 var (
-	Pi_auxiliary_volume_name        string
-	Pi_cloud_instance_id            string
-	Pi_dhcp_id                      string
-	Pi_host_group_id                string
-	Pi_host_id                      string
-	Pi_image                        string
-	Pi_image_bucket_access_key      string
-	Pi_image_bucket_file_name       string
-	Pi_image_bucket_name            string
-	Pi_image_bucket_region          string
-	Pi_image_bucket_secret_key      string
-	Pi_instance_name                string
-	Pi_key_name                     string
-	Pi_network_name                 string
-	Pi_network_security_group_id    string
-	Pi_placement_group_name         string
-	Pi_replication_volume_name      string
-	Pi_resource_group_id            string
-	Pi_sap_image                    string
-	Pi_shared_processor_pool_id     string
-	Pi_snapshot_id                  string
-	Pi_spp_placement_group_id       string
-	Pi_target_storage_tier          string
-	Pi_volume_clone_task_id         string
-	Pi_volume_group_id              string
-	Pi_volume_group_name            string
-	Pi_volume_id                    string
-	Pi_volume_name                  string
-	Pi_volume_onboarding_id         string
-	Pi_volume_onboarding_source_crn string
-	PiCloudConnectionName           string
-	PiSAPProfileID                  string
-	PiStoragePool                   string
-	PiStorageType                   string
+	Pi_auxiliary_volume_name          string
+	Pi_cloud_instance_id              string
+	Pi_dhcp_id                        string
+	Pi_host_group_id                  string
+	Pi_host_id                        string
+	Pi_image                          string
+	Pi_image_bucket_access_key        string
+	Pi_image_bucket_file_name         string
+	Pi_image_bucket_name              string
+	Pi_image_bucket_region            string
+	Pi_image_bucket_secret_key        string
+	Pi_instance_name                  string
+	Pi_key_name                       string
+	Pi_network_name                   string
+	Pi_network_security_group_id      string
+	Pi_network_security_group_rule_id string
+	Pi_placement_group_name           string
+	Pi_remote_id                      string
+	Pi_remote_type                    string
+	Pi_replication_volume_name        string
+	Pi_resource_group_id              string
+	Pi_sap_image                      string
+	Pi_shared_processor_pool_id       string
+	Pi_snapshot_id                    string
+	Pi_spp_placement_group_id         string
+	Pi_target_storage_tier            string
+	Pi_volume_clone_task_id           string
+	Pi_volume_group_id                string
+	Pi_volume_group_name              string
+	Pi_volume_id                      string
+	Pi_volume_name                    string
+	Pi_volume_onboarding_id           string
+	Pi_volume_onboarding_source_crn   string
+	PiCloudConnectionName             string
+	PiSAPProfileID                    string
+	PiStoragePool                     string
+	PiStorageType                     string
 )
 
 var (
@@ -1068,6 +1071,12 @@ func init() {
 		fmt.Println("[INFO] Set the environment variable PI_NETWORK_SECURITY_GROUP_ID for testing ibm_pi_network_security_group resource else it is set to default value 'terraform-test-power'")
 	}
 
+	Pi_network_security_group_rule_id = os.Getenv("PI_NETWORK_SECURITY_GROUP_RULE_ID")
+	if Pi_network_security_group_rule_id == "" {
+		Pi_network_security_group_rule_id = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_NETWORK_SECURITY_GROUP_RULE_ID for testing ibm_pi_network_security_group resource else it is set to default value 'terraform-test-power'")
+	}
+
 	Pi_volume_name = os.Getenv("PI_VOLUME_NAME")
 	if Pi_volume_name == "" {
 		Pi_volume_name = "terraform-test-power"
@@ -1157,6 +1166,19 @@ func init() {
 		Pi_placement_group_name = "tf-pi-placement-group"
 		fmt.Println("[WARN] Set the environment variable PI_PLACEMENT_GROUP_NAME for testing ibm_pi_placement_group resource else it is set to default value 'tf-pi-placement-group'")
 	}
+
+	Pi_remote_id = os.Getenv("PI_REMOTE_ID")
+	if Pi_remote_id == "" {
+		Pi_remote_id = "tf-pi-placement-group"
+		fmt.Println("[WARN] Set the environment variable PI_REMOTE_ID for testing ibm_pi_placement_group resource else it is set to default value 'tf-pi-placement-group'")
+	}
+
+	Pi_remote_type = os.Getenv("PI_REMOTE_TYPE")
+	if Pi_remote_type == "" {
+		Pi_remote_type = "tf-pi-placement-group"
+		fmt.Println("[WARN] Set the environment variable PI_REMOTE_TYPE for testing ibm_pi_placement_group resource else it is set to default value 'tf-pi-placement-group'")
+	}
+
 	Pi_spp_placement_group_id = os.Getenv("PI_SPP_PLACEMENT_GROUP_ID")
 	if Pi_spp_placement_group_id == "" {
 		Pi_spp_placement_group_id = "tf-pi-spp-placement-group"
