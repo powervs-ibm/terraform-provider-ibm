@@ -41,27 +41,6 @@ func TestAccIBMPIVolumeClone(t *testing.T) {
 	})
 }
 
-// NOTE: Test not currently used. GET requests do not yet return user tags.
-func TestAccIBMPIVolumeCloneUserTags(t *testing.T) {
-	resVolumeClone := "ibm_pi_volume_clone.power_volume_clone"
-	resVolumeCloneData := "data.ibm_pi_volume.power_volume_clone_data"
-	name := fmt.Sprintf("tf-pi-volume-clone-%d", acctest.RandIntRange(10, 100))
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acc.TestAccPreCheck(t) },
-		Providers: acc.TestAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckIBMPIVolumeCloneUserTagsConfig(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIBMPIVolumeCloneExists(resVolumeClone),
-					resource.TestCheckResourceAttr(resVolumeCloneData, "user_tags.#", "1"),
-					resource.TestCheckResourceAttr(resVolumeCloneData, "user_tags.0", "env:test"),
-				),
-			},
-		},
-	})
-}
-
 func testAccCheckIBMPIVolumeCloneExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -115,20 +94,4 @@ func volumesCloneConfig(name string, volumeReplicationEnabled bool) string {
 			pi_volume_pool         = "%[3]s"
 			pi_volume_size         = 2
 		} `, name, acc.Pi_cloud_instance_id, acc.PiStoragePool, volumeReplicationEnabled)
-}
-
-func testAccCheckIBMPIVolumeCloneUserTagsConfig(name string) string {
-	return volumesCloneConfig(name, false) + fmt.Sprintf(`
-		data "ibm_pi_volume" "power_volume_clone_data" {
-			pi_cloud_instance_id   			= "%[1]s"
-			pi_volume_name					= ibm_pi_volume_clone.power_volume_clone.clone_volumes[0]["clone_volume_id"]
-		}
-		resource "ibm_pi_volume_clone" "power_volume_clone" {
-			pi_cloud_instance_id   			= "%[1]s"
-			pi_replication_enabled 			= %[4]v
-			pi_target_storage_tier 			= "%[3]s"
-			pi_volume_clone_name     		= "%[2]s"
-			pi_volume_ids 					= ibm_pi_volume.power_volume.*.volume_id
-			pi_user_tags 					= ["env:test"]
-		} `, acc.Pi_cloud_instance_id, name, acc.Pi_target_storage_tier, false)
 }
