@@ -134,12 +134,6 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Optional: true,
 				Type:     schema.TypeSet,
 			},
-			Arg_Name: {
-				ConflictsWith: []string{Arg_NetworkSecurityGroupRuleID},
-				Description:   "The unique name of the network security group rule to be added.",
-				Optional:      true,
-				Type:          schema.TypeString,
-			},
 			Arg_SourcePorts: {
 				Computed:      true,
 				ConflictsWith: []string{Arg_NetworkSecurityGroupRuleID},
@@ -350,11 +344,9 @@ func resourceIBMPINetworkSecurityGroupRuleCreate(ctx context.Context, d *schema.
 		d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, nsgID))
 	} else {
 		action := d.Get(Arg_Action).(string)
-		name := d.Get(Arg_Name).(string)
 
 		networkSecurityGroupAddRule := models.NetworkSecurityGroupAddRule{
 			Action: &action,
-			Name:   &name,
 		}
 
 		// Add protocol
@@ -548,7 +540,6 @@ func networkSecurityGroupRuleToMap(rule *models.NetworkSecurityGroupRule) map[st
 	}
 
 	ruleMap[Attr_ID] = rule.ID
-	ruleMap[Attr_Name] = rule.Name
 
 	protocolMap := networkSecurityGroupRuleProtocolToMap(rule.Protocol)
 	ruleMap[Attr_Protocol] = []map[string]interface{}{protocolMap}

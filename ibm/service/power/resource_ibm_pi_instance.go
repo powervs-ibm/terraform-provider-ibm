@@ -1621,6 +1621,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 
 	return pvmList, nil
 }
+
 func expandDeploymentTarget(dt []interface{}) *models.DeploymentTarget {
 	dtexpanded := &models.DeploymentTarget{}
 	for _, v := range dt {
@@ -1630,6 +1631,7 @@ func expandDeploymentTarget(dt []interface{}) *models.DeploymentTarget {
 	}
 	return dtexpanded
 }
+
 func splitID(id string) (id1, id2 string, err error) {
 	parts, err := flex.IdParts(id)
 	if err != nil {
