@@ -94,12 +94,6 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 							Description: "The disk type that is used for this volume.",
 							Type:        schema.TypeString,
 						},
-						Attr_UserTags: {
-							Computed:    true,
-							Description: "The user tags attached to this resource.",
-							Elem:        &schema.Schema{Type: schema.TypeString},
-							Type:        schema.TypeList,
-						},
 					},
 				},
 				Type: schema.TypeList,
@@ -146,9 +140,6 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 		}
 		if i.Crn != "" {
 			l[Attr_CRN] = i.Crn
-		}
-		if len(i.UserTags) > 0 {
-			l[Attr_UserTags] = i.UserTags
 		}
 		result = append(result, l)
 	}
