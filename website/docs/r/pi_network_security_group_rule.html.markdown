@@ -13,9 +13,27 @@ Add or remove a network security group rule.
 ## Example Usage
 
 ```terraform
-    resource "ibm_pi_network_security_group_rules" "network_security_group" {
-        pi_cloud_instance_id = "<value of the cloud_instance_id>"
-        pi_network_security_group_id = ""
+    resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
+      pi_cloud_instance_id         = "<value of the cloud_instance_id>"
+      pi_network_security_group_id = "<value of network_security_group_id>"
+      pi_action                    = "allow"
+      pi_destination_ports {
+        minimum = 1200
+        maximum = 37466
+      }
+      pi_source_ports {
+        minimum = 1000
+        maximum = 19500
+      }
+      pi_protocol {
+        icmp_types = []
+        tcp_flags  = ["syn", "ack"]
+        type       = "tcp"
+      }
+      pi_remote {
+        id   = "<value of remote_id>"
+        type = "network-security-group"
+      }
     }
 ```
 
@@ -44,26 +62,26 @@ Review the argument references that you can specify for your resource.
 - `pi_destination_port` - (Optional, List) The list of destination port.
 
     Nested schema for `pi_destination_port`:
-      - `pi_maximum` - (Optional, Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-      - `pi_minimum` - (Optional, Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+      - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
+      - `minimum` - (Optional, Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.
 - `pi_network_security_group_id` - (Required, String) The unique identifier of the network security group.
 - `pi_network_security_group_rule_id` - (Optional, String) The network security group rule id to remove. Required if none of the other optional fields are provided.
 - `pi_protocol` - (Optional, List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_protocol`:
-      - `pi_icmp_types` - (Required, List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched. Must provide empty list if no icmp types are needed.
-      - `pi_tcp_flags` - (Optional, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
-      - `pi_type` - (Required, String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
+      - `icmp_types` - (Required, List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched. Must provide empty list if no icmp types are needed.
+      - `tcp_flags` - (Required, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`. Must provide empty list if no tcp flags are needed.
+      - `type` - (Required, String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
 - `pi_remote` - (Optional, List) List of remote. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_remote`:
-    - `pi_id` - (Optional, String) The id of the remote network address group or network security group the rules apply to. Not required for default-network-address-group.
-    - `pi_type` - (Optional, String) The type of remote group the rules apply to. Supported values are: `network-security-group`, `network-address-group`, `default-network-address-group`.
+    - `id` - (Optional, String) The id of the remote network address group or network security group the rules apply to. Not required for default-network-address-group.
+    - `type` - (Optional, String) The type of remote group the rules apply to. Supported values are: `network-security-group`, `network-address-group`, `default-network-address-group`.
 - `pi_source_port` - (Optional, List) List of source port
 
     Nested schema for `pi_source_port`:
-    - `pi_maximum` - (Optional, Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-    - `pi_minimum` - (Optional, Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+    - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
+    - `minimum` - (Optional, Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.
 
 - `pi_name` - (Optional, String) The name of the network security group rule. Required if `pi_network_security_group_rule_id` is not provided.
 
@@ -89,8 +107,8 @@ In addition to all argument reference list, you can access the following attribu
   - `destination_port` - (List) The list of destination port.
 
         Nested schema for `destination_port`:
-          - `maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-          - `minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+          - `maximum` - (Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
+          - `minimum` - (Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.
   - `id` - (String) The id of the rule in a network security group.
   - `name` - (String) The unique name of the network security group rule.
   - `protocol` - (List) The list of protocol.
@@ -107,5 +125,5 @@ In addition to all argument reference list, you can access the following attribu
   - `source_port` - (List) List of source port
 
         Nested schema for `source_port`:
-        - `maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-        - `minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+        - `maximum` - (Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
+        - `minimum` - (Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.

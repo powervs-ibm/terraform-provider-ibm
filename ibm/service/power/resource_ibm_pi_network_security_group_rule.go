@@ -53,13 +53,13 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						Attr_Maximum: {
 							Default:     65535,
-							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
+							Description: "The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.",
 							Optional:    true,
 							Type:        schema.TypeInt,
 						},
 						Attr_Minimum: {
 							Default:     1,
-							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
+							Description: "The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.",
 							Optional:    true,
 							Type:        schema.TypeInt,
 						},
@@ -96,17 +96,9 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 						},
 						Attr_TCPFlags: {
 							Description: "If tcp type is chosen, the list of TCP flags and if not present then all flags are matched.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									Arg_Flag: {
-										Description: "TCP flag.",
-										Optional:    true,
-										Type:        schema.TypeString,
-									},
-								},
-							},
-							Optional: true,
-							Type:     schema.TypeList,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Type:        schema.TypeList,
 						},
 						Attr_Type: {
 							Description:  "The protocol of the network traffic.",
@@ -151,13 +143,13 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						Attr_Maximum: {
 							Default:     65535,
-							Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
+							Description: "The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.",
 							Optional:    true,
 							Type:        schema.TypeInt,
 						},
 						Attr_Minimum: {
 							Default:     1,
-							Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
+							Description: "The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.",
 							Optional:    true,
 							Type:        schema.TypeInt,
 						},
@@ -231,12 +223,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									Attr_Maximum: {
 										Computed:    true,
-										Description: "The end of the port range, if applicable. If values are not present then all ports are in the range.",
+										Description: "The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.",
 										Type:        schema.TypeFloat,
 									},
 									Attr_Minimum: {
 										Computed:    true,
-										Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
+										Description: "The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.",
 										Type:        schema.TypeFloat,
 									},
 								},
@@ -262,16 +254,8 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 									Attr_TCPFlags: {
 										Computed:    true,
 										Description: "If tcp type, the list of TCP flags and if not present then all flags are matched.",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												Attr_Flag: {
-													Computed:    true,
-													Description: "TCP flag.",
-													Type:        schema.TypeString,
-												},
-											},
-										},
-										Type: schema.TypeList,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Type:        schema.TypeList,
 									},
 									Attr_Type: {
 										Computed:    true,
@@ -308,12 +292,12 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									Attr_Maximum: {
 										Computed:    true,
-										Description: "The end of the port range, if applicable, If values are not present then all ports are in the range.",
+										Description: "The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.",
 										Type:        schema.TypeFloat,
 									},
 									Attr_Minimum: {
 										Computed:    true,
-										Description: "The start of the port range, if applicable. If values are not present then all ports are in the range.",
+										Description: "The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.",
 										Type:        schema.TypeFloat,
 									},
 								},
@@ -586,11 +570,9 @@ func networkSecurityGroupRuleProtocolToMap(protocol *models.NetworkSecurityGroup
 		protocolMap[Attr_ICMPTypes] = protocol.IcmpTypes
 	}
 	if protocol.TCPFlags != nil {
-		tcpFlags := []map[string]interface{}{}
+		tcpFlags := make([]string, 0)
 		for _, tcpFlagsItem := range protocol.TCPFlags {
-			tcpFlagsItemMap := make(map[string]interface{})
-			tcpFlagsItemMap[Attr_Flag] = tcpFlagsItem.Flag
-			tcpFlags = append(tcpFlags, tcpFlagsItemMap)
+			tcpFlags = append(tcpFlags, tcpFlagsItem.Flag)
 		}
 		protocolMap[Attr_TCPFlags] = tcpFlags
 	}
@@ -614,10 +596,10 @@ func networkSecurityGroupRuleRemoteToMap(remote *models.NetworkSecurityGroupRule
 func networkSecurityGroupRuleMapToPort(portMap map[string]interface{}) *models.NetworkSecurityGroupRulePort {
 	networkSecurityGroupRulePort := models.NetworkSecurityGroupRulePort{}
 	if portMap[Attr_Maximum] != nil {
-		networkSecurityGroupRulePort.Maximum = portMap[Attr_Maximum].(int64)
+		networkSecurityGroupRulePort.Maximum = int64(portMap[Attr_Maximum].(int))
 	}
 	if portMap[Attr_Minimum] != nil {
-		networkSecurityGroupRulePort.Minimum = portMap[Attr_Minimum].(int64)
+		networkSecurityGroupRulePort.Minimum = int64(portMap[Attr_Minimum].(int))
 	}
 	return &networkSecurityGroupRulePort
 }
