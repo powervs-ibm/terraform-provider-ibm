@@ -78,12 +78,6 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Description: "The storage type for this image.",
 				Type:        schema.TypeString,
 			},
-			Attr_UserTags: {
-				Computed:    true,
-				Description: "The user tags attached to this resource.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
 		},
 	}
 }
@@ -114,9 +108,6 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, imagedata.State)
 	d.Set(Attr_StoragePool, imagedata.StoragePool)
 	d.Set(Attr_StorageType, imagedata.StorageType)
-	if len(imagedata.UserTags) > 0 {
-		d.Set(Attr_UserTags, imagedata.UserTags)
-	}
 
 	return nil
 }
