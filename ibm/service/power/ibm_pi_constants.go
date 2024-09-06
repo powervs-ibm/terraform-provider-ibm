@@ -215,7 +215,7 @@ const (
 	Attr_IBMiPHA                                     = "ibmi_pha"
 	Attr_IBMiRDS                                     = "ibmi_rds"
 	Attr_IBMiRDSUsers                                = "ibmi_rds_users"
-	Attr_ICMPTypes                                   = "icmp"
+	Attr_ICMPTypes                                   = "icmp_types"
 	Attr_ID                                          = "id"
 	Attr_ImageID                                     = "image_id"
 	Attr_ImageInfo                                   = "image_info"

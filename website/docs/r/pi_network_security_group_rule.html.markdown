@@ -44,26 +44,26 @@ Review the argument references that you can specify for your resource.
 - `pi_destination_port` - (Optional, List) The list of destination port.
 
     Nested schema for `pi_destination_port`:
-      - `pi_maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-      - `pi_minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+      - `pi_maximum` - (Optional, Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+      - `pi_minimum` - (Optional, Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
 - `pi_network_security_group_id` - (Required, String) The unique identifier of the network security group.
 - `pi_network_security_group_rule_id` - (Optional, String) The network security group rule id to remove. Required if none of the other optional fields are provided.
-- `pi_protocol` - (List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
+- `pi_protocol` - (Optional, List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_protocol`:
-      - `pi_icmp_types` - (List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.
-      - `pi_tcp_flags` - (String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
-      - `pi_type` - (String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
-- `pi_remote` - (List) List of remote. Required if `pi_network_security_group_rule_id` is not provided.
+      - `pi_icmp_types` - (Required, List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched. Must provide empty list if no icmp types are needed.
+      - `pi_tcp_flags` - (Optional, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
+      - `pi_type` - (Required, String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
+- `pi_remote` - (Optional, List) List of remote. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_remote`:
-    - `pi_id` - (String) The id of the remote network address group or network security group the rules apply to. Not required for default-network-address-group.
-    - `pi_type` - (String) The type of remote group the rules apply to. Supported values are: `network-security-group`, `network-address-group`, `default-network-address-group`.
-- `pi_source_port` - (List) List of source port
+    - `pi_id` - (Optional, String) The id of the remote network address group or network security group the rules apply to. Not required for default-network-address-group.
+    - `pi_type` - (Optional, String) The type of remote group the rules apply to. Supported values are: `network-security-group`, `network-address-group`, `default-network-address-group`.
+- `pi_source_port` - (Optional, List) List of source port
 
     Nested schema for `pi_source_port`:
-    - `pi_maximum` - (Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
-    - `pi_minimum` - (Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
+    - `pi_maximum` - (Optional, Int) The end of the port range, if applicable, If values are not present then all ports are in the range.
+    - `pi_minimum` - (Optional, Int) The start of the port range, if applicable. If values are not present then all ports are in the range.
 
 - `pi_name` - (Optional, String) The name of the network security group rule. Required if `pi_network_security_group_rule_id` is not provided.
 

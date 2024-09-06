@@ -91,7 +91,7 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 						Attr_ICMPTypes: {
 							Description: "If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.",
 							Elem:        &schema.Schema{Type: schema.TypeInt},
-							Optional:    true,
+							Required:    true,
 							Type:        schema.TypeList,
 						},
 						Attr_TCPFlags: {
@@ -416,6 +416,8 @@ func resourceIBMPINetworkSecurityGroupRuleRead(ctx context.Context, d *schema.Re
 			members = append(members, mbrMap)
 		}
 		d.Set(Attr_Members, members)
+	} else {
+		d.Set(Attr_Members, nil)
 	}
 
 	d.Set(Attr_NetworkSecurityGroupID, networkSecurityGroup.ID)
