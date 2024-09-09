@@ -42,6 +42,7 @@ In addition to all argument reference list, you can access the following attribu
 
 - `allocated_cores` - (Float) The allocated cores in the shared processor pool.
 - `available_cores` - (Integer) The available cores in the shared processor pool.
+- `crn` - (String) The CRN of this resource.
 - `host_id` - (Integer) The host ID where the shared processor pool resides.
 - `id` - (String) The shared processor pool's unique ID.
 - `instances` - (List) List of server instances deployed in the shared processor pool.

@@ -72,8 +72,20 @@ func ResourceIBMPISharedProcessorPool() *schema.Resource {
 				Optional:    true,
 				Description: "Placement group the shared processor pool is created in",
 			},
+			Arg_UserTags: {
+				Description: "The user tags attached to this resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 
 			// Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_SharedProcessorPoolID: {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -193,6 +205,11 @@ func resourceIBMPISharedProcessorPoolCreate(ctx context.Context, d *schema.Resou
 	if pg, ok := d.GetOk(Arg_SharedProcessorPoolPlacementGroupID); ok {
 		body.PlacementGroupID = pg.(string)
 	}
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		if len(body.UserTags) > 0 {
+			body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+		}
+	}
 
 	spp, err := client.Create(body)
 	if err != nil || spp == nil {
@@ -265,6 +282,9 @@ func resourceIBMPISharedProcessorPoolRead(ctx context.Context, d *schema.Resourc
 	}
 
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
+	if response.SharedProcessorPool.Crn != "" {
+		d.Set(Attr_CRN, response.SharedProcessorPool.Crn)
+	}
 	d.Set(Arg_SharedProcessorPoolHostGroup, response.SharedProcessorPool.HostGroup)
 
 	if response.SharedProcessorPool.Name != nil {

@@ -42,6 +42,11 @@ func DataSourceIBMPISharedProcessorPools() *schema.Resource {
 							Description: "The available cores in the shared processor pool.",
 							Type:        schema.TypeInt,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_HostID: {
 							Computed:    true,
 							Description: "The host ID where the shared processor pool resides.",
@@ -105,6 +110,9 @@ func dataSourceIBMPISharedProcessorPoolsRead(ctx context.Context, d *schema.Reso
 			Attr_SharedProcessorPoolID: *pool.ID,
 			Attr_Status:                pool.Status,
 			Attr_StatusDetail:          pool.StatusDetail,
+		}
+		if pool.Crn != "" {
+			key[Attr_CRN] = pool.Crn
 		}
 		result = append(result, key)
 	}
