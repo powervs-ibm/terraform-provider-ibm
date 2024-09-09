@@ -37,7 +37,7 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				ForceNew:      true,
 				Optional:      true,
 				Type:          schema.TypeString,
-				ValidateFunc:  validate.ValidateAllowedStringValues([]string{"allow", "deny"}),
+				ValidateFunc:  validate.ValidateAllowedStringValues([]string{Allow, Deny}),
 			},
 			Arg_CloudInstanceID: {
 				Description:  "The GUID of the service instance associated with an account.",
@@ -135,7 +135,7 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 							Description:  "The type of remote group (MAC addresses, IP addresses, CIDRs, external CIDRs) that are the originators of rule's network traffic to match.",
 							Optional:     true,
 							Type:         schema.TypeString,
-							ValidateFunc: validate.ValidateAllowedStringValues([]string{"default-network-address-group", "network-address-group", "network-security-group"}),
+							ValidateFunc: validate.ValidateAllowedStringValues([]string{DefaultNAG, NAG, NSG}),
 						},
 					},
 				},
