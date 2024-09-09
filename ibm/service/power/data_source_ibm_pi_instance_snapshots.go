@@ -44,6 +44,11 @@ func DataSourceIBMPIInstanceSnapshots() *schema.Resource {
 							Description: "Date of snapshot creation.",
 							Type:        schema.TypeString,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_Description: {
 							Computed:    true,
 							Description: "The description of the snapshot.",
@@ -121,6 +126,9 @@ func flattenSnapshotsInstances(list []*models.Snapshot) []map[string]interface{}
 			Attr_PercentComplete: i.PercentComplete,
 			Attr_Status:          i.Status,
 			Attr_VolumeSnapshots: i.VolumeSnapshots,
+		}
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 		result = append(result, l)
 	}
