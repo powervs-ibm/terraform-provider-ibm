@@ -417,7 +417,7 @@ func resourceIBMPINetworkSecurityGroupRuleRead(ctx context.Context, d *schema.Re
 		}
 		d.Set(Attr_Members, members)
 	} else {
-		d.Set(Attr_Members, nil)
+		d.Set(Attr_Members, []string{})
 	}
 
 	d.Set(Attr_NetworkSecurityGroupID, networkSecurityGroup.ID)
