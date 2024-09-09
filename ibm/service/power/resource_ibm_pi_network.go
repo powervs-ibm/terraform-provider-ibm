@@ -122,8 +122,20 @@ func ResourceIBMPINetwork() *schema.Resource {
 					},
 				},
 			},
+			Arg_UserTags: {
+				Description: "The user tags attached to this resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 
 			//Computed Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			"network_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -158,7 +170,11 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 			body.DNSServers = networkdns
 		}
 	}
-
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		if len(tags.([]interface{})) > 0 {
+			body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+		}
+	}
 	if v, ok := d.GetOk(helpers.PINetworkJumbo); ok {
 		body.Jumbo = v.(bool)
 	}
@@ -242,7 +258,9 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
+	if networkdata.Crn != "" {
+		d.Set(Attr_CRN, networkdata.Crn)
+	}
 	d.Set("network_id", networkdata.NetworkID)
 	d.Set(helpers.PINetworkCidr, networkdata.Cidr)
 	d.Set(helpers.PINetworkDNS, networkdata.DNSServers)

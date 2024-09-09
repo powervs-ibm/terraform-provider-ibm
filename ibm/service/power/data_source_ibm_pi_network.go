@@ -48,6 +48,11 @@ func DataSourceIBMPINetwork() *schema.Resource {
 				Description: "The CIDR of the network.",
 				Type:        schema.TypeString,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_DNS: {
 				Computed:    true,
 				Description: "The DNS Servers for the network.",
@@ -121,6 +126,9 @@ func dataSourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, met
 	}
 	if networkdata.Cidr != nil {
 		d.Set(Attr_CIDR, networkdata.Cidr)
+	}
+	if networkdata.Crn != "" {
+		d.Set(Attr_CRN, networkdata.Crn)
 	}
 	if len(networkdata.DNSServers) > 0 {
 		d.Set(Attr_DNS, networkdata.DNSServers)

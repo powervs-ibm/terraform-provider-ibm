@@ -38,6 +38,11 @@ func DataSourceIBMPINetworks() *schema.Resource {
 							Description: "The network communication configuration option of the network (for satellite locations only).",
 							Type:        schema.TypeString,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_DhcpManaged: {
 							Computed:    true,
 							Description: "Indicates if the network DHCP Managed.",
@@ -114,6 +119,10 @@ func flattenNetworks(list []*models.NetworkReference) []map[string]interface{} {
 			Attr_NetworkID:    *i.NetworkID,
 			Attr_Type:         *i.Type,
 			Attr_VLanID:       *i.VlanID,
+		}
+
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 		result = append(result, l)
 	}
