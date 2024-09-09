@@ -41,7 +41,7 @@ func ResourceIBMPIVolumeAttach() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Arg_InstanceId: {
+			Arg_InstanceID: {
 				Description: "PI Instance Id",
 				ForceNew:    true,
 				Required:    true,
@@ -71,7 +71,7 @@ func resourceIBMPIVolumeAttachCreate(ctx context.Context, d *schema.ResourceData
 	}
 
 	volumeID := d.Get(Arg_VolumeID).(string)
-	pvmInstanceID := d.Get(Arg_InstanceId).(string)
+	pvmInstanceID := d.Get(Arg_InstanceID).(string)
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 
 	volClient := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
