@@ -95,10 +95,18 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 							Type:        schema.TypeList,
 						},
 						Attr_TCPFlags: {
-							Description: "If tcp type is chosen, the list of TCP flags and if not present then all flags are matched.",
-							Elem:        &schema.Schema{Type: schema.TypeString},
-							Optional:    true,
-							Type:        schema.TypeList,
+							Description: "If tcp type, the list of TCP flags and if not present then all flags are matched.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									Attr_Flag: {
+										Description: "TCP flag.",
+										Required:    true,
+										Type:        schema.TypeString,
+									},
+								},
+							},
+							Optional: true,
+							Type:     schema.TypeList,
 						},
 						Attr_Type: {
 							Description:  "The protocol of the network traffic.",
@@ -254,8 +262,16 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 									Attr_TCPFlags: {
 										Computed:    true,
 										Description: "If tcp type, the list of TCP flags and if not present then all flags are matched.",
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Type:        schema.TypeList,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												Attr_Flag: {
+													Computed:    true,
+													Description: "TCP flag.",
+													Type:        schema.TypeString,
+												},
+											},
+										},
+										Type: schema.TypeList,
 									},
 									Attr_Type: {
 										Computed:    true,
@@ -507,14 +523,14 @@ func isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client *instance.IBMPINetw
 		}
 
 		if networkSecurityGroup.Rules != nil {
-			isRule := false
+			foundRule := false
 			for _, rule := range networkSecurityGroup.Rules {
 				if *rule.ID == ruleID {
-					isRule = true
+					foundRule = true
 					return networkSecurityGroup, State_Pending, nil
 				}
 			}
-			if !isRule {
+			if !foundRule {
 				return networkSecurityGroup, State_Removed, nil
 			}
 		}
@@ -569,10 +585,12 @@ func networkSecurityGroupRuleProtocolToMap(protocol *models.NetworkSecurityGroup
 	if protocol.IcmpTypes != nil {
 		protocolMap[Attr_ICMPTypes] = protocol.IcmpTypes
 	}
-	if protocol.TCPFlags != nil {
-		tcpFlags := make([]string, 0)
+	if len(protocol.TCPFlags) > 0 {
+		tcpFlags := []map[string]interface{}{}
 		for _, tcpFlagsItem := range protocol.TCPFlags {
-			tcpFlags = append(tcpFlags, tcpFlagsItem.Flag)
+			tcpFlagsItemMap := make(map[string]interface{})
+			tcpFlagsItemMap[Attr_Flag] = tcpFlagsItem.Flag
+			tcpFlags = append(tcpFlags, tcpFlagsItemMap)
 		}
 		protocolMap[Attr_TCPFlags] = tcpFlags
 	}
@@ -621,11 +639,12 @@ func networkSecurityGroupRuleMapToProtocol(protocolMap map[string]interface{}) *
 		icmpTypes := flex.ExpandInt64List(protocolMap[Attr_ICMPTypes].([]interface{}))
 		networkSecurityGroupRuleProtocol.IcmpTypes = icmpTypes
 	} else if networkSecurityGroupRuleProtocol.Type == TCP {
-		tcpFlags := flex.ExpandStringList(protocolMap[Attr_TCPFlags].([]interface{}))
+		tcpMaps := protocolMap[Attr_TCPFlags].([]interface{})
 		networkSecurityGroupRuleProtocolTCPFlagArray := []*models.NetworkSecurityGroupRuleProtocolTCPFlag{}
-		for _, tcp := range tcpFlags {
+		for _, tcpMap := range tcpMaps {
+			flag := tcpMap.(map[string]interface{})
 			networkSecurityGroupRuleProtocolTCPFlag := models.NetworkSecurityGroupRuleProtocolTCPFlag{}
-			networkSecurityGroupRuleProtocolTCPFlag.Flag = tcp
+			networkSecurityGroupRuleProtocolTCPFlag.Flag = flag[Attr_Flag].(string)
 			networkSecurityGroupRuleProtocolTCPFlagArray = append(networkSecurityGroupRuleProtocolTCPFlagArray, &networkSecurityGroupRuleProtocolTCPFlag)
 		}
 		networkSecurityGroupRuleProtocol.TCPFlags = networkSecurityGroupRuleProtocolTCPFlagArray
