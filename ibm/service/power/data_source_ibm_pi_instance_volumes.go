@@ -49,6 +49,11 @@ func DataSourceIBMPIInstanceVolumes() *schema.Resource {
 							Description: "Indicates if the volume is boot capable.",
 							Type:        schema.TypeBool,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_Href: {
 							Computed:    true,
 							Description: "The hyper link of the volume.",
@@ -132,6 +137,9 @@ func flattenVolumesInstances(list []*models.VolumeReference) []map[string]interf
 			Attr_Size:      *i.Size,
 			Attr_State:     *i.State,
 			Attr_Type:      *i.DiskType,
+		}
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 		result = append(result, l)
 	}

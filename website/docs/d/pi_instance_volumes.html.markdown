@@ -53,6 +53,7 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `instance_volumes`:
   - `bootable`- (Boolean) Indicates if the volume is boot capable.
+  - `crn` - (String) The CRN of this resource.
   - `href` - (String) The hyper link of the volume.
   - `id` - (String) The unique identifier of the volume.
   - `name` - (String) The name of the volume.

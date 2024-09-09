@@ -47,6 +47,11 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Description: "Indicates if the volume is boot capable.",
 				Type:        schema.TypeBool,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_ConsistencyGroupName: {
 				Computed:    true,
 				Description: "Consistency group name if volume is a part of volume group.",
@@ -144,6 +149,9 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_AuxiliaryVolumeName, volumedata.AuxVolumeName)
 	d.Set(Attr_Bootable, volumedata.Bootable)
 	d.Set(Attr_ConsistencyGroupName, volumedata.ConsistencyGroupName)
+	if volumedata.Crn != "" {
+		d.Set(Attr_CRN, volumedata.Crn)
+	}
 	d.Set(Attr_DiskType, volumedata.DiskType)
 	d.Set(Attr_GroupID, volumedata.GroupID)
 	d.Set(Attr_IOThrottleRate, volumedata.IoThrottleRate)

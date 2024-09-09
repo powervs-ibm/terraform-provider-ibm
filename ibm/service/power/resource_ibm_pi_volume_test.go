@@ -21,6 +21,7 @@ import (
 
 func TestAccIBMPIVolumebasic(t *testing.T) {
 	name := fmt.Sprintf("tf-pi-volume-%d", acctest.RandIntRange(10, 100))
+	volumeRes := "ibm_pi_volume.power_volume"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -29,19 +30,16 @@ func TestAccIBMPIVolumebasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIVolumeConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIBMPIVolumeExists("ibm_pi_volume.power_volume"),
-					resource.TestCheckResourceAttr(
-						"ibm_pi_volume.power_volume", "pi_volume_name", name),
+					testAccCheckIBMPIVolumeExists(volumeRes),
+					resource.TestCheckResourceAttr(volumeRes, "pi_volume_name", name),
 				),
 			},
 			{
 				Config: testAccCheckIBMPIVolumeSizeConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIBMPIVolumeExists("ibm_pi_volume.power_volume"),
-					resource.TestCheckResourceAttr(
-						"ibm_pi_volume.power_volume", "pi_volume_name", name),
-					resource.TestCheckResourceAttr(
-						"ibm_pi_volume.power_volume", "pi_volume_size", "30"),
+					testAccCheckIBMPIVolumeExists(volumeRes),
+					resource.TestCheckResourceAttr(volumeRes, "pi_volume_name", name),
+					resource.TestCheckResourceAttr(volumeRes, "pi_volume_size", "30"),
 				),
 			},
 		},

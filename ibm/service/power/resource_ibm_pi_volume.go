@@ -87,6 +87,13 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
+			Arg_UserTags: {
+				Description: "The user tags attached to this resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 			Arg_VolumeName: {
 				Description:  "The name of the volume.",
 				Required:     true,
@@ -134,6 +141,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 			Attr_ConsistencyGroupName: {
 				Computed:    true,
 				Description: "The consistency group name if volume is a part of volume group.",
+				Type:        schema.TypeString,
+			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
 			Attr_DeleteOnTermination: {
@@ -265,6 +277,11 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		}
 
 	}
+	if v, ok := d.GetOk(Arg_UserTags); ok {
+		if len(v.([]interface{})) > 0 {
+			body.UserTags = flex.ExpandStringList(v.([]interface{}))
+		}
+	}
 
 	client := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
 	vol, err := client.CreateVolume(body)
@@ -303,6 +320,9 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	if vol.VolumeID != nil {
 		d.Set(Attr_VolumeID, vol.VolumeID)
+	}
+	if vol.Crn != "" {
+		d.Set(Attr_CRN, vol.Crn)
 	}
 	d.Set(Arg_VolumeName, vol.Name)
 	d.Set(Arg_VolumePool, vol.VolumePool)
