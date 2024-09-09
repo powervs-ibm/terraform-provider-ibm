@@ -20,7 +20,7 @@ import (
 )
 
 func TestAccIBMPIImagebasic(t *testing.T) {
-
+	imageRes := "ibm_pi_image.power_image"
 	name := fmt.Sprintf("tf-pi-image-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
@@ -30,9 +30,8 @@ func TestAccIBMPIImagebasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIImageConfig(name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIBMPIImageExists("ibm_pi_image.power_image"),
-					resource.TestCheckResourceAttr(
-						"ibm_pi_image.power_image", "pi_image_name", name),
+					testAccCheckIBMPIImageExists(imageRes),
+					resource.TestCheckResourceAttr(imageRes, "pi_image_name", name),
 				),
 			},
 		},
@@ -164,7 +163,7 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 		pi_image_bucket_access = "private"
 		pi_image_bucket_file_name = "%[4]s" 
 		pi_image_bucket_name = "%[3]s" 
-		pi_image_bucket_region = "us-east"
+		pi_image_bucket_region = "%[7]s"
 		pi_image_name       = "%[1]s"
 		pi_image_secret_key = "%[6]s"
 		pi_image_storage_type = "tier3"
@@ -174,5 +173,5 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 			vendor = "SAP"
 		}
 	}
-	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key)
+	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region)
 }

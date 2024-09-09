@@ -37,6 +37,11 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Description: "The CPU architecture that the image is designed for. ",
 				Type:        schema.TypeString,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_Hypervisor: {
 				Computed:    true,
 				Description: "Hypervision Type.",
@@ -93,6 +98,9 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 
 	d.SetId(*imagedata.ImageID)
 	d.Set(Attr_Architecture, imagedata.Specifications.Architecture)
+	if imagedata.Crn != "" {
+		d.Set(Attr_CRN, imagedata.Crn)
+	}
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
 	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
