@@ -30,13 +30,6 @@ func TestAccIBMPINetworkSecurityGroupRuleBasic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
 				),
 			},
-			{
-				Config: testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPINetworkSecurityGroupRuleExists("ibm_pi_network_security_group_rule.network_security_group_rule"),
-					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
-				),
-			},
 		},
 	})
 }
@@ -53,10 +46,19 @@ func TestAccIBMPINetworkSecurityGroupRuleTCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
 				),
 			},
+		},
+	})
+}
+
+func TestAccIBMPINetworkSecurityGroupRuleRemove(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPINetworkSecurityGroupRuleExists("ibm_pi_network_security_group_rule.network_security_group_rule"),
+					testAccCheckIBMPINetworkSecurityGroupRuleRemoved("ibm_pi_network_security_group_rule.network_security_group_rule", acc.Pi_network_security_group_rule_id),
 					resource.TestCheckResourceAttrSet("ibm_pi_network_security_group_rule.network_security_group_rule", power.Arg_NetworkSecurityGroupID),
 				),
 			},
@@ -71,6 +73,7 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRule() string {
   			pi_network_security_group_id = "%[2]s"
  			pi_action = "allow"
 			pi_protocol {
+				icmp_types = []
 				type = "all"
 			}
 			pi_remote {
@@ -96,7 +99,15 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRuleTCP() string {
 			}
 			pi_protocol {
 				icmp_types = []
-				tcp_flags  = ["syn", "ack"]
+				tcp_flags {
+					flag = "ack"
+				}
+				tcp_flags {
+					flag = "syn"
+				}
+				tcp_flags {
+					flag = "psh"
+				}
 				type       = "tcp"
 			}
 			pi_remote {
@@ -137,6 +148,45 @@ func testAccCheckIBMPINetworkSecurityGroupRuleExists(n string) resource.TestChec
 		_, err = nsgClient.Get(nsgID)
 		if err != nil {
 			return err
+		}
+		return nil
+	}
+}
+
+func testAccCheckIBMPINetworkSecurityGroupRuleRemoved(n string, ruleID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return errors.New("No Record ID is set")
+		}
+		sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
+		if err != nil {
+			return err
+		}
+		cloudInstanceID, nsgID, err := splitID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		nsgClient := instance.NewIBMIPINetworkSecurityGroupClient(context.Background(), sess, cloudInstanceID)
+		networkSecurityGroup, err := nsgClient.Get(nsgID)
+		if err != nil {
+			return err
+		}
+		foundRule := false
+		if networkSecurityGroup.Rules != nil {
+			for _, rule := range networkSecurityGroup.Rules {
+				if *rule.ID == ruleID {
+					foundRule = true
+					break
+				}
+			}
+		}
+		if foundRule {
+			return fmt.Errorf("NSG rule still exists")
 		}
 		return nil
 	}
