@@ -48,6 +48,11 @@ func DataSourceIBMPICloudInstance() *schema.Resource {
 							Description: "Date of PVM instance creation.",
 							Type:        schema.TypeString,
 						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_Href: {
 							Computed:    true,
 							Description: "Link to Cloud Instance resource.",
@@ -156,6 +161,9 @@ func flattenpvminstances(list []*models.PVMInstanceReference) []map[string]inter
 			Attr_Name:         *lpars.ServerName,
 			Attr_Status:       *lpars.Status,
 			Attr_Systype:      lpars.SysType,
+		}
+		if lpars.Crn != "" {
+			l[Attr_CRN] = lpars.Crn
 		}
 		pvms = append(pvms, l)
 	}

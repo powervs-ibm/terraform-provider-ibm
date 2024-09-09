@@ -34,6 +34,11 @@ func DataSourceIBMPIInstances() *schema.Resource {
 				Description: "List of power virtual server instances for the respective cloud instance.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
 						Attr_Fault: {
 							Computed:    true,
 							Description: "Fault information.",
@@ -251,6 +256,10 @@ func flattenPvmInstances(list []*models.PVMInstanceReference) []map[string]inter
 			Attr_StoragePoolAffinity:       i.StoragePoolAffinity,
 			Attr_StorageType:               i.StorageType,
 			Attr_VirtualCoresAssigned:      i.VirtualCores.Assigned,
+		}
+
+		if i.Crn != "" {
+			l[Attr_CRN] = i.Crn
 		}
 
 		if i.Health != nil {
