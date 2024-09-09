@@ -143,22 +143,6 @@ func FlattenInt64List(list []int64) []interface{} {
 	return vs
 }
 
-func ExpandFloat64List(input []interface{}) []float64 {
-	vs := make([]float64, len(input))
-	for i, v := range input {
-		vs[i] = v.(float64)
-	}
-	return vs
-}
-
-func FlattenFloat64List(list []float64) []interface{} {
-	vs := make([]interface{}, len(list))
-	for i, v := range list {
-		vs[i] = v
-	}
-	return vs
-}
-
 func NewStringSet(f schema.SchemaSetFunc, in []string) *schema.Set {
 	var out = make([]interface{}, len(in), len(in))
 	for i, v := range in {

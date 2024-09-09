@@ -26,8 +26,8 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 		DeleteContext: resourceIBMPINetworkSecurityGroupRuleDelete,
 		Importer:      &schema.ResourceImporter{},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			// Arguments
@@ -324,12 +324,6 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				},
 				Type: schema.TypeList,
 			},
-			Attr_UserTags: {
-				Computed:    true,
-				Description: "The user tags associated with this resource.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
 		},
 	}
 }
@@ -428,9 +422,8 @@ func resourceIBMPINetworkSecurityGroupRuleRead(ctx context.Context, d *schema.Re
 			rules = append(rules, ruleMap)
 		}
 		d.Set(Attr_Rules, rules)
-	}
-	if len(Attr_UserTags) > 0 {
-		d.Set(Attr_UserTags, networkSecurityGroup.UserTags)
+	} else {
+		d.Set(Attr_Rules, []string{})
 	}
 	return nil
 }
@@ -474,7 +467,7 @@ func isWaitForIBMPINetworkSecurityGroupRuleAdd(ctx context.Context, client *inst
 		Refresh:    isIBMPINetworkSecurityGroupRuleAddRefreshFunc(client, id, ruleID),
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
-		MinTimeout: 10 * time.Minute,
+		MinTimeout: time.Minute,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
@@ -508,7 +501,7 @@ func isWaitForIBMPINetworkSecurityGroupRuleRemove(ctx context.Context, client *i
 		Refresh:    isIBMPINetworkSecurityGroupRuleRemoveRefreshFunc(client, id, ruleID),
 		Timeout:    timeout,
 		Delay:      10 * time.Second,
-		MinTimeout: 10 * time.Minute,
+		MinTimeout: time.Minute,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
