@@ -98,7 +98,6 @@ const (
 	Arg_StorageType                         = "pi_storage_type"
 	Arg_SysType                             = "pi_sys_type"
 	Arg_TargetStorageTier                   = "pi_target_storage_tier"
-	Arg_TCPFlags                            = "pi_tcp_flags"
 	Arg_Type                                = "pi_type"
 	Arg_UserData                            = "pi_user_data"
 	Arg_VirtualCoresAssigned                = "pi_virtual_cores_assigned"

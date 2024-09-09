@@ -27,7 +27,15 @@ Add or remove a network security group rule.
       }
       pi_protocol {
         icmp_types = []
-        tcp_flags  = ["syn", "ack"]
+        tcp_flags {
+          flag = "ack"
+        }
+        tcp_flags {
+          flag = "syn"
+        }
+        tcp_flags {
+          flag = "psh"
+        }
         type       = "tcp"
       }
       pi_remote {
@@ -70,7 +78,7 @@ Review the argument references that you can specify for your resource.
 
     Nested schema for `pi_protocol`:
       - `icmp_types` - (Required, List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched. Must provide empty list if no icmp types are needed.
-      - `tcp_flags` - (Required, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`. Must provide empty list if no tcp flags are needed.
+      - `tcp_flags` - (Required, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
       - `type` - (Required, String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
 - `pi_remote` - (Optional, List) List of remote. Required if `pi_network_security_group_rule_id` is not provided.
 
