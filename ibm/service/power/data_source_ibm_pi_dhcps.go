@@ -29,7 +29,7 @@ func DataSourceIBMPIDhcps() *schema.Resource {
 			},
 
 			// Attributes
-			Attr_DhcpServers: {
+			Attr_Servers: {
 				Computed:    true,
 				Description: "List of all the DHCP Servers.",
 				Elem: &schema.Resource{
@@ -85,17 +85,17 @@ func dataSourceIBMPIDhcpServersRead(ctx context.Context, d *schema.ResourceData,
 		if dhcpServer.Network != nil {
 			dhcpNetwork := dhcpServer.Network
 			if dhcpNetwork.ID != nil {
-				d.Set(Attr_NetworkID, *dhcpNetwork.ID)
+				server[Attr_NetworkID] = *dhcpNetwork.ID
 			}
 			if dhcpNetwork.Name != nil {
-				d.Set(Attr_NetworkName, *dhcpNetwork.Name)
+				server[Attr_NetworkName] = *dhcpNetwork.Name
 			}
 		}
 		servers = append(servers, server)
 	}
 	var genID, _ = uuid.GenerateUUID()
 	d.SetId(genID)
-	d.Set(Attr_DhcpServers, servers)
+	d.Set(Attr_Servers, servers)
 
 	return nil
 }

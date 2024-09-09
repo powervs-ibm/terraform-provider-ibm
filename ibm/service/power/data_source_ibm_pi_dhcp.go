@@ -44,12 +44,12 @@ func DataSourceIBMPIDhcp() *schema.Resource {
 				Description: "List of DHCP Server PVM Instance leases.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_DhcpLeaseInstanceIP: {
+						Attr_InstanceIP: {
 							Computed:    true,
 							Description: "IP of the PVM Instance.",
 							Type:        schema.TypeString,
 						},
-						Attr_DhcpLeaseInstanceMac: {
+						Attr_InstanceMac: {
 							Computed:    true,
 							Description: "MAC Address of the PVM Instance.",
 							Type:        schema.TypeString,
@@ -110,8 +110,8 @@ func dataSourceIBMPIDhcpRead(ctx context.Context, d *schema.ResourceData, meta i
 		leaseList := make([]map[string]string, len(dhcpServer.Leases))
 		for i, lease := range dhcpServer.Leases {
 			leaseList[i] = map[string]string{
-				Attr_DhcpLeaseInstanceIP:  *lease.InstanceIP,
-				Attr_DhcpLeaseInstanceMac: *lease.InstanceMacAddress,
+				Attr_InstanceIP:  *lease.InstanceIP,
+				Attr_InstanceMac: *lease.InstanceMacAddress,
 			}
 		}
 		d.Set(Attr_Leases, leaseList)

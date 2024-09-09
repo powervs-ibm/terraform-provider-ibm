@@ -197,7 +197,17 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		body.Gateway = gateway
 		body.Cidr = networkcidr
 	}
-
+	wsclient := instance.NewIBMPIWorkspacesClient(ctx, sess, cloudInstanceID)
+	wsData, err := wsclient.Get(cloudInstanceID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if wsData.Capabilities[PER] {
+		_, err = waitForPERWorkspaceActive(ctx, wsclient, cloudInstanceID, d.Timeout(schema.TimeoutRead))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	networkResponse, err := client.Create(body)
 	if err != nil {
 		return diag.FromErr(err)
@@ -270,17 +280,22 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(Arg_NetworkName, Arg_DNS, Arg_IPAddressRange) {
+	if d.HasChanges(Arg_NetworkName, Arg_DNS, Arg_Gateway, Arg_IPAddressRange) {
 		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 		body := &models.NetworkUpdate{
 			DNSServers: flex.ExpandStringList((d.Get(Arg_DNS).(*schema.Set)).List()),
 		}
 		networkType := d.Get(Arg_NetworkType).(string)
-		if d.HasChange(Arg_IPAddressRange) {
+		if d.HasChange(Arg_IPAddressRange) || d.HasChange(Arg_Gateway) {
 			if networkType == Vlan {
-				body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_IPAddressRange).([]interface{}))
+				if d.HasChange(Arg_IPAddressRange) {
+					body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_IPAddressRange).([]interface{}))
+				}
+				if d.HasChange(Arg_Gateway) {
+					body.Gateway = flex.PtrToString(d.Get(Arg_Gateway).(string))
+				}
 			} else {
-				return diag.Errorf("%v type does not allow ip-address range update", networkType)
+				return diag.Errorf("%v type does not allow ip-address range or gateway update", networkType)
 			}
 		}
 
@@ -432,4 +447,40 @@ func getIPAddressRanges(ipAddressRanges []interface{}) []*models.IPAddressRange 
 		}
 	}
 	return ipRanges
+}
+func waitForPERWorkspaceActive(ctx context.Context, client *instance.IBMPIWorkspacesClient, id string, timeout time.Duration) (interface{}, error) {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Inactive, State_Configuring},
+		Target:     []string{State_Active},
+		Refresh:    isPERWorkspaceRefreshFunc(client, id),
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}
+
+	return stateConf.WaitForStateContext(ctx)
+}
+
+func isPERWorkspaceRefreshFunc(client *instance.IBMPIWorkspacesClient, id string) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		ws, err := client.Get(id)
+		if err != nil {
+			return nil, "", err
+		}
+		// Check for backward compatibility for legacy workspace.
+		if ws.Details.PowerEdgeRouter == nil {
+			return ws, State_Active, nil
+		}
+		if *(ws.Details.PowerEdgeRouter.State) == State_Active {
+			return ws, State_Active, nil
+		}
+		if *(ws.Details.PowerEdgeRouter.State) == State_Inactive {
+			return ws, State_Inactive, nil
+		}
+		if *(ws.Details.PowerEdgeRouter.State) == State_Error {
+			return ws, *ws.Details.PowerEdgeRouter.State, fmt.Errorf("[ERROR] workspace PER configuration failed to initialize. Please try again later")
+		}
+
+		return ws, State_Configuring, nil
+	}
 }
