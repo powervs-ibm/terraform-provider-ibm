@@ -104,7 +104,19 @@ func ResourceIBMPICapture() *schema.Resource {
 				ForceNew:    true,
 				Description: "Cloud Storage Image Path (bucket-name [/folder/../..])",
 			},
+			Arg_UserTags: {
+				Description: "List of user tags attached to the resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 			// Computed Attribute
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of the resource.",
+				Type:        schema.TypeString,
+			},
 			"image_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -161,6 +173,12 @@ func resourceIBMPICaptureCreate(ctx context.Context, d *schema.ResourceData, met
 		}
 	}
 
+	if v, ok := d.GetOk(Arg_UserTags); ok {
+		if len(v.([]interface{})) > 0 {
+			captureBody.UserTags = flex.ExpandStringList(v.([]interface{}))
+		}
+	}
+
 	captureResponse, err := client.CaptureInstanceToImageCatalogV2(name, captureBody)
 
 	if err != nil {
@@ -197,12 +215,15 @@ func resourceIBMPICaptureRead(ctx context.Context, d *schema.ResourceData, meta 
 			case *p_cloud_images.PcloudCloudinstancesImagesGetNotFound:
 				log.Printf("[DEBUG] image does not exist %v", err)
 				d.SetId("")
-				return nil
+				return diag.Errorf("image does not exist %v", err)
 			}
 			log.Printf("[DEBUG] get image failed %v", err)
 			return diag.FromErr(err)
 		}
 		imageid := *imagedata.ImageID
+		if imagedata.Crn != "" {
+			d.Set(Attr_CRN, imagedata.Crn)
+		}
 		d.Set("image_id", imageid)
 	}
 	d.Set(helpers.PICloudInstanceId, cloudInstanceID)

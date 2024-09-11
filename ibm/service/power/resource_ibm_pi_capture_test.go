@@ -53,7 +53,6 @@ func TestAccIBMPICaptureWithVolume(t *testing.T) {
 					resource.TestCheckResourceAttr(captureRes, "pi_capture_name", name),
 					resource.TestCheckResourceAttrSet(captureRes, "image_id"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
