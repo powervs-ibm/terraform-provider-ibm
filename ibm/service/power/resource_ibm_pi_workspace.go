@@ -59,10 +59,23 @@ func ResourceIBMPIWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_UserTags: {
+				Description: "The user tags attached to this resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeList,
+			},
 
 			// Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The Workspace crn.",
+				Type:        schema.TypeString,
+			},
 			Attr_WorkspaceDetails: {
 				Computed:    true,
+				Deprecated:  "This field is deprecated, use crn instead.",
 				Description: "Workspace information.",
 				Type:        schema.TypeMap,
 			},
@@ -95,6 +108,23 @@ func resourceIBMPIWorkspaceCreate(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
+	// Add user tags for newly created workspace
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		if len(tags.([]interface{})) > 0 {
+			userTags := flex.ExpandStringList(tags.([]interface{}))
+			gtClient, err := meta.(conns.ClientSession).GlobalTaggingAPI()
+			if err != nil {
+				log.Printf("[ERROR] Error getting global tagging client settings: %s", err)
+				return diag.FromErr(err)
+			}
+			_, err = gtClient.Tags().AttachTags(*controller.CRN, userTags)
+			if err != nil {
+				log.Printf(
+					"[ERROR] The resource instance has failed updating user tags (%s) err: %s", d.Id(), err)
+				return diag.FromErr(err)
+			}
+		}
+	}
 	return resourceIBMPIWorkspaceRead(ctx, d, meta)
 }
 
@@ -137,11 +167,13 @@ func resourceIBMPIWorkspaceRead(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 	d.Set(Arg_Name, controller.Name)
+	d.Set(Attr_CRN, controller.CRN)
+
+	// Deprecated Workspace Details Set
 	wsDetails := map[string]interface{}{
 		Attr_CreationDate: controller.CreatedAt,
-		Attr_CRN:          controller.TargetCRN,
+		Attr_CRN:          controller.CRN,
 	}
-
 	d.Set(Attr_WorkspaceDetails, flex.Flatten(wsDetails))
 
 	return nil
