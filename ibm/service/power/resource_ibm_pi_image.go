@@ -231,6 +231,11 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			ImageID:   imageid,
 			Source:    &source,
 		}
+		if tags, ok := d.GetOk(Arg_UserTags); ok {
+			if len(tags.([]interface{})) > 0 {
+				body.UserTags = flex.ExpandStringList(tags.([]interface{}))
+			}
+		}
 		imageResponse, err := client.Create(body)
 		if err != nil {
 			return diag.FromErr(err)
