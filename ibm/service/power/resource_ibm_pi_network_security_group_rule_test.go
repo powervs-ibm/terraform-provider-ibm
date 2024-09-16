@@ -73,7 +73,6 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRule() string {
   			pi_network_security_group_id = "%[2]s"
  			pi_action = "allow"
 			pi_protocol {
-				icmp_types = []
 				type = "all"
 			}
 			pi_remote {
@@ -98,7 +97,6 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRuleTCP() string {
 				maximum = 19500
 			}
 			pi_protocol {
-				icmp_types = []
 				tcp_flags {
 					flag = "ack"
 				}

@@ -88,11 +88,11 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 				Description:   "The protocol of the network traffic.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_ICMPTypes: {
-							Description: "If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.",
-							Elem:        &schema.Schema{Type: schema.TypeInt},
-							Required:    true,
-							Type:        schema.TypeList,
+						Attr_ICMPType: {
+							Description:  "If icmp type, a ICMP packet type affected by ICMP rules and if not present then all types are matched.",
+							Optional:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validate.ValidateAllowedStringValues([]string{All, DestinationUnreach, Echo, EchoReply, SourceQuench, TimeExceeded}),
 						},
 						Attr_TCPFlags: {
 							Description: "If tcp type, the list of TCP flags and if not present then all flags are matched.",
@@ -253,11 +253,10 @@ func ResourceIBMPINetworkSecurityGroupRule() *schema.Resource {
 							Description: "The list of protocol.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									Attr_ICMPTypes: {
+									Attr_ICMPType: {
 										Computed:    true,
-										Description: "If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.",
-										Elem:        &schema.Schema{Type: schema.TypeFloat},
-										Type:        schema.TypeList,
+										Description: "If icmp type, a ICMP packet type affected by ICMP rules and if not present then all types are matched.",
+										Type:        schema.TypeString,
 									},
 									Attr_TCPFlags: {
 										Computed:    true,
@@ -575,8 +574,8 @@ func networkSecurityGroupRulePortToMap(port *models.NetworkSecurityGroupRulePort
 
 func networkSecurityGroupRuleProtocolToMap(protocol *models.NetworkSecurityGroupRuleProtocol) map[string]interface{} {
 	protocolMap := make(map[string]interface{})
-	if protocol.IcmpTypes != nil {
-		protocolMap[Attr_ICMPTypes] = protocol.IcmpTypes
+	if protocol.IcmpType != nil {
+		protocolMap[Attr_ICMPType] = protocol.IcmpType
 	}
 	if len(protocol.TCPFlags) > 0 {
 		tcpFlags := []map[string]interface{}{}
@@ -629,8 +628,8 @@ func networkSecurityGroupRuleMapToProtocol(protocolMap map[string]interface{}) *
 	networkSecurityGroupRuleProtocol.Type = protocolMap[Attr_Type].(string)
 
 	if networkSecurityGroupRuleProtocol.Type == ICMP {
-		icmpTypes := flex.ExpandInt64List(protocolMap[Attr_ICMPTypes].([]interface{}))
-		networkSecurityGroupRuleProtocol.IcmpTypes = icmpTypes
+		icmpType := protocolMap[Attr_ICMPType].(string)
+		networkSecurityGroupRuleProtocol.IcmpType = &icmpType
 	} else if networkSecurityGroupRuleProtocol.Type == TCP {
 		tcpMaps := protocolMap[Attr_TCPFlags].([]interface{})
 		networkSecurityGroupRuleProtocolTCPFlagArray := []*models.NetworkSecurityGroupRuleProtocolTCPFlag{}
