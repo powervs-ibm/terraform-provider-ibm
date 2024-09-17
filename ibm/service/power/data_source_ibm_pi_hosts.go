@@ -117,12 +117,6 @@ func DataSourceIBMPIHosts() *schema.Resource {
 							Description: "System type.",
 							Type:        schema.TypeString,
 						},
-						Attr_UserTags: {
-							Computed:    true,
-							Description: "The user tags attached to this resource.",
-							Elem:        &schema.Schema{Type: schema.TypeString},
-							Type:        schema.TypeList,
-						},
 					},
 				},
 				Type: schema.TypeList,
@@ -173,9 +167,6 @@ func dataSourceIBMPIHostsRead(ctx context.Context, d *schema.ResourceData, meta 
 			}
 			if host.SysType != "" {
 				hs[Attr_SysType] = host.SysType
-			}
-			if len(host.UserTags) > 0 {
-				hs[Attr_UserTags] = host.UserTags
 			}
 			hostList = append(hostList, hs)
 		}

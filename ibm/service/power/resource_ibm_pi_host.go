@@ -163,12 +163,6 @@ func ResourceIBMPIHost() *schema.Resource {
 				Description: "System type.",
 				Type:        schema.TypeString,
 			},
-			Attr_UserTags: {
-				Computed:    true,
-				Description: "The user tags attached to this resource.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
 		},
 	}
 }
@@ -252,9 +246,6 @@ func resourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	if host.SysType != "" {
 		d.Set(Attr_SysType, host.SysType)
-	}
-	if len(host.UserTags) > 0 {
-		d.Set(Attr_UserTags, host.UserTags)
 	}
 
 	return nil
