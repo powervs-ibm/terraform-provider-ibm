@@ -216,6 +216,7 @@ var (
 	Pi_image_bucket_secret_key      string
 	Pi_instance_name                string
 	Pi_key_name                     string
+	Pi_network_address_group_id     string
 	Pi_network_name                 string
 	Pi_placement_group_name         string
 	Pi_replication_volume_name      string
@@ -1219,6 +1220,12 @@ func init() {
 		Pi_host_id = ""
 		fmt.Println("[WARN] Set the environment variable PI_HOST_ID for testing ibm_pi_host resource else it is set to default value ''")
 	}
+	Pi_network_address_group_id = os.Getenv("PI_NETWORK_ADDRESS_GROUP_ID")
+	if Pi_network_address_group_id == "" {
+		Pi_network_address_group_id = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_NETWORK_ADDRESS_GROUP_ID for testing ibm_pi_network_address_group data source else it is set to default value 'terraform-test-power'")
+	}
+
 	WorkspaceID = os.Getenv("SCHEMATICS_WORKSPACE_ID")
 	if WorkspaceID == "" {
 		WorkspaceID = "us-south.workspace.tf-acc-test-schematics-state-test.392cd99f"
