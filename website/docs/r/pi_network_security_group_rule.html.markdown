@@ -26,7 +26,6 @@ Add or remove a network security group rule.
         maximum = 19500
       }
       pi_protocol {
-        icmp_types = []
         tcp_flags {
           flag = "ack"
         }
@@ -77,8 +76,8 @@ Review the argument references that you can specify for your resource.
 - `pi_protocol` - (Optional, List) The list of protocol. Required if `pi_network_security_group_rule_id` is not provided.
 
     Nested schema for `pi_protocol`:
-      - `icmp_types` - (Required, List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched. Must provide empty list if no icmp types are needed.
-      - `tcp_flags` - (Required, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
+      - `icmp_type` - (Optional, String) If icmp type, a ICMP packet type affected by ICMP rules and if not present then all types are matched. Supported values are: `all`, `destination-unreach`, `echo`, `echo-reply`, `source-quench`, `time-exceeded`.
+      - `tcp_flags` - (Optional, String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
       - `type` - (Required, String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
 - `pi_remote` - (Optional, List) List of remote. Required if `pi_network_security_group_rule_id` is not provided.
 
@@ -122,7 +121,7 @@ In addition to all argument reference list, you can access the following attribu
   - `protocol` - (List) The list of protocol.
 
         Nested schema for `protocol`:
-          - `icmp_types` - (List) If icmp type, the list of ICMP packet types (by numbers) affected by ICMP rules and if not present then all types are matched.
+          - `icmp_type` - (String) If icmp type, a ICMP packet type affected by ICMP rules and if not present then all types are matched. Supported values are: `all`, `destination-unreach`, `echo`, `echo-reply`, `source-quench`, `time-exceeded`.
           - `tcp_flags` - (String) If tcp type, the list of TCP flags and if not present then all flags are matched. Supported values are: `syn`, `ack`, `fin`, `rst`, `urg`, `psh`, `wnd`, `chk`, `seq`.
           - `type` - (String) The protocol of the network traffic. Supported values are: `icmp`, `tcp`, `udp`, `all`.
   - `remote` - (List) List of remote.
