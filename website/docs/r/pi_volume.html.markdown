@@ -60,10 +60,9 @@ Review the argument references that you can specify for your resource.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_replication_enabled` - (Optional, Boolean) Indicates if the volume should be replication enabled or not.
 
-  **Note:** `replication_sites` will be populated automatically if set to true and sites are not specified.
+  **Note:** `replication_sites` will be populated automatically with default sites if set to true and sites are not specified.
 
-- `pi_replication_sites` - (Optional, List) List of replication sites for volume replication.
-
+- `pi_replication_sites` - (Optional, List) List of replication sites for volume replication. Must set `pi_replication_enabled` to true to use.
 - `pi_volume_name` - (Required, String) The name of the volume.
 - `pi_volume_pool` - (Optional, String) Volume pool where the volume will be created; if provided then `pi_affinity_policy` values will be ignored.
 - `pi_volume_shareable` - (Required, Boolean) If set to **true**, the volume can be shared across Power Systems Virtual Server instances. If set to **false**, you can attach it only to one instance.

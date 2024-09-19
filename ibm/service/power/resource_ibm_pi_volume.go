@@ -259,7 +259,7 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 				body.ReplicationSites = flex.ExpandStringList(v.([]interface{}))
 			}
 		} else {
-			return diag.Errorf("Replication must be enabled if replication sites are specified.")
+			return diag.Errorf("Replication (%s) must be enabled if replication sites are specified.", Arg_ReplicationEnabled)
 		}
 	}
 	if ap, ok := d.GetOk(Arg_AffinityPolicy); ok {
@@ -346,9 +346,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set(Attr_MirroringState, vol.MirroringState)
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Arg_ReplicationEnabled, vol.ReplicationEnabled)
-	if len(vol.ReplicationSites) > 0 {
-		d.Set(Attr_ReplicationSites, vol.ReplicationSites)
-	}
+	d.Set(Attr_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
 	d.Set(Attr_VolumeStatus, vol.State)
