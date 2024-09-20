@@ -10,6 +10,8 @@ const (
 	Arg_AffinityVolume                      = "pi_affinity_volume"
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
 	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
+	Arg_AuxiliaryVolumeName                 = "pi_auxiliary_volume_name"
+	Arg_AuxiliaryVolumes                    = "pi_auxiliary_volumes"
 	Arg_Cidr                                = "pi_cidr"
 	Arg_CloudConnectionID                   = "pi_cloud_connection_id"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
@@ -23,6 +25,7 @@ const (
 	Arg_DhcpID                              = "pi_dhcp_id"
 	Arg_DhcpName                            = "pi_dhcp_name"
 	Arg_DhcpSnatEnabled                     = "pi_dhcp_snat_enabled"
+	Arg_DisplayName                         = "pi_display_name"
 	Arg_DnsServer                           = "pi_dns_server"
 	Arg_HealthStatus                        = "pi_health_status"
 	Arg_Host                                = "pi_host"
@@ -46,6 +49,7 @@ const (
 	Arg_Name                                = "pi_name"
 	Arg_Network                             = "pi_network"
 	Arg_NetworkName                         = "pi_network_name"
+	Arg_OnboardingVolumes                   = "pi_onboarding_volumes"
 	Arg_PinPolicy                           = "pi_pin_policy"
 	Arg_PlacementGroupID                    = "pi_placement_group_id"
 	Arg_PlacementGroupName                  = "pi_placement_group_name"
@@ -74,6 +78,7 @@ const (
 	Arg_SharedProcessorPoolReservedCores    = "pi_shared_processor_pool_reserved_cores"
 	Arg_SnapshotID                          = "pi_snapshot_id"
 	Arg_SnapShotName                        = "pi_snap_shot_name"
+	Arg_SourceCRN                           = "pi_source_crn"
 	Arg_SPPPlacementGroupID                 = "pi_spp_placement_group_id"
 	Arg_SPPPlacementGroupName               = "pi_spp_placement_group_name"
 	Arg_SPPPlacementGroupPolicy             = "pi_spp_placement_group_policy"
@@ -100,10 +105,6 @@ const (
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
 	Arg_VTL                                 = "vtl"
-
-	// Duplicate Arguments, will be removed as refactoring take course.
-	PIVolumeGroupID      = "pi_volume_group_id"
-	PIVolumeOnboardingID = "pi_volume_onboarding_id"
 
 	// Attributes
 	Attr_Access                                      = "access"
@@ -261,6 +262,7 @@ const (
 	Attr_NetworkPorts                                = "network_ports"
 	Attr_Networks                                    = "networks"
 	Attr_NumberOfVolumes                             = "number_of_volumes"
+	Attr_OnboardingID                                = "onboarding_id"
 	Attr_Onboardings                                 = "onboardings"
 	Attr_OperatingSystem                             = "operating_system"
 	Attr_OSType                                      = "os_type"
@@ -514,6 +516,7 @@ const (
 	PITargetStorageTier = "pi_target_storage_tier"
 
 	// IBM PI Volume Group
+	PIVolumeGroupID                   = "pi_volume_group_id"
 	PIVolumeGroupName                 = "pi_volume_group_name"
 	PIVolumeGroupConsistencyGroupName = "pi_consistency_group_name"
 	PIVolumeGroupAction               = "pi_volume_group_action"
