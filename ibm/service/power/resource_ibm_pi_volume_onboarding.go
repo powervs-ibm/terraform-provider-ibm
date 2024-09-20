@@ -35,12 +35,7 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-
 			Arg_OnboardingVolumes: {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Arg_SourceCRN: {
@@ -69,6 +64,10 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 						},
 					},
 				},
+				ForceNew: true,
+				MinItems: 1,
+				Required: true,
+				Type:     schema.TypeList,
 			},
 			Arg_Description: {
 				Computed:    true,
@@ -83,16 +82,16 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 				Description: "Indicates the create-time of volume onboarding operation",
 				Type:        schema.TypeString,
 			},
-			Attr_OnboardingId: {
-				Computed:    true,
-				Description: "Indicates the volume onboarding operation id",
-				Type:        schema.TypeString,
-			},
 			Attr_InputVolumes: {
 				Computed:    true,
 				Description: "List of volumes requested to be onboarded",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
+			},
+			Attr_OnboardingID: {
+				Computed:    true,
+				Description: "Indicates the volume onboarding operation id",
+				Type:        schema.TypeString,
 			},
 			Attr_Progress: {
 				Computed:    true,
@@ -106,7 +105,6 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 				Type:        schema.TypeList,
 			},
 			Attr_ResultsVolumeOnboardingFailures: {
-				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -121,7 +119,9 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Type:        schema.TypeList,
 						},
-					}},
+					},
+				},
+				Type: schema.TypeList,
 			},
 			Attr_Status: {
 				Computed:    true,
@@ -181,7 +181,7 @@ func resourceIBMPIVolumeOnboardingRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_OnboardingId, *onboardingData.ID)
+	d.Set(Attr_OnboardingID, *onboardingData.ID)
 	d.Set(Attr_CreateTime, onboardingData.CreationTimestamp.String())
 	d.Set(Arg_Description, onboardingData.Description)
 	d.Set(Attr_InputVolumes, onboardingData.InputVolumes)

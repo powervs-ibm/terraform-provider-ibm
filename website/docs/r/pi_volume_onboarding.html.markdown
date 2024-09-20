@@ -86,8 +86,8 @@ In addition to all argument reference list, you can access the following attribu
 
 The `ibm_pi_volume_onboarding` resource can be imported by using `pi_cloud_instance_id` and `onboarding_id`.
 
-**Example**
+### Example
 
-```
-$ terraform import ibm_pi_volume_onboarding.example d7bec597-4726-451f-8a63-e62e6f19c32c/49fba6c9-23f8-40bc-9899-aca322ee7d5b
+```bash
+terraform import ibm_pi_volume_onboarding.example d7bec597-4726-451f-8a63-e62e6f19c32c/49fba6c9-23f8-40bc-9899-aca322ee7d5b
 ```
