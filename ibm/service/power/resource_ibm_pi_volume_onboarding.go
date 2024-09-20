@@ -28,39 +28,47 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-
+			// Arguments
 			Arg_CloudInstanceID: {
-				Description: "Cloud Instance ID - This is the service_instance_id.",
+				Description: "The GUID of the service instance associated with an account.",
 				ForceNew:    true,
 				Required:    true,
 				Type:        schema.TypeString,
 			},
+			Arg_Description: {
+				Computed:    true,
+				Description: "Description of the volume onboarding operation",
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 			Arg_OnboardingVolumes: {
+				Description: "List of onboarding volumes.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Arg_SourceCRN: {
-							Description: "CRN of source ServiceBroker instance from where auxiliary volumes need to be onboarded",
-							Required:    true,
-							Type:        schema.TypeString,
-						},
 						Arg_AuxiliaryVolumes: {
-							Type:     schema.TypeList,
-							Optional: true,
-							MinItems: 1,
+							Description: "List auxiliary volumes.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									Arg_AuxiliaryVolumeName: {
-										Description: "Auxiliary volume name at storage host level",
+										Description: "The auxiliary volume name.",
 										Required:    true,
 										Type:        schema.TypeString,
 									},
 									Arg_DisplayName: {
-										Description: "Display name of auxVolumeName once onboarded,auxVolumeName will be set to display name if not provided.",
+										Description: "The display name of auxiliary volume which is to be onboarded.",
 										Optional:    true,
 										Type:        schema.TypeString,
 									},
 								},
 							},
+							MinItems: 1,
+							Optional: true,
+							Type:     schema.TypeList,
+						},
+						Arg_SourceCRN: {
+							Description: "The crn of source service broker instance from where auxiliary volumes need to be onboarded.",
+							Required:    true,
+							Type:        schema.TypeString,
 						},
 					},
 				},
@@ -69,43 +77,38 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 				Required: true,
 				Type:     schema.TypeList,
 			},
-			Arg_Description: {
-				Computed:    true,
-				Description: "Description of the volume onboarding operation",
-				Optional:    true,
-				Type:        schema.TypeString,
-			},
 
-			// Computed Attribute
+			// Attributes
 			Attr_CreateTime: {
 				Computed:    true,
-				Description: "Indicates the create-time of volume onboarding operation",
+				Description: "The create time of volume onboarding operation.",
 				Type:        schema.TypeString,
 			},
 			Attr_InputVolumes: {
 				Computed:    true,
-				Description: "List of volumes requested to be onboarded",
+				Description: "List of volumes requested to be onboarded.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
 			Attr_OnboardingID: {
 				Computed:    true,
-				Description: "Indicates the volume onboarding operation id",
+				Description: "The volume onboarding ID.",
 				Type:        schema.TypeString,
 			},
 			Attr_Progress: {
 				Computed:    true,
-				Description: "Indicates the progress of volume onboarding operation",
+				Description: "The progress of volume onboarding operation.",
 				Type:        schema.TypeFloat,
 			},
 			Attr_ResultsOnboardedVolumes: {
 				Computed:    true,
-				Description: "List of volumes which are onboarded successfully",
+				Description: "List of volumes which are onboarded successfully.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
 			Attr_ResultsVolumeOnboardingFailures: {
-				Computed: true,
+				Computed:    true,
+				Description: "The volume onboarding failure details.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_FailureMessage: {
@@ -125,7 +128,7 @@ func ResourceIBMPIVolumeOnboarding() *schema.Resource {
 			},
 			Attr_Status: {
 				Computed:    true,
-				Description: "Indicates the status of volume onboarding operation",
+				Description: "The status of volume onboarding operation.",
 				Type:        schema.TypeString,
 			},
 		},
@@ -181,14 +184,14 @@ func resourceIBMPIVolumeOnboardingRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	d.Set(Attr_OnboardingID, *onboardingData.ID)
-	d.Set(Attr_CreateTime, onboardingData.CreationTimestamp.String())
 	d.Set(Arg_Description, onboardingData.Description)
+	d.Set(Attr_CreateTime, onboardingData.CreationTimestamp.String())
 	d.Set(Attr_InputVolumes, onboardingData.InputVolumes)
+	d.Set(Attr_OnboardingID, *onboardingData.ID)
 	d.Set(Attr_Progress, onboardingData.Progress)
-	d.Set(Attr_Status, onboardingData.Status)
 	d.Set(Attr_ResultsOnboardedVolumes, onboardingData.Results.OnboardedVolumes)
 	d.Set(Attr_ResultsVolumeOnboardingFailures, flattenVolumeOnboardingFailures(onboardingData.Results.VolumeOnboardingFailures))
+	d.Set(Attr_Status, onboardingData.Status)
 	return nil
 }
 

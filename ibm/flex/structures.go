@@ -19,10 +19,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IBM-Cloud/bluemix-go/api/container/containerv1"
+	"github.com/IBM-Cloud/bluemix-go/api/container/containerv2"
+	"github.com/IBM-Cloud/bluemix-go/api/icd/icdv4"
+	"github.com/IBM-Cloud/bluemix-go/api/mccp/mccpv2"
+	"github.com/IBM-Cloud/bluemix-go/api/schematics"
+	"github.com/IBM-Cloud/bluemix-go/api/usermanagement/usermanagementv2"
 	"github.com/IBM-Cloud/bluemix-go/bmxerror"
 	"github.com/IBM-Cloud/bluemix-go/models"
 	"github.com/IBM-Cloud/container-services-go-sdk/kubernetesserviceapiv1"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM/cloud-databases-go-sdk/clouddatabasesv5"
 	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM/ibm-cos-sdk-go-config/v2/resourceconfigurationv1"
@@ -31,8 +36,11 @@ import (
 	kp "github.com/IBM/keyprotect-go-client"
 	"github.com/IBM/platform-services-go-sdk/globalsearchv2"
 	"github.com/IBM/platform-services-go-sdk/globaltaggingv1"
+	"github.com/IBM/platform-services-go-sdk/iamaccessgroupsv2"
+	"github.com/IBM/platform-services-go-sdk/iamidentityv1"
 	"github.com/IBM/platform-services-go-sdk/iampolicymanagementv1"
 	"github.com/IBM/platform-services-go-sdk/resourcecontrollerv2"
+	rc "github.com/IBM/platform-services-go-sdk/resourcecontrollerv2"
 	rg "github.com/IBM/platform-services-go-sdk/resourcemanagerv2"
 	"github.com/apache/openwhisk-client-go/whisk"
 	"github.com/go-openapi/strfmt"
@@ -41,15 +49,7 @@ import (
 	"github.com/softlayer/softlayer-go/datatypes"
 	"github.com/softlayer/softlayer-go/sl"
 
-	"github.com/IBM-Cloud/bluemix-go/api/container/containerv1"
-	"github.com/IBM-Cloud/bluemix-go/api/container/containerv2"
-	"github.com/IBM-Cloud/bluemix-go/api/icd/icdv4"
-	"github.com/IBM-Cloud/bluemix-go/api/mccp/mccpv2"
-	"github.com/IBM-Cloud/bluemix-go/api/schematics"
-	"github.com/IBM-Cloud/bluemix-go/api/usermanagement/usermanagementv2"
-	"github.com/IBM/platform-services-go-sdk/iamaccessgroupsv2"
-	"github.com/IBM/platform-services-go-sdk/iamidentityv1"
-	rc "github.com/IBM/platform-services-go-sdk/resourcecontrollerv2"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 )
 
 const (
@@ -689,6 +689,9 @@ func FlattenActivityTrack(in *resourceconfigurationv1.ActivityTracking) []interf
 		}
 		if in.WriteDataEvents != nil {
 			att["write_data_events"] = *in.WriteDataEvents
+		}
+		if in.ManagementEvents != nil {
+			att["management_events"] = *in.ManagementEvents
 		}
 		if in.ActivityTrackerCrn != nil {
 			att["activity_tracker_crn"] = *in.ActivityTrackerCrn
@@ -2398,25 +2401,6 @@ func GetTags(d *schema.ResourceData, meta interface{}) error {
 // }
 
 func GetGlobalTagsUsingCRN(meta interface{}, resourceID, resourceType, tagType string) (*schema.Set, error) {
-	userDetails, err := meta.(conns.ClientSession).BluemixUserDetails()
-	if err != nil {
-		return nil, err
-	}
-	accountID := userDetails.UserAccount
-	ListTagsOptions := &globaltaggingv1.ListTagsOptions{}
-	if resourceID != "" {
-		ListTagsOptions.AttachedTo = &resourceID
-	}
-	if strings.HasPrefix(resourceType, "Softlayer_") {
-		ListTagsOptions.Providers = []string{"ims"}
-	}
-	if len(tagType) > 0 {
-		ListTagsOptions.TagType = PtrToString(tagType)
-
-		if tagType == "service" {
-			ListTagsOptions.AccountID = PtrToString(accountID)
-		}
-	}
 	taggingResult, err := GetGlobalTagsUsingSearchAPI(meta, resourceID, resourceType, tagType)
 	if err != nil {
 		return nil, err
@@ -2424,8 +2408,39 @@ func GetGlobalTagsUsingCRN(meta interface{}, resourceID, resourceType, tagType s
 	return taggingResult, nil
 }
 
-func GetGlobalTagsUsingSearchAPI(meta interface{}, resourceID, resourceType, tagType string) (*schema.Set, error) {
+func GetTagsUsingResourceCRNFromTaggingApi(meta interface{}, resourceID, resourceType, tagType string) (*schema.Set, error) {
+	gtClient, err := meta.(conns.ClientSession).GlobalTaggingAPIv1()
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Error getting global tagging client settings: %s", err)
+	}
+	userDetails, err := meta.(conns.ClientSession).BluemixUserDetails()
+	if err != nil {
+		return nil, err
+	}
+	accountID := userDetails.UserAccount
+	ListTagsOptions := &globaltaggingv1.ListTagsOptions{}
+	ListTagsOptions.AttachedTo = &resourceID
+	if strings.HasPrefix(resourceType, "Softlayer_") {
+		ListTagsOptions.Providers = []string{"ims"}
+	}
+	if len(tagType) > 0 {
+		ListTagsOptions.TagType = PtrToString(tagType)
+		if tagType == "service" {
+			ListTagsOptions.AccountID = PtrToString(accountID)
+		}
+	}
+	taggingResult, _, err := gtClient.ListTags(ListTagsOptions)
+	if err != nil {
+		return nil, err
+	}
+	var taglist []string
+	for _, item := range taggingResult.Items {
+		taglist = append(taglist, *item.Name)
+	}
+	return NewStringSet(ResourceIBMVPCHash, taglist), nil
+}
 
+func GetGlobalTagsUsingSearchAPI(meta interface{}, resourceID, resourceType, tagType string) (*schema.Set, error) {
 	gsClient, err := meta.(conns.ClientSession).GlobalSearchAPIV2()
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Error getting global search client settings: %s", err)
@@ -2528,18 +2543,20 @@ func UpdateGlobalTagsUsingCRN(oldList, newList interface{}, meta interface{}, re
 				detachTagOptions.AccountID = PtrToString(acctID)
 			}
 		}
-
-		_, resp, err := gtClient.DetachTag(detachTagOptions)
+		results, fullResponse, err := gtClient.DetachTag(detachTagOptions)
 		if err != nil {
-			return fmt.Errorf("[ERROR] Error detaching database tags %v: %s\n%s", remove, err, resp)
+			return fmt.Errorf("[ERROR] Error detaching tags calling api %v: %s\n%s", remove, err, fullResponse)
 		}
-		for _, v := range remove {
-			delTagOptions := &globaltaggingv1.DeleteTagOptions{
-				TagName: PtrToString(v),
+		if results != nil {
+			errMap := make([]globaltaggingv1.TagResultsItem, 0)
+			for _, res := range results.Results {
+				if res.IsError != nil && *res.IsError {
+					errMap = append(errMap, res)
+				}
 			}
-			_, resp, err := gtClient.DeleteTag(delTagOptions)
-			if err != nil {
-				return fmt.Errorf("[ERROR] Error deleting database tag %v: %s\n%s", v, err, resp)
+			if len(errMap) > 0 {
+				output, _ := json.MarshalIndent(errMap, "", "    ")
+				return fmt.Errorf("[ERROR] Error detaching tag in results %v: %s\n%s", remove, string(output), fullResponse)
 			}
 		}
 	}
@@ -2559,7 +2576,7 @@ func UpdateGlobalTagsUsingCRN(oldList, newList interface{}, meta interface{}, re
 		if err != nil {
 			return fmt.Errorf("[ERROR] Error updating database tags %v : %s\n%s", add, err, resp)
 		}
-		response, errored := waitForTagsAvailable(meta, resourceID, resourceType, tagType, news, 30*time.Second)
+		response, errored := WaitForTagsAvailable(meta, resourceID, resourceType, tagType, news, 30*time.Second)
 		if errored != nil {
 			log.Printf(`[ERROR] Error waiting for resource tags %s : %v
 %v`, resourceID, errored, response)
@@ -2569,7 +2586,7 @@ func UpdateGlobalTagsUsingCRN(oldList, newList interface{}, meta interface{}, re
 	return nil
 }
 
-func waitForTagsAvailable(meta interface{}, resourceID, resourceType, tagType string, desired *schema.Set, timeout time.Duration) (interface{}, error) {
+func WaitForTagsAvailable(meta interface{}, resourceID, resourceType, tagType string, desired *schema.Set, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for tag attachment (%s) to be successful.", resourceID)
 
 	stateConf := &resource.StateChangeConf{
@@ -2621,7 +2638,7 @@ func GetTagsUsingCRN(meta interface{}, resourceCRN string) (*schema.Set, error) 
 }
 
 func UpdateTagsUsingCRN(oldList, newList interface{}, meta interface{}, resourceCRN string) error {
-	gtClient, err := meta.(conns.ClientSession).GlobalTaggingAPI()
+	gtClient, err := meta.(conns.ClientSession).GlobalTaggingAPIv1()
 	if err != nil {
 		return fmt.Errorf("[ERROR] Error getting global tagging client settings: %s", err)
 	}
@@ -2651,23 +2668,74 @@ func UpdateTagsUsingCRN(oldList, newList interface{}, meta interface{}, resource
 		add = append(add, envTags...)
 	}
 
+	resources := []globaltaggingv1.Resource{}
+	r := globaltaggingv1.Resource{ResourceID: &resourceCRN}
+	resources = append(resources, r)
+
 	if len(remove) > 0 {
-		_, err := gtClient.Tags().DetachTags(resourceCRN, remove)
+		detachTagOptions := &globaltaggingv1.DetachTagOptions{}
+		detachTagOptions.Resources = resources
+		detachTagOptions.TagNames = remove
+
+		results, fullResponse, err := gtClient.DetachTag(detachTagOptions)
 		if err != nil {
-			return fmt.Errorf("[ERROR] Error detaching database tags %v: %s", remove, err)
+			return fmt.Errorf("[ERROR] Error detaching tags %v: %s", remove, err)
+		}
+		if results != nil {
+			errMap := make([]globaltaggingv1.TagResultsItem, 0)
+			for _, res := range results.Results {
+				if res.IsError != nil && *res.IsError {
+					errMap = append(errMap, res)
+				}
+			}
+			if len(errMap) > 0 {
+				output, _ := json.MarshalIndent(errMap, "", "    ")
+				return fmt.Errorf("[ERROR] Error detaching tag %v: %s\n%s", remove, string(output), fullResponse)
+			}
 		}
 		for _, v := range remove {
-			_, err := gtClient.Tags().DeleteTag(v)
+			delTagOptions := &globaltaggingv1.DeleteTagOptions{
+				TagName: PtrToString(v),
+			}
+			results, fullResponse, err := gtClient.DeleteTag(delTagOptions)
 			if err != nil {
-				return fmt.Errorf("[ERROR] Error deleting database tag %v: %s", v, err)
+				return fmt.Errorf("[ERROR] Error deleting tag %v: %s\n%s", v, err, fullResponse)
+			}
+
+			if results != nil {
+				errMap := make([]globaltaggingv1.DeleteTagResultsItem, 0)
+				for _, res := range results.Results {
+					if res.IsError != nil && *res.IsError {
+						errMap = append(errMap, res)
+					}
+				}
+				if len(errMap) > 0 {
+					output, _ := json.MarshalIndent(errMap, "", "    ")
+					return fmt.Errorf("[ERROR] Error deleting tag %s: %s\n%s", v, string(output), fullResponse)
+				}
 			}
 		}
 	}
 
 	if len(add) > 0 {
-		_, err := gtClient.Tags().AttachTags(resourceCRN, add)
+		AttachTagOptions := &globaltaggingv1.AttachTagOptions{}
+		AttachTagOptions.Resources = resources
+		AttachTagOptions.TagNames = add
+		results, fullResponse, err := gtClient.AttachTag(AttachTagOptions)
 		if err != nil {
-			return fmt.Errorf("[ERROR] Error updating database tags %v : %s", add, err)
+			return fmt.Errorf("[ERROR] Error updating tags %v : %s", add, err)
+		}
+		if results != nil {
+			errMap := make([]globaltaggingv1.TagResultsItem, 0)
+			for _, res := range results.Results {
+				if res.IsError != nil && *res.IsError {
+					errMap = append(errMap, res)
+				}
+			}
+			if len(errMap) > 0 {
+				output, _ := json.MarshalIndent(errMap, "", "    ")
+				return fmt.Errorf("Error while updating tag: %s - Full response: %s", string(output), fullResponse)
+			}
 		}
 	}
 
@@ -3157,12 +3225,25 @@ func FlattenInstancePolicy(policyType string, policies []kp.InstancePolicy) []ma
 			metricsMap = append(metricsMap, policyInstance)
 		}
 		if policy.PolicyType == "keyCreateImportAccess" {
-			policyInstance["enabled"] = policy.PolicyData.Enabled
-			policyInstance["create_root_key"] = policy.PolicyData.Attributes.CreateRootKey
-			policyInstance["create_standard_key"] = policy.PolicyData.Attributes.CreateStandardKey
-			policyInstance["import_root_key"] = policy.PolicyData.Attributes.ImportRootKey
-			policyInstance["import_standard_key"] = policy.PolicyData.Attributes.ImportStandardKey
-			policyInstance["enforce_token"] = policy.PolicyData.Attributes.EnforceToken
+			if policy.PolicyData.Enabled != nil {
+				policyInstance["enabled"] = *policy.PolicyData.Enabled
+			}
+			if policy.PolicyData.Attributes.CreateRootKey != nil {
+				policyInstance["create_root_key"] = *policy.PolicyData.Attributes.CreateRootKey
+			}
+			if policy.PolicyData.Attributes.CreateStandardKey != nil {
+				policyInstance["create_standard_key"] = *policy.PolicyData.Attributes.CreateStandardKey
+			}
+			if policy.PolicyData.Attributes.ImportRootKey != nil {
+				policyInstance["import_root_key"] = *policy.PolicyData.Attributes.ImportRootKey
+			}
+			if policy.PolicyData.Attributes.ImportStandardKey != nil {
+				policyInstance["import_standard_key"] = *policy.PolicyData.Attributes.ImportStandardKey
+			}
+			if policy.PolicyData.Attributes.EnforceToken != nil {
+				policyInstance["enforce_token"] = *policy.PolicyData.Attributes.EnforceToken
+			}
+
 			keyCreateImportAccessMap = append(keyCreateImportAccessMap, policyInstance)
 		}
 	}
@@ -3418,6 +3499,14 @@ func FindRoleByName(supported []iampolicymanagementv1.PolicyRole, name string) (
 			}
 		}
 	}
+	if name == "NONE" {
+		name := "NONE"
+		r := iampolicymanagementv1.PolicyRole{
+			DisplayName: &name,
+			RoleID:      &name,
+		}
+		return r, nil
+	}
 	supportedRoles := getSupportedRolesStr(supported)
 	return iampolicymanagementv1.PolicyRole{}, bmxerror.New("RoleDoesnotExist",
 		fmt.Sprintf("%s was not found. Valid roles are %s", name, supportedRoles))
@@ -3440,7 +3529,7 @@ func FindRoleByCRN(supported []iampolicymanagementv1.PolicyRole, crn string) (ia
 }
 
 func getSupportedRolesStr(supported []iampolicymanagementv1.PolicyRole) string {
-	rolesStr := ""
+	rolesStr := "NONE, "
 	for index, role := range supported {
 		if index != 0 {
 			rolesStr += ", "
@@ -4215,6 +4304,15 @@ func FlattenSatelliteHosts(hostList []kubernetesserviceapiv1.MultishiftQueueNode
 	return hosts
 }
 
+func FlattenSatelliteCapabilities(capabilities *schema.Set) []kubernetesserviceapiv1.CapabilityManagedBySatellite {
+	result := make([]kubernetesserviceapiv1.CapabilityManagedBySatellite, capabilities.Len())
+	for i, v := range capabilities.List() {
+		result[i] = kubernetesserviceapiv1.CapabilityManagedBySatellite(v.(string))
+	}
+
+	return result
+}
+
 func FlattenWorkerPoolHostLabels(hostLabels map[string]string) *schema.Set {
 	mapped := make([]string, 0)
 	for k, v := range hostLabels {
@@ -4326,4 +4424,28 @@ func Listdifference(a, b []string) []string {
 		}
 	}
 	return ab
+}
+
+// Stringify returns the stringified form of value "v".
+// If "v" is a string-based type (string, strfmt.Date, strfmt.DateTime, strfmt.UUID, etc.),
+// then it is returned unchanged (e.g. `this is a string`, `foo`, `2025-06-03`).
+// Otherwise, json.Marshal() is used to serialze "v" and the resulting string is returned
+// (e.g. `32`, `true`, `[true, false, true]`, `{"foo": "bar"}`).
+// Note: the backticks in the comments above are not part of the returned strings.
+func Stringify(v interface{}) string {
+	if !core.IsNil(v) {
+		if s, ok := v.(string); ok {
+			return s
+		} else if s, ok := v.(interface{ String() string }); ok {
+			return s.String()
+		} else {
+			bytes, err := json.Marshal(v)
+			if err != nil {
+				log.Printf("[ERROR] Error marshaling 'any type' value as string: %s", err.Error())
+				return ""
+			}
+			return string(bytes)
+		}
+	}
+	return ""
 }

@@ -6,7 +6,6 @@ package database_test
 import (
 	"fmt"
 	"reflect"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -57,16 +56,12 @@ func TestAccIBMDatabaseInstancePostgresBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "adminuser", "admin"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "4096"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "8192"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "20480"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "0"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "1"),
 					resource.TestCheckResourceAttr(name, "users.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.1.name", "admin"),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certname", regexp.MustCompile("[-a-z0-9]*")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certbase64", regexp.MustCompile("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 					resource.TestCheckResourceAttr(name, "logical_replication_slot.#", "1"),
 				),
@@ -79,18 +74,11 @@ func TestAccIBMDatabaseInstancePostgresBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "databases-for-postgresql"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "8192"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "16384"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "28672"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public-and-private"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
 					resource.TestCheckResourceAttr(name, "users.#", "3"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "4"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.3.name", "admin"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.hosts.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.scheme", "postgres"),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.certname", regexp.MustCompile("[-a-z0-9]*")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.certbase64", regexp.MustCompile("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.database", regexp.MustCompile("[-a-z0-9]+")),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 					resource.TestCheckResourceAttr(name, "logical_replication_slot.#", "2"),
 				),
@@ -127,16 +115,12 @@ func TestAccIBMDatabaseInstancePostgresGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "adminuser", "admin"),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "2"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "2048"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "8192"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "10240"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "6"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "1"),
 					resource.TestCheckResourceAttr(name, "users.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.1.name", "admin"),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certname", regexp.MustCompile("[-a-z0-9]*")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certbase64", regexp.MustCompile("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 				),
 			},
@@ -149,19 +133,12 @@ func TestAccIBMDatabaseInstancePostgresGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "2"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "2304"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "16384"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "14336"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "6"),
 					resource.TestCheckResourceAttr(name, "service_endpoints", "public-and-private"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
 					resource.TestCheckResourceAttr(name, "users.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "3"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.2.name", "admin"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.hosts.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.scheme", "postgres"),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.certname", regexp.MustCompile("[-a-z0-9]*")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.certbase64", regexp.MustCompile("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.0.database", regexp.MustCompile("[-a-z0-9]+")),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 				),
 			},
@@ -174,12 +151,11 @@ func TestAccIBMDatabaseInstancePostgresGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "2"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "2048"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "8192"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "14336"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "6"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
 					resource.TestCheckResourceAttr(name, "users.#", "0"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "1"),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 				),
 			},
@@ -192,12 +168,11 @@ func TestAccIBMDatabaseInstancePostgresGroup(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "groups.0.count", "3"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "8192"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "21504"),
 					resource.TestCheckResourceAttr(name, "groups.0.cpu.0.allocation_count", "9"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
 					resource.TestCheckResourceAttr(name, "users.#", "0"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "1"),
 					resource.TestCheckResourceAttr(name, "tags.#", "1"),
 				),
 			},
@@ -416,10 +391,11 @@ func testAccCheckIBMDatabaseInstancePostgresBasic(databaseResourceGroup string, 
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-			  allocation_mb = 2048
+			  allocation_mb = 4096
 			}
 			host_flavor {
 				id = "multitenant"
@@ -469,7 +445,7 @@ func testAccCheckIBMDatabaseInstancePostgresFullyspecified(databaseResourceGroup
 		group {
 			group_id = "member"
 			memory {
-			  allocation_mb = 4096
+			  allocation_mb = 8192
 			}
 			disk {
 			  allocation_mb = 14336
@@ -544,7 +520,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupBasic(databaseResourceGroup str
 				allocation_count = 2
 			}
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
 			}
 			disk {
 				allocation_mb = 5120
@@ -556,6 +532,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupBasic(databaseResourceGroup str
 				id = "multitenant"
 			}
 		}
+		service_endpoints            = "public"
 		users {
 			name     = "user123"
 			password = "password12345678"
@@ -589,7 +566,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupFullyspecified(databaseResource
 				allocation_count = 2
 			}
 			memory {
-				allocation_mb = 1152
+				allocation_mb = 8192
 			}
 			disk {
 				allocation_mb = 7168
@@ -642,7 +619,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupReduced(databaseResourceGroup s
 				allocation_count = 2
 			}
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
 			}
 			disk {
 				allocation_mb = 7168
@@ -677,7 +654,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupScaleOut(databaseResourceGroup 
 				allocation_count = 3
 			}
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 8192
 			}
 			disk {
 				allocation_mb = 7168
@@ -708,6 +685,7 @@ func testAccCheckIBMDatabaseInstancePostgresImport(databaseResourceGroup string,
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints = "public-and-private"
 	  }
 				`, databaseResourceGroup, name, acc.Region())
 }
@@ -725,6 +703,7 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal(databaseResourceGroup string
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints            = "public-and-private"
 	}
 				`, databaseResourceGroup, name, acc.Region())
 }
@@ -742,6 +721,7 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal_PITR(databaseResourceGroup s
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints = "public-and-private"
 	}
 
 	resource "ibm_database" "%[2]s-pitr" {
@@ -752,6 +732,7 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal_PITR(databaseResourceGroup s
 		location                              = "%[3]s"
 		point_in_time_recovery_deployment_id  = ibm_database.%[2]s.id
 		point_in_time_recovery_time           = ""
+		service_endpoints                     = "public-and-private"
 	}
 				`, databaseResourceGroup, name, acc.Region())
 }

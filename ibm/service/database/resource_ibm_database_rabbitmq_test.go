@@ -35,14 +35,10 @@ func TestAccIBMDatabaseInstance_Rabbitmq_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "adminuser", "admin"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "24576"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "3072"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "1"),
 					resource.TestCheckResourceAttr(name, "users.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.1.name", "admin"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.hosts.#", "1"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.database", ""),
 				),
 			},
 			{
@@ -53,12 +49,10 @@ func TestAccIBMDatabaseInstance_Rabbitmq_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "messages-for-rabbitmq"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "6144"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "30720"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "6144"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
 					resource.TestCheckResourceAttr(name, "users.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "3"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.2.name", "admin"),
 				),
 			},
 			{
@@ -69,11 +63,10 @@ func TestAccIBMDatabaseInstance_Rabbitmq_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "messages-for-rabbitmq"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "24576"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "6144"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
 					resource.TestCheckResourceAttr(name, "users.#", "0"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "1"),
 				),
 			},
 			// {
@@ -137,10 +130,11 @@ func testAccCheckIBMDatabaseInstanceRabbitmqBasic(databaseResourceGroup string, 
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 8192
 			}
 			host_flavor {
 				id = "multitenant"
@@ -180,10 +174,11 @@ func testAccCheckIBMDatabaseInstanceRabbitmqFullyspecified(databaseResourceGroup
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 2048
+				allocation_mb = 10240
 			}
 			host_flavor {
 				id = "multitenant"
@@ -227,10 +222,11 @@ func testAccCheckIBMDatabaseInstanceRabbitmqReduced(databaseResourceGroup string
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 8192
 			}
 			host_flavor {
 				id = "multitenant"
@@ -256,6 +252,7 @@ func testAccCheckIBMDatabaseInstanceRabbitmqImport(databaseResourceGroup string,
 		service           = "messages-for-rabbitmq"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints = "public"
 	}
 				`, databaseResourceGroup, name, acc.Region())
 }

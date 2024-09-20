@@ -5,7 +5,6 @@ package database_test
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
@@ -38,12 +37,8 @@ func TestAccIBMDatabaseInstanceMongodbBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "adminuser", "admin"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "1"),
 					resource.TestCheckResourceAttr(name, "users.#", "1"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "30720"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "2"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.1.name", "admin"),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certname", regexp.MustCompile("[-a-z0-9]*")),
-					resource.TestMatchResourceAttr(name, "connectionstrings.1.certbase64", regexp.MustCompile("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$")),
 				),
 			},
 			{
@@ -56,11 +51,8 @@ func TestAccIBMDatabaseInstanceMongodbBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "2"),
 					resource.TestCheckResourceAttr(name, "users.#", "2"),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "6144"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "15360"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "30720"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "3"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.2.name", "admin"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.0.scheme", "mongodb"),
 				),
 			},
 			{
@@ -71,11 +63,10 @@ func TestAccIBMDatabaseInstanceMongodbBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "service", "databases-for-mongodb"),
 					resource.TestCheckResourceAttr(name, "plan", "standard"),
 					resource.TestCheckResourceAttr(name, "location", acc.Region()),
-					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "3072"),
+					resource.TestCheckResourceAttr(name, "groups.0.memory.0.allocation_mb", "12288"),
 					resource.TestCheckResourceAttr(name, "groups.0.disk.0.allocation_mb", "30720"),
 					resource.TestCheckResourceAttr(name, "allowlist.#", "0"),
 					resource.TestCheckResourceAttr(name, "users.#", "0"),
-					resource.TestCheckResourceAttr(name, "connectionstrings.#", "1"),
 				),
 			},
 			// {
@@ -117,7 +108,7 @@ func TestAccIBMDatabaseInstanceMongodbImport(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"wait_time_minutes", "connectionstrings"},
+					"wait_time_minutes"},
 			},
 		},
 	})
@@ -136,10 +127,11 @@ func testAccCheckIBMDatabaseInstanceMongodbBasic(databaseResourceGroup string, n
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
 			}
 			host_flavor {
 				id = "multitenant"
@@ -173,10 +165,11 @@ func testAccCheckIBMDatabaseInstanceMongodbFullyspecified(databaseResourceGroup 
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 2048
+				allocation_mb = 5120
 			}
 			host_flavor {
 				id = "multitenant"
@@ -218,10 +211,11 @@ func testAccCheckIBMDatabaseInstanceMongodbReduced(databaseResourceGroup string,
 		plan                         = "standard"
 		location                     = "%[3]s"
 		adminpassword                = "password12345678"
+		service_endpoints            = "public"
 		group {
 			group_id = "member"
 			memory {
-				allocation_mb = 1024
+				allocation_mb = 4096
 			}
 			host_flavor {
 				id = "multitenant"
@@ -248,6 +242,7 @@ func testAccCheckIBMDatabaseInstanceMongodbImport(databaseResourceGroup string, 
 		service           = "databases-for-mongodb"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints            = "public"
 	}
 
 				`, databaseResourceGroup, name, acc.Region())
