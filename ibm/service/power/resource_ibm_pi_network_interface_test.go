@@ -42,7 +42,6 @@ func TestAccIBMPINetworkInterfaceBasic(t *testing.T) {
 }
 
 func TestAccIBMPINetworkInterfaceAllArgs(t *testing.T) {
-
 	name := fmt.Sprintf("tf-pi-name-%d", acctest.RandIntRange(10, 100))
 	nameUpdate := fmt.Sprintf("tf-pi-name-update-%d", acctest.RandIntRange(10, 100))
 	netInterRes := "ibm_pi_network_interface.network_interface"
@@ -83,17 +82,15 @@ func testAccCheckIBMPINetworkInterfaceConfigBasic(name string) string {
 
 func testAccCheckIBMPINetworkInterfaceConfig(name string) string {
 	return fmt.Sprintf(`
-
 		resource "ibm_pi_network_interface" "network_interface" {
 			pi_cloud_instance_id = "%s"
 			pi_network_id = "%s"
 			pi_name = "%s"
-			pi_user_tags = ["tags1"]
+			pi_user_tags = ["env:dev", "dataresidency:france"]
 		}`, acc.Pi_cloud_instance_id, acc.Pi_network_id, name)
 }
 
 func testAccCheckIBMPINetworkInterfaceExists(n string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -118,7 +115,6 @@ func testAccCheckIBMPINetworkInterfaceExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		return nil
-
 	}
 }
 
@@ -141,6 +137,5 @@ func testAccCheckIBMPINetworkInterfaceDestroy(s *terraform.State) error {
 			return fmt.Errorf("pi_network_interface still exists: %s", rs.Primary.ID)
 		}
 	}
-
 	return nil
 }

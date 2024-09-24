@@ -45,7 +45,7 @@ Review the argument references that you can specify for your resource.
 - `pi_ip_address` - (Optional,Forces new resource, String) The requested IP address of this network interface.
 - `pi_name` - (Optional, String) Name of the network interface.
 - `pi_network_id` - (Required, Forces new resource, String) network id.
-- `pi_user_tags` - (Optional, Forces new resource, List) The user tags attached to this resource.
+- `pi_user_tags` - (Optional, Forces new resource, List) List of user tags attached to the resource.
 
 ## Attribute Reference
 

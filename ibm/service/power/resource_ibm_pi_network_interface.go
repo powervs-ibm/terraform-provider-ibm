@@ -67,11 +67,12 @@ func ResourceIBMPINetworkInterface() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_UserTags: {
-				Description: "The user tags attached to this resource.",
+				Description: "List of user tags attached to the resource.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
-				Type:        schema.TypeList,
+				Set:         schema.HashString,
+				Type:        schema.TypeSet,
 			},
 			// Attributes
 			Attr_CRN: {
@@ -150,9 +151,8 @@ func resourceIBMPINetworkInterfaceCreate(ctx context.Context, d *schema.Resource
 		body.Name = v.(string)
 	}
 	if v, ok := d.GetOk(Arg_UserTags); ok {
-		if len(v.([]interface{})) > 0 {
-			userTags := flex.ExpandStringList(v.([]interface{}))
-			body.UserTags = userTags
+		if len(flex.FlattenSet(v.(*schema.Set))) > 0 {
+			body.UserTags = flex.FlattenSet(v.(*schema.Set))
 		}
 	}
 	networkInterface, err := networkC.CreateNetworkInterface(networkID, body)
