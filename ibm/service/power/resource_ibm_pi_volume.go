@@ -92,7 +92,8 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
 				Optional:    true,
-				Type:        schema.TypeList,
+				Set:         schema.HashString,
+				Type:        schema.TypeSet,
 			},
 			Arg_VolumeName: {
 				Description:  "The name of the volume.",
@@ -255,8 +256,8 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 	}
 	if v, ok := d.GetOk(Arg_ReplicationSites); ok {
 		if d.Get(Arg_ReplicationEnabled).(bool) {
-			if len(v.([]interface{})) > 0 {
-				body.ReplicationSites = flex.ExpandStringList(v.([]interface{}))
+			if len(flex.FlattenSet(v.(*schema.Set))) > 0 {
+				body.ReplicationSites = flex.FlattenSet(v.(*schema.Set))
 			}
 		} else {
 			return diag.Errorf("Replication (%s) must be enabled if replication sites are specified.", Arg_ReplicationEnabled)
