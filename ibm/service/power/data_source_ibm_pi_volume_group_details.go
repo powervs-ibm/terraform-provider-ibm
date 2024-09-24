@@ -50,8 +50,8 @@ func DataSourceIBMPIVolumeGroupDetails() *schema.Resource {
 			Attr_ReplicationSites: {
 				Computed:    true,
 				Description: "Indicates the replication sites of the volume group.",
-				Type:        schema.TypeList,
 				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
 			},
 			Attr_Status: {
 				Computed:    true,
