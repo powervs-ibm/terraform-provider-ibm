@@ -115,10 +115,10 @@ func resourceIBMPISPPPlacementGroupRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
-	d.Set(Arg_SPPPlacementGroupName, response.Name)
 	d.Set(Attr_SPPPlacementGroupID, response.ID)
-	d.Set(Arg_SPPPlacementGroupPolicy, response.Policy)
 	d.Set(Attr_SPPPlacementGroupMembers, response.MemberSharedProcessorPools)
+	d.Set(Arg_SPPPlacementGroupName, response.Name)
+	d.Set(Arg_SPPPlacementGroupPolicy, response.Policy)
 
 	return nil
 

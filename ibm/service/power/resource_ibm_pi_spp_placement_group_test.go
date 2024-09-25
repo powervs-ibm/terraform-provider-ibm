@@ -31,7 +31,7 @@ func TestAccIBMPISPPPlacementGroupBasic(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPISPPPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckIBMPICreateSAPInstanceWithSPP(name, policy, "tinytest-1x4"),
+				Config:      testAccCheckIBMPICreateSAPInstanceWithSPP(name, policy),
 				ExpectError: regexp.MustCompile("\"pi_shared_processor_pool\": conflicts with pi_sap_profile_id"),
 			},
 			{
@@ -583,7 +583,7 @@ func testAccCheckIBMPICreateInstanceWithSPP(name string, policy string) string {
 		}`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, acc.Pi_network_name)
 }
 
-func testAccCheckIBMPICreateSAPInstanceWithSPP(name string, policy string, sapProfile string) string {
+func testAccCheckIBMPICreateSAPInstanceWithSPP(name string, policy string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_shared_processor_pool" "spp_pool" {
 			pi_cloud_instance_id  = "%[1]s"
@@ -654,5 +654,5 @@ func testAccCheckIBMPICreateSAPInstanceWithSPP(name string, policy string, sapPr
 			}
 			pi_health_status		= "OK"
 			pi_shared_processor_pool = ibm_pi_shared_processor_pool.spp_pool_2.pi_shared_processor_pool_name
-		}`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, acc.Pi_network_name, acc.Pi_sap_image, sapProfile)
+		}`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, acc.Pi_network_name, acc.Pi_sap_image, acc.PiSAPProfileID)
 }
