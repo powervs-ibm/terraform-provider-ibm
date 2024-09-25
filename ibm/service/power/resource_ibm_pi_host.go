@@ -67,11 +67,12 @@ func ResourceIBMPIHost() *schema.Resource {
 							Type:        schema.TypeString,
 						},
 						Attr_UserTags: {
-							Description: "List of user tags.",
+							Description: "List of user tags attached to the resource.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							ForceNew:    true,
 							Optional:    true,
-							Type:        schema.TypeList,
+							Set:         schema.HashString,
+							Type:        schema.TypeSet,
 						},
 					},
 				},
@@ -184,8 +185,8 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 			DisplayName: core.StringPtr(host[Attr_DisplayName].(string)),
 			SysType:     core.StringPtr(host[Attr_SysType].(string)),
 		}
-		if len(host[Attr_UserTags].([]interface{})) > 0 {
-			hs.UserTags = flex.ExpandStringList(host[Attr_UserTags].([]interface{}))
+		if len(flex.FlattenSet(host[Attr_UserTags].(*schema.Set))) > 0 {
+			hs.UserTags = flex.FlattenSet(host[Attr_UserTags].(*schema.Set))
 		}
 		hostBody = append(hostBody, &hs)
 	}
