@@ -61,6 +61,14 @@ func ResourceIBMPIHostGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							ValidateFunc: validation.NoZeroValues,
 						},
+						Attr_UserTags: {
+							Description: "List of user tags attached to the resource.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							ForceNew:    true,
+							Optional:    true,
+							Set:         schema.HashString,
+							Type:        schema.TypeSet,
+						},
 					},
 				},
 				Required: true,
@@ -354,8 +362,8 @@ func hostMapToAddHost(modelMap map[string]interface{}) *models.AddHost {
 	host := &models.AddHost{}
 	host.DisplayName = core.StringPtr(modelMap[Attr_DisplayName].(string))
 	host.SysType = core.StringPtr(modelMap[Attr_SysType].(string))
-	if len(modelMap[Attr_UserTags].([]interface{})) > 0 {
-		host.UserTags = flex.ExpandStringList(modelMap[Attr_UserTags].([]interface{}))
+	if len(flex.FlattenSet(modelMap[Attr_UserTags].(*schema.Set))) > 0 {
+		host.UserTags = flex.FlattenSet(modelMap[Attr_UserTags].(*schema.Set))
 	}
 	return host
 }

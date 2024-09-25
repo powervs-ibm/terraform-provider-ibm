@@ -101,7 +101,6 @@ const (
 	Arg_TargetStorageTier                   = "pi_target_storage_tier"
 	Arg_Type                                = "pi_type"
 	Arg_UserData                            = "pi_user_data"
-	Arg_UserTags                            = "pi_user_tags"
 	Arg_VirtualCoresAssigned                = "pi_virtual_cores_assigned"
 	Arg_VirtualOpticalDevice                = "pi_virtual_optical_device"
 	Arg_VolumeCloneName                     = "pi_volume_clone_name"
