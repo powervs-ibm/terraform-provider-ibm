@@ -31,6 +31,13 @@ func ResourceIBMPISPPPlacementGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			// Arguments
+			Arg_CloudInstanceID: {
+				Description: "PI cloud instance ID",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
+			},
 
 			Arg_SPPPlacementGroupName: {
 				Description: "Name of the SPP placement group",
@@ -47,10 +54,10 @@ func ResourceIBMPISPPPlacementGroup() *schema.Resource {
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{"affinity", "anti-affinity"}),
 			},
 
-			Arg_CloudInstanceID: {
-				Description: "PI cloud instance ID",
-				ForceNew:    true,
-				Required:    true,
+			// Attributes
+			Attr_SPPPlacementGroupID: {
+				Computed:    true,
+				Description: "SPP placement group ID",
 				Type:        schema.TypeString,
 			},
 
@@ -59,12 +66,6 @@ func ResourceIBMPISPPPlacementGroup() *schema.Resource {
 				Description: "Member SPP IDs that are the SPP placement group members",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeSet,
-			},
-
-			Attr_SPPPlacementGroupID: {
-				Computed:    true,
-				Description: "SPP placement group ID",
-				Type:        schema.TypeString,
 			},
 		},
 	}
