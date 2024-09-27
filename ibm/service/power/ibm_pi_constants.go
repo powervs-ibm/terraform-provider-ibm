@@ -100,6 +100,7 @@ const (
 	Arg_VolumeSize                          = "pi_volume_size"
 	Arg_VolumeType                          = "pi_volume_type"
 	Arg_VTL                                 = "vtl"
+	Arg_NetworkID                           = "pi_network_id"
 
 	// Duplicate Arguments, will be removed as refactoring take course.
 	PIVolumeGroupID      = "pi_volume_group_id"
