@@ -69,7 +69,6 @@ func ResourceIBMPIHost() *schema.Resource {
 						Attr_UserTags: {
 							Description: "List of user tags attached to the resource.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							ForceNew:    true,
 							Optional:    true,
 							Set:         schema.HashString,
 							Type:        schema.TypeSet,
@@ -204,6 +203,17 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	host := hosts[0].(map[string]interface{})
+	tags := flex.FlattenSet(host[Attr_UserTags].(*schema.Set))
+	if len(tags) > 0 {
+		oldList, newList := d.GetChange(Attr_Hosts + ".0." + Attr_UserTags)
+		err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(hostResponse[0].Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on update of pi host (%s) pi_user_tags during creation: %s", hostResponse[0].ID, err)
+		}
+	}
+
 	return resourceIBMPIHostRead(ctx, d, meta)
 }
 
@@ -232,6 +242,11 @@ func resourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	if host.Crn != "" {
 		d.Set(Attr_CRN, host.Crn)
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(host.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of pi host (%s) pi_user_tags: %s", host.ID, err)
+		}
+		d.Set(Attr_UserTags, tags)
 	}
 	if host.DisplayName != "" {
 		d.Set(Attr_DisplayName, host.DisplayName)

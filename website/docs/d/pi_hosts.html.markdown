@@ -73,3 +73,4 @@ After your data source is created, you can read values from the following attrib
   - `state` - (String) State of the host `up` or `down`.
   - `status` - (String) Status of the host `enabled` or `disabled`.
   - `sys_type` - (String) System type.
+  - `user_tags` - (List) List of user tags attached to the resource.

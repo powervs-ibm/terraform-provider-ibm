@@ -5,6 +5,7 @@ package power
 
 import (
 	"context"
+	"log"
 
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 )
 
 func DataSourceIBMPIHosts() *schema.Resource {
@@ -117,6 +119,13 @@ func DataSourceIBMPIHosts() *schema.Resource {
 							Description: "System type.",
 							Type:        schema.TypeString,
 						},
+						Attr_UserTags: {
+							Computed:    true,
+							Description: "List of user tags attached to the resource.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Set:         schema.HashString,
+							Type:        schema.TypeSet,
+						},
 					},
 				},
 				Type: schema.TypeList,
@@ -149,6 +158,12 @@ func dataSourceIBMPIHostsRead(ctx context.Context, d *schema.ResourceData, meta 
 			}
 			if host.Crn != "" {
 				hs[Attr_CRN] = host.Crn
+				d.Set(Attr_CRN, host.Crn)
+				tags, err := flex.GetTagsUsingCRN(meta, string(host.Crn))
+				if err != nil {
+					log.Printf("Error on get of pi host (%s) user_tags: %s", host.ID, err)
+				}
+				hs[Attr_UserTags] = tags
 			}
 			if host.DisplayName != "" {
 				hs[Attr_DisplayName] = host.DisplayName
