@@ -21,6 +21,11 @@ func DataSourceIBMPIDatacenter() *schema.Resource {
 		ReadContext: dataSourceIBMPIDatacenterRead,
 		Schema: map[string]*schema.Schema{
 			// Arguments
+			Arg_CloudInstanceID: {
+				Description: "The GUID of the service instance associated with an account.",
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 			Arg_DatacenterZone: {
 				Description:  "Datacenter zone you want to retrieve.",
 				Optional:     true,
@@ -180,7 +185,18 @@ func dataSourceIBMPIDatacenterRead(ctx context.Context, d *schema.ResourceData, 
 	if region, ok := d.GetOk(Arg_DatacenterZone); ok {
 		datacenterZone = region.(string)
 	}
-	client := instance.NewIBMPIDatacenterClient(ctx, sess, "")
+
+	var client *instance.IBMPIDatacentersClient
+	if !sess.IsOnPrem() {
+		client = instance.NewIBMPIDatacenterClient(ctx, sess, "")
+	} else {
+		if cloudInstanceId, ok := d.GetOk(Arg_CloudInstanceID); ok {
+			client = instance.NewIBMPIDatacenterClient(ctx, sess, cloudInstanceId.(string))
+		} else {
+			return diag.Errorf("must provide %s if the datacenter is private/on-prem", Arg_CloudInstanceID)
+		}
+	}
+
 	dcData, err := client.Get(datacenterZone)
 	if err != nil {
 		return diag.FromErr(err)

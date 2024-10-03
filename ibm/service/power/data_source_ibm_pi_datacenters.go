@@ -17,6 +17,13 @@ func DataSourceIBMPIDatacenters() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceIBMPIDatacentersRead,
 		Schema: map[string]*schema.Schema{
+			// Arguments
+			Arg_CloudInstanceID: {
+				Description: "The GUID of the service instance associated with an account.",
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
+
 			// Attributes
 			Attr_Datacenters: {
 				Type:        schema.TypeList,
@@ -173,7 +180,16 @@ func dataSourceIBMPIDatacentersRead(ctx context.Context, d *schema.ResourceData,
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	client := instance.NewIBMPIDatacenterClient(ctx, sess, "")
+	var client *instance.IBMPIDatacentersClient
+	if !sess.IsOnPrem() {
+		client = instance.NewIBMPIDatacenterClient(ctx, sess, "")
+	} else {
+		if cloudInstanceId, ok := d.GetOk(Arg_CloudInstanceID); ok {
+			client = instance.NewIBMPIDatacenterClient(ctx, sess, cloudInstanceId.(string))
+		} else {
+			return diag.Errorf("must provide %s if the datacenters are private/on-prem", Arg_CloudInstanceID)
+		}
+	}
 	datacentersData, err := client.GetAll()
 	if err != nil {
 		return diag.FromErr(err)
