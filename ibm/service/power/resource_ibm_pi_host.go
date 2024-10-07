@@ -274,18 +274,36 @@ func resourceIBMPIHostUpdate(ctx context.Context, d *schema.ResourceData, meta i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	displayName := d.Get(Arg_Host + ".0").(map[string]interface{})[Attr_DisplayName].(string)
 	client := instance.NewIBMPIHostGroupsClient(ctx, sess, cloudInstanceID)
 	if d.HasChange(Arg_Host) {
+		oldHost, newHost := d.GetChange(Arg_Host + ".0")
 
-		hostBody := models.HostPut{
-			DisplayName: &displayName,
+		displayNameOld := oldHost.(map[string]interface{})[Attr_DisplayName].(string)
+		displayNameNew := newHost.(map[string]interface{})[Attr_DisplayName].(string)
+
+		if displayNameNew != displayNameOld {
+			hostBody := models.HostPut{
+				DisplayName: &displayNameNew,
+			}
+			_, err := client.UpdateHost(&hostBody, hostID)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
-		_, err := client.UpdateHost(&hostBody, hostID)
-		if err != nil {
-			return diag.FromErr(err)
+
+		if crn, ok := d.GetOk(Attr_CRN); ok {
+			userTagsOld := oldHost.(map[string]interface{})[Attr_UserTags].(*schema.Set)
+			userTagsNew := newHost.(map[string]interface{})[Attr_UserTags].(*schema.Set)
+			if !userTagsNew.Equal(userTagsOld) {
+				err = flex.UpdateGlobalTagsUsingCRN(userTagsOld, userTagsNew, meta, crn.(string), "", UserTagType)
+				if err != nil {
+					log.Printf("Error on update of pi host (%s) pi_user_tags: %s", d.Get(Attr_HostID), err)
+				}
+			}
 		}
+
 	}
+
 	return resourceIBMPIHostRead(ctx, d, meta)
 }
 
