@@ -62,6 +62,7 @@ You can specify the following arguments for this resource.
   Nested schema for `pi_hosts`:
       - `display_name` - (Required, String) Name of the host chosen by the user.
       - `sys_type` - (Required, String) System type.
+      - `user_tags` - (Optional, List) The user tags attached to this resource.
 
 * `pi_name` - (Required, String) Name of the host group to create.
 * `pi_remove` - (Optional, String) A workspace ID to stop sharing the host group with.

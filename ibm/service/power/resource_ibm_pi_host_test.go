@@ -19,6 +19,7 @@ import (
 
 func TestAccIBMIHostBasic(t *testing.T) {
 	displayName := fmt.Sprintf("tf_display_name_%d", acctest.RandIntRange(10, 100))
+	hostRes := "ibm_pi_host.host"
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.TestAccPreCheck(t)
@@ -29,13 +30,14 @@ func TestAccIBMIHostBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIHostConfig(displayName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPIHostExists("ibm_pi_host.host"),
-					resource.TestCheckResourceAttr("ibm_pi_host.host", "display_name", displayName),
+					testAccCheckIBMPIHostExists(hostRes),
+					resource.TestCheckResourceAttr(hostRes, "display_name", displayName),
 				),
 			},
 		},
 	})
 }
+
 func testAccCheckIBMPIHostConfig(name string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_host" "host" {
