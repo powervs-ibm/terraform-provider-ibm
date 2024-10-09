@@ -258,6 +258,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
+			Arg_RetainVirtualSerialNumber: {
+				ConflictsWith: []string{Arg_Replicants, Arg_SAPProfileID},
+				Description:   "Indicates if the Virtual Serial Number attached to a PVM Instance is reserved or not. Indicates if VSN is retained when changed.",
+				Optional:      true,
+				Type:          schema.TypeBool,
+			},
 			Arg_SAPProfileID: {
 				ConflictsWith: []string{Arg_Processors, Arg_Memory, Arg_ProcType},
 				Description:   "SAP Profile ID for the amount of cores and memory",
@@ -332,6 +338,28 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Attach}),
+			},
+			Arg_VirtualSerialNumber: {
+				Description:   "Virtual Serial Number information",
+				ConflictsWith: []string{Arg_Replicants, Arg_SAPProfileID},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Description: {
+							Description: "Description of the Virtual Serial Number",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
+						Attr_Serial: {
+							Description:      "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
+							DiffSuppressFunc: supressVSNDiffAutoAssign,
+							Required:         true,
+							Type:             schema.TypeString,
+						},
+					},
+				},
+				MaxItems: 1,
+				Optional: true,
+				Type:     schema.TypeList,
 			},
 			Arg_VolumeIDs: {
 				Description:      "List of PI volumes",
@@ -635,6 +663,11 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	} else {
 		d.Set(Attr_Fault, nil)
 	}
+
+	if powervmdata.VirtualSerialNumber != nil {
+		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(powervmdata.VirtualSerialNumber))
+	}
+
 	return nil
 }
 
@@ -940,6 +973,19 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 	}
 
+	if d.HasChange(Arg_VirtualSerialNumber) {
+		oldVSN, newVSN := d.GetChange(Arg_VirtualSerialNumber)
+		oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
+		newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
+		if newVSNMap[Attr_Serial] != oldVSNMap[Attr_Serial] {
+			// newVSN := newVSNMap[Attr_Serial].(string)
+
+		}
+
+		if newVSNMap[Attr_Description] != oldVSNMap[Attr_Description] {
+			// newDescription := newVSNMap[Attr_Description].(string)
+		}
+	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
 }
 
@@ -957,7 +1003,13 @@ func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, me
 	cloudInstanceID := idArr[0]
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 	for _, instanceID := range idArr[1:] {
-		err = client.Delete(instanceID)
+		body := &models.PVMInstanceDelete{}
+		if retainVSN, ok := d.GetOk(Arg_RetainVirtualSerialNumber); ok {
+			retainVSNBool := retainVSN.(bool)
+			body.RetainVSN = &retainVSNBool
+		}
+		err = client.DeleteWithBody(instanceID, body)
+
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1703,6 +1755,13 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
+
+	if vsn, ok := d.GetOk(Arg_VirtualSerialNumber); ok {
+		vsnListType := vsn.(*schema.Set).List()
+		vsnCreateModel := vsnSetToCreateModel(vsnListType, d)
+		body.VirtualSerialNumber = vsnCreateModel
+	}
+
 	pvmList, err := client.Create(body)
 
 	if err != nil {
@@ -1731,4 +1790,30 @@ func splitID(id string) (id1, id2 string, err error) {
 	id1 = parts[0]
 	id2 = parts[1]
 	return
+}
+func vsnSetToCreateModel(vsnSetList []interface{}, d *schema.ResourceData) *models.CreateServerVirtualSerialNumber {
+	vsnItemMap := vsnSetList[0].(map[string]interface{})
+	serialString := vsnItemMap[Attr_Serial].(string)
+	model := &models.CreateServerVirtualSerialNumber{
+		Serial: &serialString,
+	}
+	description := vsnItemMap[Attr_Description].(string)
+	if description != "" {
+		model.Description = description
+	}
+
+	return model
+}
+func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
+	v := make([]map[string]interface{}, 1)
+	v[0] = map[string]interface{}{
+		Attr_Serial:      vsn.Serial,
+		Attr_Description: vsn.Description,
+	}
+	return v
+}
+
+// Do not show a diff if VSN is "auto-assign"
+func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ToLower(new) == "auto-assign"
 }
