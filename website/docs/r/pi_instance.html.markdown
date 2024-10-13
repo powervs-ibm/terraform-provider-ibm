@@ -163,6 +163,7 @@ In addition to all argument reference list, you can access the following attribu
   - `type` - (String) The type of network.
   - `external_ip` - (String) The external IP address of the network.
 - `progress` - (Float) - Specifies the overall progress of the instance deployment process in percentage.
+- `serial` - (String) Virtual serial number assigned to instance. If "auto-assign" is selected, this attribute will contain generated serial.
 - `shared_processor_pool_id` - (String)  The ID of the shared processor pool for the instance.
 - `status` - (String) The status of the instance.
 
