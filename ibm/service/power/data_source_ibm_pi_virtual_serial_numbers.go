@@ -5,7 +5,9 @@ package power
 
 import (
 	"context"
+	"log"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -31,40 +33,65 @@ func DataSourceIBMPIVirtualSerialNumbers() *schema.Resource {
 			},
 
 			// Attributes
-			// Attr_VirtualSerialNumbers: {
-			// 	Computed: true,
-			// 	Elem: &schema.Resource{
-			// 		Schema: map[string]*schema.Schema{
-			// 			Attr_Description: {
-			// 				Computed:    true,
-			// 				Description: "Description of virtual serial number.",
-			// 				Type:        schema.TypeString,
-			// 			},
-			// 			Attr_PVMInstanceID: {
-			// 				Computed:    true,
-			// 				Description: "ID of PVM instance virtual serial number is attached to.",
-			// 				Type:        schema.TypeString,
-			// 			},
-			// 			Attr_Serial: {
-			// 				Computed:    true,
-			// 				Description: "Virtual Serial Number.",
-			// 				Type:        schema.TypeString,
-			// 			},
-			// 		},
-			// 	},
-			// 	Type: schema.TypeList,
-			// },
+			Attr_VirtualSerialNumbers: {
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Description: {
+							Computed:    true,
+							Description: "Description of virtual serial number.",
+							Type:        schema.TypeString,
+						},
+						Attr_PVMInstanceID: {
+							Computed:    true,
+							Description: "ID of PVM instance virtual serial number is attached to.",
+							Type:        schema.TypeString,
+						},
+						Attr_Serial: {
+							Computed:    true,
+							Description: "Virtual Serial Number.",
+							Type:        schema.TypeString,
+						},
+					},
+				},
+				Type: schema.TypeList,
+			},
 		},
 	}
 }
 
 func dataSourceIBMPIVirtualSerialNumbersRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	_, err := meta.(conns.ClientSession).IBMPISession()
+	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	return diag.Errorf("Placeholder")
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+
+	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+
+	var pvmInstanceID string
+	if instanceID, ok := d.GetOk(Arg_PVMInstanceId); ok {
+		pvmInstanceID = instanceID.(string)
+	}
+
+	vsns, err := client.GetAll(&pvmInstanceID)
+	if err != nil {
+		log.Printf("[DEBUG] get virtual serial numbers failed: %v", err)
+		return diag.FromErr(err)
+	}
+
+	vsnMapList := make([]map[string]interface{}, 0)
+	for _, vsn := range vsns {
+		v := make(map[string]interface{})
+		v[Attr_Description] = vsn.Description
+		v[Attr_PVMInstanceID] = vsn.PvmInstanceID
+		v[Attr_Serial] = vsn.Serial
+		vsnMapList = append(vsnMapList, v)
+	}
+
+	d.Set(Attr_VirtualSerialNumbers, vsnMapList)
+	return nil
 }
 
 func flattenVirtualSerialNumbers() {}
