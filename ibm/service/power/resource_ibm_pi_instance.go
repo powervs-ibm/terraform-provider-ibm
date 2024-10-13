@@ -1813,7 +1813,7 @@ func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) 
 	return v
 }
 
-// Do not show a diff if VSN is "auto-assign"
+// Do not show a diff if VSN is "auto-assign" and vsn argument is present
 func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(new) == "auto-assign"
+	return strings.ToLower(new) == "auto-assign" && new != ""
 }

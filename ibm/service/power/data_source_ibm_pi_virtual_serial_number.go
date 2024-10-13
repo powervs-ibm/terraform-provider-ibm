@@ -5,7 +5,9 @@ package power
 
 import (
 	"context"
+	"log"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,12 +26,12 @@ func DataSourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			// Arg_VirtualSerialNumber: {
-			// 	Description:  "Virtual serial number.",
-			// 	Required:     true,
-			// 	Type:         schema.TypeString,
-			// 	ValidateFunc: validation.NoZeroValues,
-			// },
+			Arg_VirtualSerialNumber: {
+				Description:  "Virtual serial number.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
+			},
 
 			// Attributes
 			Attr_Description: {
@@ -42,15 +44,34 @@ func DataSourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Description: "ID of PVM instance virtual serial number is attached to.",
 				Type:        schema.TypeString,
 			},
+			Attr_Serial: {
+				Computed:    true,
+				Description: "Serial number.",
+				Type:        schema.TypeString,
+			},
 		},
 	}
 }
 
 func dataSourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	_, err := meta.(conns.ClientSession).IBMPISession()
+	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	return diag.Errorf("Placeholder")
+	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+
+	vsnInput := d.Get(Arg_VirtualSerialNumber).(string)
+	virtualSerialNumberData, err := client.Get(vsnInput)
+	if err != nil {
+		log.Printf("[DEBUG] get virtual serial number %s failed: %v", vsnInput, err)
+		return diag.FromErr(err)
+	}
+
+	d.Set(Attr_Description, virtualSerialNumberData.Description)
+	d.Set(Attr_PVMInstanceID, virtualSerialNumberData.PvmInstanceID)
+	d.Set(Attr_Serial, virtualSerialNumberData.Serial)
+
+	return nil
 }
