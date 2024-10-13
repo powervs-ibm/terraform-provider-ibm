@@ -350,10 +350,9 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:        schema.TypeString,
 						},
 						Attr_Serial: {
-							Description:      "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
-							DiffSuppressFunc: supressVSNDiffAutoAssign,
-							Required:         true,
-							Type:             schema.TypeString,
+							Description: "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
+							Required:    true,
+							Type:        schema.TypeString,
 						},
 					},
 				},
@@ -442,6 +441,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "Progress of the operation",
 				Type:        schema.TypeFloat,
+			},
+			Attr_Serial: {
+				Computed:    true,
+				Description: "Virtual Serial Number of instance.",
+				Type:        schema.TypeString,
 			},
 			Attr_SharedProcessorPoolID: {
 				Computed:    true,
@@ -666,6 +670,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 
 	if powervmdata.VirtualSerialNumber != nil {
 		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(powervmdata.VirtualSerialNumber))
+		d.Set(Attr_Serial, powervmdata.VirtualSerialNumber.Serial)
 	}
 
 	return nil
@@ -1807,13 +1812,7 @@ func vsnSetToCreateModel(vsnSetList []interface{}, d *schema.ResourceData) *mode
 func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
 	v := make([]map[string]interface{}, 1)
 	v[0] = map[string]interface{}{
-		Attr_Serial:      vsn.Serial,
 		Attr_Description: vsn.Description,
 	}
 	return v
-}
-
-// Do not show a diff if VSN is "auto-assign" and vsn argument is present
-func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(new) == "auto-assign" && new != ""
 }
