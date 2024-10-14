@@ -349,10 +349,16 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Optional:    true,
 							Type:        schema.TypeString,
 						},
+						Attr_RetainVirtualSerialNumber: {
+							Description: "Indicates if the Virtual Serial Number attached to a PVM Instance is reserved or not. Indicates if VSN is retained when changed.",
+							Optional:    true,
+							Type:        schema.TypeBool,
+						},
 						Attr_Serial: {
-							Description: "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
-							Required:    true,
-							Type:        schema.TypeString,
+							Description:      "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
+							DiffSuppressFunc: supressVSNDiffAutoAssign,
+							Required:         true,
+							Type:             schema.TypeString,
 						},
 					},
 				},
@@ -979,6 +985,8 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
+		// vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+
 		oldVSN, newVSN := d.GetChange(Arg_VirtualSerialNumber)
 		oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
 		newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
@@ -988,7 +996,10 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		if newVSNMap[Attr_Description] != oldVSNMap[Attr_Description] {
-			// newDescription := newVSNMap[Attr_Description].(string)
+			// newDescriptipn := newVSNMap[Attr_Description].(string)
+			// body := &models.UpdateServerVirtualSerialNumber{
+			// 	Description: &newDescriptipn,
+			// }
 		}
 	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
@@ -1009,7 +1020,7 @@ func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, me
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 	for _, instanceID := range idArr[1:] {
 		body := &models.PVMInstanceDelete{}
-		if retainVSN, ok := d.GetOk(Arg_RetainVirtualSerialNumber); ok {
+		if retainVSN, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber); ok {
 			retainVSNBool := retainVSN.(bool)
 			body.RetainVSN = &retainVSNBool
 		}
@@ -1815,4 +1826,9 @@ func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) 
 		Attr_Description: vsn.Description,
 	}
 	return v
+}
+
+// Do not show a diff if VSN is changed to existing assigned VSN
+func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
+	return new == d.Get(Attr_Serial)
 }
