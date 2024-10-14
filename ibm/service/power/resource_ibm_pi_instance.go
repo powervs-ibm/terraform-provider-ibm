@@ -258,12 +258,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
-			Arg_RetainVirtualSerialNumber: {
-				ConflictsWith: []string{Arg_Replicants, Arg_SAPProfileID},
-				Description:   "Indicates if the Virtual Serial Number attached to a PVM Instance is reserved or not. Indicates if VSN is retained when changed.",
-				Optional:      true,
-				Type:          schema.TypeBool,
-			},
 			Arg_SAPProfileID: {
 				ConflictsWith: []string{Arg_Processors, Arg_Memory, Arg_ProcType},
 				Description:   "SAP Profile ID for the amount of cores and memory",
