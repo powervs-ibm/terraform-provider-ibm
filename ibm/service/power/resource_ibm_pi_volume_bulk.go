@@ -85,11 +85,12 @@ func ResourceIBMPIVolumeBulk() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_Count: {
-				Default:     1,
-				Description: "Number of volumes to create. Default 1.",
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeInt,
+				Default:      1,
+				Description:  "Number of volumes to create. Default 1.",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 			Arg_ReplicationEnabled: {
 				Computed:    true,
@@ -138,7 +139,7 @@ func ResourceIBMPIVolumeBulk() *schema.Resource {
 				ForceNew:     true,
 				Required:     true,
 				Type:         schema.TypeFloat,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.FloatAtLeast(1),
 			},
 			Arg_VolumeType: {
 				Computed:         true,
