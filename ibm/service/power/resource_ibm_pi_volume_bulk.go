@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/power/client/p_cloud_volumes"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
@@ -451,11 +450,11 @@ func resourceIBMPIVolumeBulkDelete(ctx context.Context, d *schema.ResourceData, 
 
 	log.Printf("[DEBUG] Volumes delete accepted: %s", volInfo.Summary)
 
-	for _, volumeID := range volumeIDs {
-		_, err = isWaitForIBMPIVolumeBulkDeleted(ctx, client, volumeID, d.Timeout(schema.TimeoutDelete))
-		if err != nil {
-			return diag.FromErr(err)
-		}
+	_, err = isWaitForIBMPIVolumeBulkDeleted(ctx, client, volumeIDs, d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		d.SetId(cloudInstanceID + err.Error())
+		err = errors.New("error deleting all volumes")
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")
@@ -492,11 +491,11 @@ func isIBMPIVolumeBulkRefreshFunc(client *instance.IBMPIVolumeClient, id string)
 	}
 }
 
-func isWaitForIBMPIVolumeBulkDeleted(ctx context.Context, client *instance.IBMPIVolumeClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeBulkDeleted(ctx context.Context, client *instance.IBMPIVolumeClient, volumeIDs []string, timeout time.Duration) (interface{}, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Deleting},
-		Target:     []string{State_Deleted},
-		Refresh:    isIBMPIVolumeBulkDeleteRefreshFunc(client, id),
+		Target:     []string{State_Deleted, State_Error},
+		Refresh:    isIBMPIVolumeBulkDeleteRefreshFunc(client, volumeIDs),
 		Delay:      10 * time.Second,
 		MinTimeout: 2 * time.Minute,
 		Timeout:    timeout,
@@ -504,21 +503,35 @@ func isWaitForIBMPIVolumeBulkDeleted(ctx context.Context, client *instance.IBMPI
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isIBMPIVolumeBulkDeleteRefreshFunc(client *instance.IBMPIVolumeClient, id string) retry.StateRefreshFunc {
+func isIBMPIVolumeBulkDeleteRefreshFunc(client *instance.IBMPIVolumeClient, volumeIDs []string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		vol, err := client.Get(id)
-		if err != nil {
-			uErr := errors.Unwrap(err)
-			switch uErr.(type) {
-			case *p_cloud_volumes.PcloudCloudinstancesVolumesGetNotFound:
-				log.Printf("[DEBUG] volume does not exist %v", err)
-				return vol, State_Deleted, nil
+		// Every iteration find all volumes that were not deleted
+		var leftoverVolumeIDs []string
+		for _, volumeID := range volumeIDs {
+			vol, err := client.Get(volumeID)
+			if err == nil {
+				leftoverVolumeIDs = append(leftoverVolumeIDs, *vol.VolumeID)
 			}
-			return nil, "", err
 		}
-		if vol == nil {
-			return vol, State_Deleted, nil
+
+		// If all volumes were deleted then there are no leftovers
+		if len(leftoverVolumeIDs) == 0 {
+			return leftoverVolumeIDs, State_Deleted, nil
+		} else {
+			// Every volume that has not been deleted will be retried.
+			volumesDelete := models.VolumesDelete{
+				VolumeIDs: leftoverVolumeIDs,
+			}
+			_, err := client.BulkVolumeDelete(&volumesDelete)
+			if err != nil {
+				var leftoverIDs string
+				for _, leftoverVolumeID := range leftoverVolumeIDs {
+					leftoverIDs += "/" + leftoverVolumeID
+				}
+				leftoverError := errors.New(leftoverIDs)
+				return leftoverVolumeIDs, State_Error, leftoverError
+			}
+			return leftoverVolumeIDs, State_Deleting, nil
 		}
-		return vol, State_Deleting, nil
 	}
 }
