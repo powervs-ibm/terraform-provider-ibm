@@ -277,7 +277,7 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 		policy := ap.(string)
 		body.AffinityPolicy = &policy
 
-		if policy == "affinity" {
+		if policy == Affinity {
 			if av, ok := d.GetOk(Arg_AffinityVolume); ok {
 				afvol := av.(string)
 				body.AffinityVolume = &afvol
@@ -317,10 +317,12 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	if _, ok := d.GetOk(Arg_UserTags); ok {
-		oldList, newList := d.GetChange(Arg_UserTags)
-		err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(vol.Crn), "", UserTagType)
-		if err != nil {
-			log.Printf("Error on update of volume (%s) pi_user_tags during creation: %s", volumeid, err)
+		if vol.Crn != "" {
+			oldList, newList := d.GetChange(Arg_UserTags)
+			err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(vol.Crn), "", UserTagType)
+			if err != nil {
+				log.Printf("Error on update of volume (%s) pi_user_tags during creation: %s", volumeid, err)
+			}
 		}
 	}
 

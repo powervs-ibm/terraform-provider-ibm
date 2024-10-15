@@ -85,7 +85,7 @@ func ResourceIBMPIVolumeBulk() *schema.Resource {
 			},
 			Arg_Count: {
 				Default:      1,
-				Description:  "Number of volumes to create. Default 1.",
+				Description:  "Number of volumes to create. Default 1. Maximum is 500 for public workspaces, and 250 for private workspaces.",
 				ForceNew:     true,
 				Optional:     true,
 				Type:         schema.TypeInt,
@@ -244,21 +244,6 @@ func ResourceIBMPIVolumeBulk() *schema.Resource {
 	}
 }
 
-func ResourceIBMPIVolumeBulkValidator() *validate.ResourceValidator {
-	validateSchema := make([]validate.ValidateSchema, 0)
-	validateSchema = append(validateSchema,
-		validate.ValidateSchema{
-			Identifier:                 "pi_affinity",
-			ValidateFunctionIdentifier: validate.ValidateAllowedStringValue,
-			Type:                       validate.TypeString,
-			Required:                   true,
-			AllowedValues:              "affinity, anti-affinity"})
-	IBMPIVolumeBulkResourceValidator := validate.ResourceValidator{
-		ResourceName: "ibm_pi_volume",
-		Schema:       validateSchema}
-	return &IBMPIVolumeBulkResourceValidator
-}
-
 func resourceIBMPIVolumeBulkCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -301,7 +286,7 @@ func resourceIBMPIVolumeBulkCreate(ctx context.Context, d *schema.ResourceData, 
 		policy := ap.(string)
 		body.AffinityPolicy = &policy
 
-		if policy == "affinity" {
+		if policy == Affinity {
 			if av, ok := d.GetOk(Arg_AffinityVolume); ok {
 				afvol := av.(string)
 				body.AffinityVolume = &afvol
@@ -346,10 +331,12 @@ func resourceIBMPIVolumeBulkCreate(ctx context.Context, d *schema.ResourceData, 
 			return diag.FromErr(err)
 		}
 		if _, ok := d.GetOk(Arg_UserTags); ok {
-			oldList, newList := d.GetChange(Arg_UserTags)
-			err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(vol.Crn), "", UserTagType)
-			if err != nil {
-				log.Printf("Error on update of volume (%s) pi_user_tags during creation: %s", volumeid, err)
+			if vol.Crn != "" {
+				oldList, newList := d.GetChange(Arg_UserTags)
+				err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(vol.Crn), "", UserTagType)
+				if err != nil {
+					log.Printf("Error on update of volume (%s) pi_user_tags during creation: %s", volumeid, err)
+				}
 			}
 		}
 	}
