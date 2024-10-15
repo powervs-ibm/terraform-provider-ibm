@@ -44,13 +44,13 @@ func TestAccIBMPIVolumeBulkbasic(t *testing.T) {
 func testAccCheckIBMPIVolumeBulkConfig(name string, userTagsString string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_volume_bulk" "power_volume" {
-			pi_cloud_instance_id	= "%[2]s"
-			pi_count				= 5
-			pi_user_tags			= %[3]s
-			pi_volume_name			= "%[1]s"
-			pi_volume_shareable		= true
-			pi_volume_size			= 1
-			pi_volume_type			= "tier3"
+			pi_cloud_instance_id    = "%[2]s"
+			pi_count                = 5
+			pi_user_tags            = %[3]s
+			pi_volume_name          = "%[1]s"
+			pi_volume_shareable     = true
+			pi_volume_size          = 1
+			pi_volume_type          = "tier3"
 		}`, name, acc.Pi_cloud_instance_id, userTagsString)
 }
 
