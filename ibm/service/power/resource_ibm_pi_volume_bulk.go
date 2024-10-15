@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2017, 2021 All Rights Reserved.
+// Copyright IBM Corp. 2024 All Rights Reserved.
 // Licensed under the Mozilla Public License v2.0
 
 package power
@@ -469,7 +469,7 @@ func isWaitForIBMPIVolumeBulkAvailable(ctx context.Context, client *instance.IBM
 	log.Printf("Waiting for Volume (%s) to be available.", id)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Retry, State_Creating},
+		Pending:    []string{State_Creating},
 		Target:     []string{State_Available},
 		Refresh:    isIBMPIVolumeBulkRefreshFunc(client, id),
 		Delay:      10 * time.Second,
@@ -497,7 +497,7 @@ func isIBMPIVolumeBulkRefreshFunc(client *instance.IBMPIVolumeClient, id string)
 
 func isWaitForIBMPIVolumeBulkDeleted(ctx context.Context, client *instance.IBMPIVolumeClient, id string, timeout time.Duration) (interface{}, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Deleting, State_Creating},
+		Pending:    []string{State_Deleting},
 		Target:     []string{State_Deleted},
 		Refresh:    isIBMPIVolumeBulkDeleteRefreshFunc(client, id),
 		Delay:      10 * time.Second,
