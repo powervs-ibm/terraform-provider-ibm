@@ -85,6 +85,7 @@ func ResourceIBMPIVolumeBulk() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_Count: {
+				Default:     1,
 				Description: "Number of volumes to create. Default 1.",
 				ForceNew:    true,
 				Optional:    true,
@@ -276,12 +277,7 @@ func resourceIBMPIVolumeBulkCreate(ctx context.Context, d *schema.ResourceData, 
 		Shareable: &shared,
 		Size:      &size,
 	}
-	if v, ok := d.GetOk(Arg_Count); ok {
-		count := v.(int)
-		body.Count = int64(count)
-	} else {
-		body.Count = 1
-	}
+	body.Count = int64(d.Get(Arg_Count).(int))
 	if v, ok := d.GetOk(Arg_VolumeType); ok {
 		volType := v.(string)
 		body.DiskType = volType
