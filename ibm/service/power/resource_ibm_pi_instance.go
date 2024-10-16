@@ -979,21 +979,45 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
-		// vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+		vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
 		oldVSN, newVSN := d.GetChange(Arg_VirtualSerialNumber)
 		oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
 		newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
+		pvmInstanceID := d.Get(Attr_PVMInstanceID).(string)
 		if newVSNMap[Attr_Serial] != oldVSNMap[Attr_Serial] {
-			// newVSN := newVSNMap[Attr_Serial].(string)
-
-		}
-
-		if newVSNMap[Attr_Description] != oldVSNMap[Attr_Description] {
-			// newDescriptipn := newVSNMap[Attr_Description].(string)
-			// body := &models.UpdateServerVirtualSerialNumber{
-			// 	Description: &newDescriptipn,
-			// }
+			deleteBody := &models.DeleteServerVirtualSerialNumber{}
+			if retainVSN, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber); ok {
+				retainVSNBool := retainVSN.(bool)
+				deleteBody.RetainVSN = retainVSNBool
+			}
+			err := vsnClient.PVMInstanceDeleteVSN(pvmInstanceID, deleteBody)
+			if err != nil {
+				diag.FromErr(err)
+			}
+			newVSNString := newVSN.(string)
+			if newVSNString != "" {
+				description := newVSNMap[Attr_Description].(string)
+				addBody := &models.AddServerVirtualSerialNumber{
+					Description: description,
+					Serial:      &newVSNString,
+				}
+				err := vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
+				if err != nil {
+					diag.FromErr(err)
+				}
+			}
+		} else {
+			if newVSNMap[Attr_Description].(string) != oldVSNMap[Attr_Description].(string) {
+				newDescriptipn := newVSNMap[Attr_Description].(string)
+				body := &models.UpdateServerVirtualSerialNumber{
+					Description: &newDescriptipn,
+				}
+				_, err := vsnClient.PVMInstanceUpdateVSN(pvmInstanceID, body)
+				if err != nil {
+					diag.FromErr(err)
+				}
+			}
 		}
 	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
