@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2017, 2021 All Rights Reserved.
+// Copyright IBM Corp. 2017, 2021, 2024 All Rights Reserved.
 // Licensed under the Mozilla Public License v2.0
 
 package power
@@ -344,6 +344,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:        schema.TypeString,
 						},
 						Attr_RetainVirtualSerialNumber: {
+							Default:     false,
 							Description: "Indicates if the Virtual Serial Number attached to a PVM Instance is reserved or not. Indicates if VSN is retained when changed.",
 							Optional:    true,
 							Type:        schema.TypeBool,
@@ -986,10 +987,9 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
 		pvmInstanceID := d.Get(Attr_PVMInstanceID).(string)
 		if newVSNMap[Attr_Serial] != oldVSNMap[Attr_Serial] {
-			deleteBody := &models.DeleteServerVirtualSerialNumber{}
-			if retainVSN, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber); ok {
-				retainVSNBool := retainVSN.(bool)
-				deleteBody.RetainVSN = retainVSNBool
+			retainVSNBool := oldVSNMap[Attr_RetainVirtualSerialNumber].(bool)
+			deleteBody := &models.DeleteServerVirtualSerialNumber{
+				RetainVSN: retainVSNBool,
 			}
 			err := vsnClient.PVMInstanceDeleteVSN(pvmInstanceID, deleteBody)
 			if err != nil {
@@ -1037,10 +1037,9 @@ func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, me
 	cloudInstanceID := idArr[0]
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 	for _, instanceID := range idArr[1:] {
-		body := &models.PVMInstanceDelete{}
-		if retainVSN, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber); ok {
-			retainVSNBool := retainVSN.(bool)
-			body.RetainVSN = &retainVSNBool
+		retainVSNBool := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber).(bool)
+		body := &models.PVMInstanceDelete{
+			RetainVSN: &retainVSNBool,
 		}
 		err = client.DeleteWithBody(instanceID, body)
 
@@ -1791,7 +1790,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 
 	if vsn, ok := d.GetOk(Arg_VirtualSerialNumber); ok {
-		vsnListType := vsn.(*schema.Set).List()
+		vsnListType := vsn.([]interface{})
 		vsnCreateModel := vsnSetToCreateModel(vsnListType, d)
 		body.VirtualSerialNumber = vsnCreateModel
 	}
