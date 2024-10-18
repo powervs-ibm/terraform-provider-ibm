@@ -63,10 +63,10 @@ Review the argument references that you can specify for your resource.
 
 ## Import
 
-The `ibm_virtual_serial_number` resource can be imported by using `power_instance_id` and `serial`.
+The `ibm_virtual_serial_number` resource can be imported by using `pi_cloud_instance_id` and `serial`.
 
 **Example**
 
 ```bash
-$ terraform import ibm_pi_virtual_serial_number.example power_instance_id/virtual_serial_number
+$ terraform import ibm_pi_virtual_serial_number.example d7bec597-4726-451f-8a63-e62e6f19c32c/VS0762Y
 ```
