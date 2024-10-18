@@ -335,7 +335,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 			},
 			Arg_VirtualSerialNumber: {
 				Description:   "Virtual Serial Number information",
-				ConflictsWith: []string{Arg_Replicants, Arg_SAPProfileID},
+				ConflictsWith: []string{Arg_SAPProfileID},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_Description: {
@@ -351,8 +351,8 @@ func ResourceIBMPIInstance() *schema.Resource {
 						},
 						Attr_Serial: {
 							Description:      "Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.",
-							DiffSuppressFunc: supressVSNDiffAutoAssign,
 							Required:         true,
+							DiffSuppressFunc: supressVSNDiffAutoAssign,
 							Type:             schema.TypeString,
 						},
 					},
@@ -670,8 +670,10 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	if powervmdata.VirtualSerialNumber != nil {
-		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(powervmdata.VirtualSerialNumber))
+		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(d, powervmdata.VirtualSerialNumber))
 		d.Set(Attr_Serial, powervmdata.VirtualSerialNumber.Serial)
+	} else {
+		d.Set(Arg_VirtualSerialNumber, nil)
 	}
 
 	return nil
@@ -980,44 +982,85 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
-		vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+		pvmInstanceID := d.Get(Attr_InstanceID).(string)
+		err := stopLparForResourceChange(ctx, client, pvmInstanceID, d)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 
+		vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 		oldVSN, newVSN := d.GetChange(Arg_VirtualSerialNumber)
-		oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
-		newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
-		pvmInstanceID := d.Get(Attr_PVMInstanceID).(string)
-		if newVSNMap[Attr_Serial] != oldVSNMap[Attr_Serial] {
-			retainVSNBool := oldVSNMap[Attr_RetainVirtualSerialNumber].(bool)
+		lenOld := len(oldVSN.([]interface{}))
+		lenNew := len(newVSN.([]interface{}))
+
+		if lenNew == 0 && lenOld > 0 {
+			oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
+			retainVSN := oldVSNMap[Attr_RetainVirtualSerialNumber].(bool)
 			deleteBody := &models.DeleteServerVirtualSerialNumber{
-				RetainVSN: retainVSNBool,
+				RetainVSN: retainVSN,
 			}
 			err := vsnClient.PVMInstanceDeleteVSN(pvmInstanceID, deleteBody)
 			if err != nil {
-				diag.FromErr(err)
+				return diag.FromErr(err)
 			}
-			newVSNString := newVSN.(string)
-			if newVSNString != "" {
-				description := newVSNMap[Attr_Description].(string)
-				addBody := &models.AddServerVirtualSerialNumber{
-					Description: description,
-					Serial:      &newVSNString,
-				}
-				err := vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
-				if err != nil {
-					diag.FromErr(err)
-				}
+		} else if lenNew > 0 && lenOld == 0 {
+			newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
+			description := newVSNMap[Attr_Description].(string)
+			serial := newVSNMap[Attr_Serial].(string)
+			addBody := &models.AddServerVirtualSerialNumber{
+				Description: description,
+				Serial:      &serial,
+			}
+			err := vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
+			if err != nil {
+				return diag.FromErr(err)
 			}
 		} else {
-			if newVSNMap[Attr_Description].(string) != oldVSNMap[Attr_Description].(string) {
-				newDescriptipn := newVSNMap[Attr_Description].(string)
-				body := &models.UpdateServerVirtualSerialNumber{
-					Description: &newDescriptipn,
+			newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
+			oldVSNMap := oldVSN.([]interface{})[0].(map[string]interface{})
+			newSerial := newVSNMap[Attr_Serial].(string)
+			oldSerial := oldVSNMap[Attr_Serial].(string)
+
+			newDescription := newVSNMap[Attr_Description].(string)
+			oldDescription := oldVSNMap[Attr_Description].(string)
+
+			retainVSN := oldVSNMap[Attr_RetainVirtualSerialNumber].(bool)
+
+			if newSerial != oldSerial {
+				deleteBody := &models.DeleteServerVirtualSerialNumber{
+					RetainVSN: retainVSN,
 				}
-				_, err := vsnClient.PVMInstanceUpdateVSN(pvmInstanceID, body)
+				err := vsnClient.PVMInstanceDeleteVSN(pvmInstanceID, deleteBody)
 				if err != nil {
-					diag.FromErr(err)
+					return diag.FromErr(err)
+				}
+
+				addBody := &models.AddServerVirtualSerialNumber{
+					Description: newDescription,
+					Serial:      &newDescription,
+				}
+				err = vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+			} else {
+				if oldDescription != newDescription {
+					updateBody := &models.UpdateServerVirtualSerialNumber{
+						Description: &newDescription,
+					}
+					_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
+					if err != nil {
+						return diag.FromErr(err)
+					}
 				}
 			}
+		}
+
+		_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+
+		err = startLparAfterResourceChange(ctx, client, pvmInstanceID, d)
+		if err != nil {
+			return diag.FromErr(err)
 		}
 	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
@@ -1837,15 +1880,17 @@ func vsnSetToCreateModel(vsnSetList []interface{}, d *schema.ResourceData) *mode
 
 	return model
 }
-func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
+func flattenVirtualSerialNumberToList(d *schema.ResourceData, vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
 	v := make([]map[string]interface{}, 1)
 	v[0] = map[string]interface{}{
 		Attr_Description: vsn.Description,
+		Attr_Serial:      vsn.Serial,
 	}
 	return v
 }
 
 // Do not show a diff if VSN is changed to existing assigned VSN
 func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
-	return new == d.Get(Attr_Serial)
+	val := d.Get(Attr_Serial)
+	return new == val && val != nil
 }
