@@ -205,7 +205,7 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 	host := hosts[0].(map[string]interface{})
 	tags := flex.FlattenSet(host[Attr_UserTags].(*schema.Set))
 	if len(tags) > 0 {
-		oldList, newList := d.GetChange(Attr_Hosts + ".0." + Attr_UserTags)
+		oldList, newList := d.GetChange(Arg_Host + ".0." + Attr_UserTags)
 		err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(hostResponse[0].Crn), "", UserTagType)
 		if err != nil {
 			log.Printf("Error on update of pi host (%s) pi_user_tags during creation: %s", hostResponse[0].ID, err)
