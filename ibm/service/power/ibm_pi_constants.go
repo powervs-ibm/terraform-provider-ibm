@@ -75,7 +75,6 @@ const (
 	Arg_ReplicationScheme                   = "pi_replication_scheme"
 	Arg_ReplicationSites                    = "pi_replication_sites"
 	Arg_ResourceGroupID                     = "pi_resource_group_id"
-	Arg_RetainVirtualSerialNumber           = "pi_retain_virtual_serial_number"
 	Arg_SAP                                 = "sap"
 	Arg_SAPDeploymentType                   = "pi_sap_deployment_type"
 	Arg_SAPProfileID                        = "pi_sap_profile_id"

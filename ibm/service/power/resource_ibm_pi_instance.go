@@ -334,8 +334,8 @@ func ResourceIBMPIInstance() *schema.Resource {
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{Attach}),
 			},
 			Arg_VirtualSerialNumber: {
-				Description:   "Virtual Serial Number information",
 				ConflictsWith: []string{Arg_SAPProfileID},
+				Description:   "Virtual Serial Number information",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_Description: {
@@ -442,11 +442,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "Progress of the operation",
 				Type:        schema.TypeFloat,
-			},
-			Attr_Serial: {
-				Computed:    true,
-				Description: "Virtual Serial Number of instance.",
-				Type:        schema.TypeString,
 			},
 			Attr_SharedProcessorPoolID: {
 				Computed:    true,
@@ -671,7 +666,6 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 
 	if powervmdata.VirtualSerialNumber != nil {
 		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(d, powervmdata.VirtualSerialNumber))
-		d.Set(Attr_Serial, powervmdata.VirtualSerialNumber.Serial)
 	} else {
 		d.Set(Arg_VirtualSerialNumber, nil)
 	}
@@ -1037,7 +1031,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 				addBody := &models.AddServerVirtualSerialNumber{
 					Description: newDescription,
-					Serial:      &newDescription,
+					Serial:      &newSerial,
 				}
 				err = vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
 				if err != nil {
@@ -1831,7 +1825,6 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
-
 	if vsn, ok := d.GetOk(Arg_VirtualSerialNumber); ok {
 		vsnListType := vsn.([]interface{})
 		vsnCreateModel := vsnSetToCreateModel(vsnListType, d)
@@ -1891,6 +1884,5 @@ func flattenVirtualSerialNumberToList(d *schema.ResourceData, vsn *models.GetSer
 
 // Do not show a diff if VSN is changed to existing assigned VSN
 func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
-	val := d.Get(Attr_Serial)
-	return new == val && val != nil
+	return new == old || (new == "auto-assign" && old != "")
 }
