@@ -129,7 +129,7 @@ Review the argument references that you can specify for your resource.
     - `description` - (String, Optional) Description of virtual serial number.
     - `serial` - (String, Required) Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.
       
-      ~> **Note** When set to "auto assign", changes `serial` outside of terraform will not be detected. In addition, if a new generated virtual serial number is needed,
+      ~> **Note** When set to "auto assign", changes to `serial` outside of terraform will not be detected. In addition, if a new generated virtual serial number is needed,
       the old serial must be removed before a new one is generated.
 - `pi_volume_ids` - (Optional, List of String) The list of volume IDs that you want to attach to the instance during creation.
 
