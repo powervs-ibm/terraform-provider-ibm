@@ -977,9 +977,17 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
 		pvmInstanceID := d.Get(Attr_InstanceID).(string)
-		err := stopLparForResourceChange(ctx, client, pvmInstanceID, d)
-		if err != nil {
-			return diag.FromErr(err)
+		// Stop the lpar
+		status := d.Get(Attr_Status).(string)
+		instanceRestart := false
+		if strings.ToLower(status) == State_Shutoff {
+			log.Printf("the lpar is in the shutoff state. Nothing to do. Moving on")
+		} else {
+			err := stopLparForResourceChange(ctx, client, instanceID, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			instanceRestart = true
 		}
 
 		vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
@@ -1051,10 +1059,15 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
-
-		err = startLparAfterResourceChange(ctx, client, pvmInstanceID, d)
 		if err != nil {
 			return diag.FromErr(err)
+		}
+
+		if instanceRestart {
+			err = startLparAfterResourceChange(ctx, client, pvmInstanceID, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 	return resourceIBMPIInstanceRead(ctx, d, meta)
