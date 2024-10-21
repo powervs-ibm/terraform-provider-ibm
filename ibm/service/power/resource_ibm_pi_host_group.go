@@ -64,7 +64,6 @@ func ResourceIBMPIHostGroup() *schema.Resource {
 						Attr_UserTags: {
 							Description: "List of user tags attached to the resource.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							ForceNew:    true,
 							Optional:    true,
 							Set:         schema.HashString,
 							Type:        schema.TypeSet,
