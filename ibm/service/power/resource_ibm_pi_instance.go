@@ -977,11 +977,11 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
 		pvmInstanceID := d.Get(Attr_InstanceID).(string)
-		// Stop the lpar
-		status := d.Get(Attr_Status).(string)
 		instanceRestart := false
-		if strings.ToLower(status) == State_Shutoff {
-			log.Printf("the lpar is in the shutoff state. Nothing to do. Moving on")
+
+		status := d.Get(Attr_Status).(string)
+		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) || strings.ToLower(status) == State_Shutoff {
+			log.Printf("[DEBUG] lpar shutoff not needed")
 		} else {
 			err := stopLparForResourceChange(ctx, client, instanceID, d)
 			if err != nil {
@@ -1028,7 +1028,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 			retainVSN := oldVSNMap[Attr_RetainVirtualSerialNumber].(bool)
 
-			if newSerial != oldSerial {
+			if newSerial != oldSerial && newSerial != "auto-assign" {
 				deleteBody := &models.DeleteServerVirtualSerialNumber{
 					RetainVSN: retainVSN,
 				}
@@ -1058,9 +1058,11 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 
-		_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return diag.FromErr(err)
+		if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_Serial) {
+			_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
 
 		if instanceRestart {
@@ -1889,8 +1891,9 @@ func vsnSetToCreateModel(vsnSetList []interface{}, d *schema.ResourceData) *mode
 func flattenVirtualSerialNumberToList(d *schema.ResourceData, vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
 	v := make([]map[string]interface{}, 1)
 	v[0] = map[string]interface{}{
-		Attr_Description: vsn.Description,
-		Attr_Serial:      vsn.Serial,
+		Attr_Description:               vsn.Description,
+		Attr_RetainVirtualSerialNumber: d.Get(Arg_VirtualSerialNumber + ".0." + Attr_RetainVirtualSerialNumber).(bool),
+		Attr_Serial:                    vsn.Serial,
 	}
 	return v
 }
