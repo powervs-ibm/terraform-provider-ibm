@@ -108,6 +108,7 @@ Review the argument references that you can specify for your resource.
 - `pi_replication_policy` - (Optional, String) The replication policy that you want to use, either `affinity`, `anti-affinity` or `none`. If this parameter is not set, `none` is used by default.
 - `pi_replication_scheme` - (Optional, String) The replication scheme that you want to set, either `prefix` or `suffix`.
 - `pi_replication_sites` - (Optional, List) Indicates the replication sites of the boot volume.
+- `pi_retain_virtual_serial_number` - (Optional, Boolean) Indicates whether attached virtual serial number will be reserved when serial assigned to instance is changed or removed.
 - `pi_sap_profile_id` - (Optional, String) SAP Profile ID for the amount of cores and memory.
   - Required only when creating SAP instances.
 - `pi_sap_deployment_type` - (Optional, String) Custom SAP deployment type information (For Internal Use Only).
@@ -126,7 +127,6 @@ Review the argument references that you can specify for your resource.
   
   Nested scheme for `pi_virtual_serial_number`:
     - `description` - (String, Optional) Description of virtual serial number.
-    - `retain_virtual_serial_number` - (Optional, Boolean) Indicates whether attached virtual serial number will be reserved when instance is updated or deleted.
     - `serial` - (String, Required) Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.
       
       ~> **Note** When set to "auto assign", changes `serial` outside of terraform will not be detected. In addition, if a new generated virtual serial number is needed,
