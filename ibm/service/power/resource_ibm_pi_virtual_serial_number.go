@@ -76,8 +76,7 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 	id := cloudInstanceID + "/" + *vsn.Serial
 	d.SetId(id)
 
-	return resourceIBMPICaptureRead(ctx, d, meta)
-
+	return resourceIBMPIVirtualSerialNumberRead(ctx, d, meta)
 }
 
 func resourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
