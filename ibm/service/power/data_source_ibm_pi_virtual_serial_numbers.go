@@ -8,6 +8,7 @@ import (
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -88,6 +89,8 @@ func dataSourceIBMPIVirtualSerialNumbersRead(ctx context.Context, d *schema.Reso
 		vsnMapList = append(vsnMapList, v)
 	}
 
+	var clientgenU, _ = uuid.GenerateUUID()
+	d.SetId(clientgenU)
 	d.Set(Attr_VirtualSerialNumbers, vsnMapList)
 	return nil
 }

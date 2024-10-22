@@ -17,10 +17,10 @@ import (
 
 func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceIBMPIInstanceCreate,
-		ReadContext:   resourceIBMPIInstanceRead,
-		UpdateContext: resourceIBMPIInstanceUpdate,
-		DeleteContext: resourceIBMPIInstanceDelete,
+		CreateContext: resourceIBMPIVirtualSerialNumberCreate,
+		ReadContext:   resourceIBMPIVirtualSerialNumberRead,
+		UpdateContext: resourceIBMPIVirtualSerialNumberUpdate,
+		DeleteContext: resourceIBMPIVirtualSerialNumberUpdate,
 		Importer:      &schema.ResourceImporter{},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -38,21 +38,23 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_Description: {
+				Computed:    true,
 				Description: "Description of virtual serial number.",
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
 			Arg_Serial: {
-				Description: "Virtual serial number.",
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:      "Virtual serial number.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				Required:         true,
+				Type:             schema.TypeString,
 			},
 
 			// Attributes
 			Attr_PVMInstanceID: {
 				Computed:    true,
 				Description: "PVM instance ID virtual serial number is assigned to.",
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -103,6 +105,7 @@ func resourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.Resourc
 	if vsn.PvmInstanceID != nil {
 		d.Set(Attr_PVMInstanceID, vsn.PvmInstanceID)
 	}
+	d.Set(Arg_Serial, vsn.Serial)
 
 	return nil
 }
@@ -138,34 +141,20 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	if d.HasChange(Arg_VirtualSerialNumber) || d.HasChange(Arg_CloudInstanceID) {
+	if d.HasChange(Arg_Description) {
 		cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 		client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
-		vsnArg := d.Get(Arg_Serial).(string)
-		vsn, err := client.Get(vsnArg)
-		if err != nil {
-			return diag.FromErr(err)
+		newDescription := d.Get(Arg_Description).(string)
+		updateBody := &models.UpdateVirtualSerialNumber{
+			Description: &newDescription,
 		}
 
-		id := cloudInstanceID + "/" + *vsn.Serial
-		d.SetId(id)
-	} else {
-		if d.HasChange(Arg_Description) {
-			cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-			client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+		vsnArg := d.Get(Arg_Serial).(string)
 
-			newDescription := d.Get(Arg_Description).(string)
-			updateBody := &models.UpdateVirtualSerialNumber{
-				Description: &newDescription,
-			}
-
-			vsnArg := d.Get(Arg_Serial).(string)
-
-			_, err = client.Update(vsnArg, updateBody)
-			if err != nil {
-				return diag.FromErr(err)
-			}
+		_, err = client.Update(vsnArg, updateBody)
+		if err != nil {
+			return diag.FromErr(err)
 		}
 	}
 

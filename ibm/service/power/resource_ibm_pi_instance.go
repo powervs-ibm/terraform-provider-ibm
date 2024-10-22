@@ -976,7 +976,6 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	if d.HasChange(Arg_VirtualSerialNumber) {
-		pvmInstanceID := d.Get(Attr_InstanceID).(string)
 		vsnClient := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
 		if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_Serial) {
@@ -1000,7 +999,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				deleteBody := &models.DeleteServerVirtualSerialNumber{
 					RetainVSN: retainVSN,
 				}
-				err := vsnClient.PVMInstanceDeleteVSN(pvmInstanceID, deleteBody)
+				err := vsnClient.PVMInstanceDeleteVSN(instanceID, deleteBody)
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -1014,7 +1013,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					Description: description,
 					Serial:      &serial,
 				}
-				err := vsnClient.PVMInstanceAttachVSN(pvmInstanceID, addBody)
+				err := vsnClient.PVMInstanceAttachVSN(instanceID, addBody)
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -1026,7 +1025,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 
 			if instanceRestart {
-				err = startLparAfterResourceChange(ctx, client, pvmInstanceID, d)
+				err = startLparAfterResourceChange(ctx, client, instanceID, d)
 				if err != nil {
 					return diag.FromErr(err)
 				}

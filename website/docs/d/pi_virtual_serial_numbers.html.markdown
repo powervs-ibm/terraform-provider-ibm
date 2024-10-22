@@ -35,12 +35,12 @@ Example usage:
 Review the argument reference that you can specify for your data source. 
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account. 
-- `pi_instance_id` - (Required, String) Power virtual server instance id.
+- `pi_instance_id` - (Optional, String) Power virtual server instance ID.
 
 ## Attribute reference
 In addition to the argument reference list, you can access the following attribute references after your data source is created.
 
-- `virtual_serial_number` - (List) List of virtual serial numbers
+- `virtual_serial_numbers` - (List) List of virtual serial numbers
 
   Nested scheme for `virtual_serial_number`:
     - `description` - (String) Description for virtual serial number.

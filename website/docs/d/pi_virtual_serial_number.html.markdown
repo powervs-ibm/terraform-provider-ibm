@@ -13,7 +13,7 @@ Retrieve information about an existing IBM Power Virtual Server Cloud Instance a
 ```terraform
 data "ibm_pi_virtual_serial_number" "ds_virtual_serial_number" {
   pi_cloud_instance_id     = "<cloud instance id>"
-  pi_virtual_serial_number = "<virtual serial number>"
+  pi_serial = "<virtual serial number>"
 }
 ```
 
@@ -35,7 +35,7 @@ Example usage:
 Review the argument reference that you can specify for your data source. 
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account. 
-- `pi_virtual_serial_number` - (Required, String) Virtual serial number.
+- `pi_serial` - (Required, String) Virtual serial number.
 
 ## Attribute reference
 In addition to the argument reference list, you can access the following attribute references after your data source is created.

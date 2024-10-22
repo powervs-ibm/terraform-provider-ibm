@@ -8,6 +8,7 @@ import (
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -25,7 +26,7 @@ func DataSourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			Arg_VirtualSerialNumber: {
+			Arg_Serial: {
 				Description:  "Virtual serial number.",
 				Required:     true,
 				Type:         schema.TypeString,
@@ -43,11 +44,6 @@ func DataSourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Description: "ID of PVM instance virtual serial number is attached to.",
 				Type:        schema.TypeString,
 			},
-			Attr_Serial: {
-				Computed:    true,
-				Description: "Serial number.",
-				Type:        schema.TypeString,
-			},
 		},
 	}
 }
@@ -61,15 +57,18 @@ func dataSourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.Resou
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
-	vsnInput := d.Get(Arg_VirtualSerialNumber).(string)
+	vsnInput := d.Get(Arg_Serial).(string)
 	virtualSerialNumberData, err := client.Get(vsnInput)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	var clientgenU, _ = uuid.GenerateUUID()
+	d.SetId(clientgenU)
 	d.Set(Attr_Description, virtualSerialNumberData.Description)
-	d.Set(Attr_PVMInstanceID, virtualSerialNumberData.PvmInstanceID)
-	d.Set(Attr_Serial, virtualSerialNumberData.Serial)
+	if virtualSerialNumberData.PvmInstanceID != nil {
+		d.Set(Attr_PVMInstanceID, virtualSerialNumberData.PvmInstanceID)
+	}
 
 	return nil
 }
