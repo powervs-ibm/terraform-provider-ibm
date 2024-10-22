@@ -346,7 +346,6 @@ const (
 	Attr_ReservedMemory                              = "reserved_memory"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
-	Attr_RetainVirtualSerialNumber                   = "retain_virtual_serial_number"
 	Attr_Rules                                       = "rules"
 	Attr_SAPS                                        = "saps"
 	Attr_Secondaries                                 = "secondaries"
