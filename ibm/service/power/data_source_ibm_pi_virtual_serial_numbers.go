@@ -5,7 +5,6 @@ package power
 
 import (
 	"context"
-	"log"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
@@ -77,7 +76,6 @@ func dataSourceIBMPIVirtualSerialNumbersRead(ctx context.Context, d *schema.Reso
 
 	vsns, err := client.GetAll(&pvmInstanceID)
 	if err != nil {
-		log.Printf("[DEBUG] get virtual serial numbers failed: %v", err)
 		return diag.FromErr(err)
 	}
 
@@ -93,5 +91,3 @@ func dataSourceIBMPIVirtualSerialNumbersRead(ctx context.Context, d *schema.Reso
 	d.Set(Attr_VirtualSerialNumbers, vsnMapList)
 	return nil
 }
-
-func flattenVirtualSerialNumbers() {}

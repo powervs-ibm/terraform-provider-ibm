@@ -983,9 +983,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			instanceRestart := false
 
 			status := d.Get(Attr_Status).(string)
-			if strings.ToLower(status) == State_Shutoff {
-				log.Printf("[DEBUG] lpar shutoff not needed")
-			} else {
+			if strings.ToLower(status) != State_Shutoff {
 				err := stopLparForResourceChange(ctx, client, instanceID, d)
 				if err != nil {
 					return diag.FromErr(err)
@@ -1066,11 +1064,14 @@ func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, me
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 	for _, instanceID := range idArr[1:] {
 		retainVSNBool := d.Get(Arg_RetainVirtualSerialNumber).(bool)
-		body := &models.PVMInstanceDelete{
-			RetainVSN: &retainVSNBool,
+		if retainVSNBool {
+			body := &models.PVMInstanceDelete{
+				RetainVSN: &retainVSNBool,
+			}
+			err = client.DeleteWithBody(instanceID, body)
+		} else {
+			err = client.Delete(instanceID)
 		}
-		err = client.DeleteWithBody(instanceID, body)
-
 		if err != nil {
 			return diag.FromErr(err)
 		}
