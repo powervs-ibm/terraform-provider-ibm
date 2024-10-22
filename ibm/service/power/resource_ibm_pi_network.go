@@ -605,7 +605,8 @@ func isPERWorkspaceRefreshFunc(client *instance.IBMPIWorkspacesClient, id string
 func networkMapToNetworkCreatePeer(networkCreatePeerMap map[string]interface{}) (*models.NetworkCreatePeer, error) {
 	ncp := &models.NetworkCreatePeer{}
 	if networkCreatePeerMap[Attr_ID].(string) != "" {
-		ncp.ID = networkCreatePeerMap[Attr_ID].(string)
+		id := networkCreatePeerMap[Attr_ID].(string)
+		ncp.ID = &id
 	} else {
 		return nil, fmt.Errorf("%s is required with %s", Attr_ID, Arg_NetworkPeer)
 	}
