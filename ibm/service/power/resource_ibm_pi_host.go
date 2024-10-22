@@ -18,6 +18,7 @@ import (
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM/go-sdk-core/v5/core"
 )
 
@@ -55,18 +56,26 @@ func ResourceIBMPIHost() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_DisplayName: {
-							Type:        schema.TypeString,
-							Required:    true,
 							Description: "Name of the host chosen by the user.",
+							Required:    true,
+							Type:        schema.TypeString,
 						},
 						Attr_SysType: {
-							Type:        schema.TypeString,
+							Description: "System type.",
 							ForceNew:    true,
 							Required:    true,
-							Description: "System type.",
+							Type:        schema.TypeString,
+						},
+						Attr_UserTags: {
+							Description: "List of user tags attached to the resource.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Set:         schema.HashString,
+							Type:        schema.TypeSet,
 						},
 					},
 				},
+				MaxItems: 1,
 				Required: true,
 				Type:     schema.TypeSet,
 			},
@@ -119,6 +128,11 @@ func ResourceIBMPIHost() *schema.Resource {
 				},
 				Type: schema.TypeList,
 			},
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_DisplayName: {
 				Computed:    true,
 				Description: "Name of the host (chosen by the user).",
@@ -169,6 +183,7 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 		hs := models.AddHost{
 			DisplayName: core.StringPtr(host[Attr_DisplayName].(string)),
 			SysType:     core.StringPtr(host[Attr_SysType].(string)),
+			UserTags:    flex.FlattenSet(host[Attr_UserTags].(*schema.Set)),
 		}
 		hostBody = append(hostBody, &hs)
 	}
@@ -186,6 +201,17 @@ func resourceIBMPIHostCreate(ctx context.Context, d *schema.ResourceData, meta i
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	host := hosts[0].(map[string]interface{})
+	tags := flex.FlattenSet(host[Attr_UserTags].(*schema.Set))
+	if len(tags) > 0 {
+		oldList, newList := d.GetChange(Arg_Host + ".0." + Attr_UserTags)
+		err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(hostResponse[0].Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on update of pi host (%s) pi_user_tags during creation: %s", hostResponse[0].ID, err)
+		}
+	}
+
 	return resourceIBMPIHostRead(ctx, d, meta)
 }
 
@@ -211,6 +237,14 @@ func resourceIBMPIHostRead(ctx context.Context, d *schema.ResourceData, meta int
 
 	if host.Capacity != nil {
 		d.Set(Attr_Capacity, hostCapacityToMap(host.Capacity))
+	}
+	if host.Crn != "" {
+		d.Set(Attr_CRN, host.Crn)
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(host.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of pi host (%s) pi_user_tags: %s", host.ID, err)
+		}
+		d.Set(Attr_UserTags, tags)
 	}
 	if host.DisplayName != "" {
 		d.Set(Attr_DisplayName, host.DisplayName)
@@ -240,18 +274,36 @@ func resourceIBMPIHostUpdate(ctx context.Context, d *schema.ResourceData, meta i
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	displayName := d.Get(Arg_Host + ".0").(map[string]interface{})[Attr_DisplayName].(string)
 	client := instance.NewIBMPIHostGroupsClient(ctx, sess, cloudInstanceID)
 	if d.HasChange(Arg_Host) {
+		oldHost, newHost := d.GetChange(Arg_Host + ".0")
 
-		hostBody := models.HostPut{
-			DisplayName: &displayName,
+		displayNameOld := oldHost.(map[string]interface{})[Attr_DisplayName].(string)
+		displayNameNew := newHost.(map[string]interface{})[Attr_DisplayName].(string)
+
+		if displayNameNew != displayNameOld {
+			hostBody := models.HostPut{
+				DisplayName: &displayNameNew,
+			}
+			_, err := client.UpdateHost(&hostBody, hostID)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 		}
-		_, err := client.UpdateHost(&hostBody, hostID)
-		if err != nil {
-			return diag.FromErr(err)
+
+		if crn, ok := d.GetOk(Attr_CRN); ok {
+			userTagsOld := oldHost.(map[string]interface{})[Attr_UserTags].(*schema.Set)
+			userTagsNew := newHost.(map[string]interface{})[Attr_UserTags].(*schema.Set)
+			if !userTagsNew.Equal(userTagsOld) {
+				err = flex.UpdateGlobalTagsUsingCRN(userTagsOld, userTagsNew, meta, crn.(string), "", UserTagType)
+				if err != nil {
+					log.Printf("Error on update of pi host (%s) pi_user_tags: %s", d.Get(Attr_HostID), err)
+				}
+			}
 		}
+
 	}
+
 	return resourceIBMPIHostRead(ctx, d, meta)
 }
 
