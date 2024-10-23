@@ -1,5 +1,4 @@
 ---
-
 subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: pi_image"
@@ -59,8 +58,8 @@ Example usage:
 
 The ibm_pi_image provides the following [timeouts](https://www.terraform.io/docs/language/resources/syntax.html) configuration options:
 
-- **create** - (Default 60 minutes) Used for creating an image.
-- **delete** - (Default 60 minutes) Used for deleting an image.
+- **create** - (Default 60 minutes) Used for creating image.
+- **delete** - (Default 60 minutes) Used for deleting image.
 
 ## Argument reference
 
@@ -83,8 +82,13 @@ Review the argument references that you can specify for your resource.
 - `pi_image_bucket_access` - (Optional, String) Indicates if the bucket has public or private access. The default value is `public`.
 - `pi_image_bucket_file_name` - (Optional, String) Cloud Object Storage image filename
   - `pi_image_bucket_file_name` is required with `pi_image_bucket_name`
+- `pi_image_bucket_name` - (Optional, String) Cloud Object Storage bucket name; `bucket-name[/optional/folder]`
+  - Either `pi_image_bucket_name` or `pi_image_id` is required.
 - `pi_image_bucket_region` - (Optional, String) Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
   - `pi_image_bucket_region` is required with `pi_image_bucket_name`
+- `pi_image_id` - (Optional, String) Image ID of existing source image; required for copy image.
+  - Either `pi_image_id` or `pi_image_bucket_name` is required.
+- `pi_image_name` - (Required, String) The name of an image.
 - `pi_image_secret_key` - (Optional, String, Sensitive) Cloud Object Storage secret key; required for buckets with private access.
   - `pi_image_secret_key` is required with `pi_image_access_key`
 - `pi_image_storage_pool` - (Optional, String) Storage pool where the image will be loaded, if provided then `pi_affinity_policy` will be ignored. Used only when importing an image from cloud storage.
