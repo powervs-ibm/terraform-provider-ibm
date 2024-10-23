@@ -665,7 +665,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	if powervmdata.VirtualSerialNumber != nil {
-		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(d, powervmdata.VirtualSerialNumber))
+		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToList(powervmdata.VirtualSerialNumber))
 	} else {
 		d.Set(Arg_VirtualSerialNumber, nil)
 	}
@@ -1864,7 +1864,7 @@ func vsnSetToCreateModel(vsnSetList []interface{}, d *schema.ResourceData) *mode
 
 	return model
 }
-func flattenVirtualSerialNumberToList(d *schema.ResourceData, vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
+func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
 	v := make([]map[string]interface{}, 1)
 	v[0] = map[string]interface{}{
 		Attr_Description: vsn.Description,

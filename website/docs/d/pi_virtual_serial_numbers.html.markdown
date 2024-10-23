@@ -42,7 +42,7 @@ In addition to the argument reference list, you can access the following attribu
 
 - `virtual_serial_numbers` - (List) List of virtual serial numbers
 
-  Nested scheme for `virtual_serial_number`:
+  Nested scheme for `virtual_serial_numbers`:
     - `description` - (String) Description for virtual serial number.
     - `pvm_instance_id` - (String) ID of PVM virtual serial number is attached to.
     - `serial` - (String) Serial of virtual serial number.
