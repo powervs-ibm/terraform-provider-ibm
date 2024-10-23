@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccIBMPIVirtualSerialNumber(t *testing.T) {
-	vsnData := "data.ibm_pi_virtual_serial_number"
+	vsnData := "data.ibm_pi_virtual_serial_number.testacc_virtual_serial_number"
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
@@ -22,7 +22,6 @@ func TestAccIBMPIVirtualSerialNumber(t *testing.T) {
 				Config: testAccCheckIBMPIVirtualSerialNumberConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(vsnData, "id"),
-					resource.TestCheckResourceAttrSet(vsnData, "serial"),
 				),
 			},
 		},
@@ -33,6 +32,6 @@ func testAccCheckIBMPIVirtualSerialNumberConfig() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_virtual_serial_number" "testacc_virtual_serial_number" {
 			pi_cloud_instance_id		    = "%s"
-			pi_virtual_serial_number_id		= "%s"
+			pi_serial						= "%s"
 		}`, acc.Pi_cloud_instance_id, acc.Pi_virtual_serial_number)
 }
