@@ -115,8 +115,21 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 
 	if pvmInstanceId, ok := d.GetOk(Arg_PVMInstanceId); ok {
 		pvmInstanceIdArg := pvmInstanceId.(string)
-		virtualSerialNumberMap := d.Get(Arg_AssignVirtualSerialNumber).([]interface{})[0].(map[string]interface{})
-		serialNumber := virtualSerialNumberMap[Attr_Serial].(string)
+		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+		ins, err := instanceClient.Get(pvmInstanceIdArg)
+		if err != nil {
+			diag.FromErr(err)
+		}
+		status := *ins.Status
+		restartInstance := false
+		if strings.ToLower(status) != State_Shutoff {
+			err = stopLparForResourceChange(ctx, instanceClient, pvmInstanceIdArg, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			restartInstance = true
+		}
+		serialNumber := d.Get(Arg_AssignVirtualSerialNumber + ".0." + Attr_Serial).(string)
 		addBody := &models.AddServerVirtualSerialNumber{
 			Serial: &serialNumber,
 		}
@@ -128,6 +141,19 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 		if err != nil {
 			return diag.FromErr(err)
 		}
+
+		_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		if restartInstance {
+			err = startLparAfterResourceChange(ctx, instanceClient, pvmInstanceIdArg, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
 		vsns, err := client.GetAll(&pvmInstanceIdArg)
 		if err != nil {
 			return diag.FromErr(err)
