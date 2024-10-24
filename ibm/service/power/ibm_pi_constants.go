@@ -482,6 +482,7 @@ const (
 	Allow                     = "allow"
 	AntiAffinity              = "anti-affinity"
 	Attach                    = "attach"
+	AutoAssign                = "auto-assign"
 	BYOL                      = "byol"
 	Capped                    = "capped"
 	Critical                  = "CRITICAL"

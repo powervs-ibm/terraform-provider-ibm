@@ -1033,8 +1033,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 
 		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) && d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) {
-			_, newDescription := d.GetChange(Arg_VirtualSerialNumber + ".0." + Attr_Description)
-			newDescriptionString := newDescription.(string)
+			newDescriptionString := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
 			updateBody := &models.UpdateServerVirtualSerialNumber{
 				Description: &newDescriptionString,
 			}
@@ -1875,5 +1874,5 @@ func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) 
 
 // Do not show a diff if VSN is changed to existing assigned VSN
 func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
-	return new == old || (new == "auto-assign" && old != "")
+	return new == old || (new == AutoAssign && old != "")
 }

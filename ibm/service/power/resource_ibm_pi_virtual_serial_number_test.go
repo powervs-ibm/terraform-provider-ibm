@@ -36,6 +36,25 @@ func TestAccIBMPIVirtualSerialNumberBasic(t *testing.T) {
 	})
 }
 
+func TestAccIBMPIVirtualSerialNumberWithInstance(t *testing.T) {
+	resLocator := "ibm_pi_virtual_serial_number.power_virtual_serial_number"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPISPPPlacementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIBMPIVirtualSerialNumberWithInstanceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckIBMPIVirtualSerialNumberExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -77,4 +96,17 @@ func testAccIBMPIVirtualSerialNumberBasicConfig() string {
 			pi_serial            = "%[2]s"
 		}
 	`, acc.Pi_cloud_instance_id, acc.Pi_virtual_serial_number)
+}
+
+func testAccIBMPIVirtualSerialNumberWithInstanceConfig() string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
+			pi_cloud_instance_id 			= "%[1]s"
+			pi_virtual_serial_number {
+				serial = "auto-assign"
+			}
+			pi_instance_id 					= "%[2]s"
+			pi_retain_virtual_serial_number = false
+		}
+	`, acc.Pi_cloud_instance_id, acc.Pi_virtual_serial_number, acc.Pi_instance_name)
 }
