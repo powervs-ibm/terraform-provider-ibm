@@ -32,42 +32,7 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
-			Arg_CloudInstanceID: {
-				Description: "This is the Power Instance id that is assigned to the account",
-				ForceNew:    true,
-				Required:    true,
-				Type:        schema.TypeString,
-			},
-			Arg_Description: {
-				ConflictsWith: []string{Arg_VirtualSerialNumber},
-				Computed:      true,
-				Description:   "Description of virtual serial number.",
-				Optional:      true,
-				Type:          schema.TypeString,
-			},
-			Arg_PVMInstanceId: {
-				Computed:      true,
-				ConflictsWith: []string{Arg_Serial},
-				Description:   "PVM Instance to attach VSN to",
-				Optional:      true,
-				Type:          schema.TypeString,
-			},
-			Arg_RetainVirtualSerialNumber: {
-				ConflictsWith: []string{Arg_Serial},
-				Description:   "Indicates whether to retain virtual serial number after unassigning from PVM instance.",
-				Optional:      true,
-				RequiredWith:  []string{Arg_PVMInstanceId},
-				Type:          schema.TypeBool,
-			},
-			Arg_Serial: {
-				ConflictsWith:    []string{Arg_VirtualSerialNumber},
-				Computed:         true,
-				Description:      "Virtual serial number.",
-				DiffSuppressFunc: flex.ApplyOnce,
-				Optional:         true,
-				Type:             schema.TypeString,
-			},
-			Arg_VirtualSerialNumber: {
+			Arg_AssignVirtualSerialNumber: {
 				Description: "Virtual Serial Number information",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -89,6 +54,41 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Optional:     true,
 				RequiredWith: []string{Arg_PVMInstanceId},
 				Type:         schema.TypeList,
+			},
+			Arg_CloudInstanceID: {
+				Description: "This is the Power Instance id that is assigned to the account",
+				ForceNew:    true,
+				Required:    true,
+				Type:        schema.TypeString,
+			},
+			Arg_Description: {
+				ConflictsWith: []string{Arg_AssignVirtualSerialNumber},
+				Computed:      true,
+				Description:   "Description of virtual serial number.",
+				Optional:      true,
+				Type:          schema.TypeString,
+			},
+			Arg_PVMInstanceId: {
+				Computed:      true,
+				ConflictsWith: []string{Arg_Serial},
+				Description:   "PVM Instance to attach VSN to",
+				Optional:      true,
+				Type:          schema.TypeString,
+			},
+			Arg_RetainVirtualSerialNumber: {
+				ConflictsWith: []string{Arg_Serial},
+				Description:   "Indicates whether to retain virtual serial number after unassigning from PVM instance.",
+				Optional:      true,
+				RequiredWith:  []string{Arg_PVMInstanceId},
+				Type:          schema.TypeBool,
+			},
+			Arg_Serial: {
+				ConflictsWith:    []string{Arg_AssignVirtualSerialNumber},
+				Computed:         true,
+				Description:      "Virtual serial number.",
+				DiffSuppressFunc: flex.ApplyOnce,
+				Optional:         true,
+				Type:             schema.TypeString,
 			},
 		},
 	}
@@ -115,12 +115,12 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 
 	if pvmInstanceId, ok := d.GetOk(Arg_PVMInstanceId); ok {
 		pvmInstanceIdArg := pvmInstanceId.(string)
-		virtualSerialNumberMap := d.Get(Arg_VirtualSerialNumber).([]interface{})[0].(map[string]interface{})
+		virtualSerialNumberMap := d.Get(Arg_AssignVirtualSerialNumber).([]interface{})[0].(map[string]interface{})
 		serialNumber := virtualSerialNumberMap[Attr_Serial].(string)
 		addBody := &models.AddServerVirtualSerialNumber{
 			Serial: &serialNumber,
 		}
-		if desc, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_Description); ok {
+		if desc, ok := d.GetOk(Arg_AssignVirtualSerialNumber + ".0." + Attr_Description); ok {
 			description := desc.(string)
 			addBody.Description = description
 		}
@@ -181,7 +181,7 @@ func resourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.Resourc
 		vsn := vsns[0]
 		d.Set(Arg_Description, vsn.Description)
 		d.Set(Arg_Serial, vsn.Serial)
-		d.Set(Arg_VirtualSerialNumber, flattenVirtualSerialNumberToListSerialType(vsn))
+		d.Set(Arg_AssignVirtualSerialNumber, flattenVirtualSerialNumberToListSerialType(vsn))
 	}
 
 	return nil
@@ -233,7 +233,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
-	if _, ok := d.GetOk(Arg_VirtualSerialNumber); !ok && d.HasChange(Arg_Description) {
+	if _, ok := d.GetOk(Arg_AssignVirtualSerialNumber); !ok && d.HasChange(Arg_Description) {
 		newDescription := d.Get(Arg_Description).(string)
 		updateBody := &models.UpdateVirtualSerialNumber{
 			Description: &newDescription,
@@ -300,11 +300,11 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			restartInstance = true
 		}
 
-		serial := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Serial).(string)
+		serial := d.Get(Arg_AssignVirtualSerialNumber + ".0." + Attr_Serial).(string)
 		addBody := &models.AddServerVirtualSerialNumber{
 			Serial: &serial,
 		}
-		if v, ok := d.GetOk(Arg_VirtualSerialNumber + ".0." + Attr_Description); ok {
+		if v, ok := d.GetOk(Arg_AssignVirtualSerialNumber + ".0." + Attr_Description); ok {
 			description := v.(string)
 			addBody.Description = description
 		}
@@ -324,9 +324,9 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 	}
 
-	if !d.HasChange(Arg_PVMInstanceId) && d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) {
+	if !d.HasChange(Arg_PVMInstanceId) && d.HasChange(Arg_AssignVirtualSerialNumber+".0."+Attr_Description) {
 		pvmInstanceId := d.Get(Arg_PVMInstanceId).(string)
-		description := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
+		description := d.Get(Arg_AssignVirtualSerialNumber + ".0." + Attr_Description).(string)
 		updateBody := &models.UpdateServerVirtualSerialNumber{
 			Description: &description,
 		}

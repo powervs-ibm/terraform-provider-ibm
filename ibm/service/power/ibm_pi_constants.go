@@ -5,6 +5,7 @@ import "time"
 const (
 	// Arguments
 	Arg_Action                              = "pi_action"
+	Arg_AssignVirtualSerialNumber           = "pi_assign_virtual_serial_number"
 	Arg_AffinityInstance                    = "pi_affinity_instance"
 	Arg_AffinityPolicy                      = "pi_affinity_policy"
 	Arg_AffinityVolume                      = "pi_affinity_volume"

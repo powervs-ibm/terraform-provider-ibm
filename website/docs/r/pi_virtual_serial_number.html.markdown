@@ -50,16 +50,23 @@ ibm_pi_virtual_serial_number provides the following [timeouts](https://www.terra
 ## Argument reference
 Review the argument references that you can specify for your resource. 
 
+- `pi_assign_virtual_serial_number` - (Optional, List) Information of virtual serial number to assign to a power instance. Required with `pi_instance_id`.
+  - `description` - (String, Optional) Description of virtual serial number.
+  - `serial` - (String, Required) Provide an existing reserved Virtual Serial Number or specify 'auto-assign' for auto generated Virtual Serial Number.
+      
+    ~> **Note** When set to "auto-assign", changes to `serial` outside of terraform will not be detected. In addition, if a new generated virtual serial number is needed,
+    the old serial must be deleted before a new one is generated.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account. 
 - `pi_description` - (Optional, String) Desired description for virtual serial number.
-- `pi_serial` - (Required, String) Virtual serial number.
+- `pi_instance_id` - (Optional, String) Power instance ID to assign created or existing virtual serial number to. Conflicts with `pi_serial`
+- `pi_retain_virtual_serial_number` - (Optional, Boolean) Indicates whether to reserve or delete virtual serial number when detached from power instance during delete. Required with `pi_instance_id`
+- `pi_serial` - (Required, String) Virtual serial number of existing serial. Conflicts with `pi_instance_id`
 
 
 ## Attribute reference
  In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
 - `id` - (String) The unique identifier of the virtual serial number. Composed of `<cloud instance id>/<virtual serial number>`
-- `pvm_instance_id` - (String) ID of the PVM instance the virtual serial number is assigned to.
 
 ## Import
 
