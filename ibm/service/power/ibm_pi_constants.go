@@ -106,6 +106,7 @@ const (
 	Arg_VirtualOpticalDevice                = "pi_virtual_optical_device"
 	Arg_VolumeCloneName                     = "pi_volume_clone_name"
 	Arg_VolumeCloneTaskID                   = "pi_volume_clone_task_id"
+	Arg_VolumeGroupAction                   = "pi_volume_group_action"
 	Arg_VolumeGroupID                       = "pi_volume_group_id"
 	Arg_VolumeGroupName                     = "pi_volume_group_name"
 	Arg_VolumeID                            = "pi_volume_id"
@@ -118,10 +119,6 @@ const (
 	Arg_VolumeSnapshotID                    = "pi_volume_snapshot_id"
 	Arg_VolumeType                          = "pi_volume_type"
 	Arg_VTL                                 = "vtl"
-
-	// Duplicate Arguments, will be removed as refactoring take course.
-	PIVolumeGroupID      = "pi_volume_group_id"
-	PIVolumeOnboardingID = "pi_volume_onboarding_id"
 
 	// Attributes
 	Attr_Access                                      = "access"
@@ -341,6 +338,7 @@ const (
 	Attr_ReservedCore                                = "reserved_core"
 	Attr_ReservedCores                               = "reserved_cores"
 	Attr_ReservedMemory                              = "reserved_memory"
+	Attr_Reset                                       = "reset"
 	Attr_ResultsOnboardedVolumes                     = "results_onboarded_volumes"
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
 	Attr_Rules                                       = "rules"
@@ -373,6 +371,7 @@ const (
 	Attr_SourceChecksum                              = "source_checksum"
 	Attr_SourcePort                                  = "source_port"
 	Attr_SourceVolumeID                              = "source_volume_id"
+	Attr_Source                                      = "source"
 	Attr_SourceVolumeName                            = "source_volume_name"
 	Attr_Speed                                       = "speed"
 	Attr_SPPPlacementGroupID                         = "spp_placement_group_id"
@@ -381,12 +380,14 @@ const (
 	Attr_SPPPlacementGroupPolicy                     = "policy"
 	Attr_SPPPlacementGroups                          = "spp_placement_groups"
 	Attr_SSHKey                                      = "ssh_key"
+	Attr_Start                                       = "start"
 	Attr_StartTime                                   = "start_time"
 	Attr_State                                       = "state"
 	Attr_Status                                      = "status"
 	Attr_StatusDescriptionErrors                     = "status_description_errors"
 	Attr_StatusDetail                                = "status_detail"
 	Attr_StorageConnection                           = "storage_connection"
+	Attr_Stop                                        = "stop"
 	Attr_StoragePool                                 = "storage_pool"
 	Attr_StoragePoolAffinity                         = "storage_pool_affinity"
 	Attr_StoragePoolsCapacity                        = "storage_pools_capacity"
@@ -476,6 +477,7 @@ const (
 	Allow                     = "allow"
 	AntiAffinity              = "anti-affinity"
 	Attach                    = "attach"
+	Aux                       = "aux"
 	BYOL                      = "byol"
 	Capped                    = "capped"
 	Critical                  = "CRITICAL"
@@ -497,8 +499,9 @@ const (
 	HostGroup                 = "hostGroup"
 	ICMP                      = "icmp"
 	IPV4_Address              = "ipv4-address"
-	NAG                       = "network-address-group"
+	Master                    = "master"
 	MaxVolumeSupport          = "maxVolumeSupport"
+	NAG                       = "network-address-group"
 	Netweaver                 = "Netweaver"
 	Network_Interface         = "network-interface"
 	None                      = "none"
@@ -568,11 +571,6 @@ const (
 	State_Up                 = "up"
 	State_Updating           = "updating"
 	State_VerifyResize       = "verify_resize"
-	Status_Active            = "ACTIVE"
-	Status_Deleting          = "deleting"
-	Status_Error             = "ERROR"
-	Status_Pending           = "PENDING"
-	Status_Shutoff           = "SHUTOFF"
 
 	// Timeout values
 	Timeout_Active  = 2 * time.Minute
@@ -593,6 +591,7 @@ const (
 	PIVolumeGroupName                 = "pi_volume_group_name"
 	PIVolumeGroupConsistencyGroupName = "pi_consistency_group_name"
 	PIVolumeGroupAction               = "pi_volume_group_action"
+	PIVolumeOnboardingID              = "pi_volume_onboarding_id"
 
 	// VPN
 	PIVPNConnectionId                         = "connection_id"
