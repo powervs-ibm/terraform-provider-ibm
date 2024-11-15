@@ -544,6 +544,7 @@ const (
 	State_Creating           = "creating"
 	State_Deleted            = "deleted"
 	State_Deleting           = "deleting"
+	State_Detaching          = "detaching"
 	State_Down               = "down"
 	State_Error              = "error"
 	State_ERROR              = "ERROR"
@@ -568,11 +569,6 @@ const (
 	State_Up                 = "up"
 	State_Updating           = "updating"
 	State_VerifyResize       = "verify_resize"
-	Status_Active            = "ACTIVE"
-	Status_Deleting          = "deleting"
-	Status_Error             = "ERROR"
-	Status_Pending           = "PENDING"
-	Status_Shutoff           = "SHUTOFF"
 
 	// Timeout values
 	Timeout_Active  = 2 * time.Minute
