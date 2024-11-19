@@ -197,6 +197,13 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		body.Gateway = gateway
 		body.Cidr = networkcidr
 	}
+
+	if networktype == PubVlan {
+		if _, ok := d.GetOk(Arg_Cidr); ok {
+			return diag.Errorf("%s cannot be set when %s is dhcp-vlan or vlan", Arg_Cidr, Arg_NetworkType)
+		}
+	}
+
 	wsclient := instance.NewIBMPIWorkspacesClient(ctx, sess, cloudInstanceID)
 	wsData, err := wsclient.Get(cloudInstanceID)
 	if err != nil {
