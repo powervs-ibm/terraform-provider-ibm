@@ -210,7 +210,7 @@ func TestAccIBMDatabaseInstancePostgresImport(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"wait_time_minutes"},
+					"wait_time_minutes", "deletion_protection"},
 			},
 		},
 	})
@@ -250,6 +250,65 @@ func TestAccIBMDatabaseInstancePostgresPITR(t *testing.T) {
 					resource.TestCheckResourceAttr(pitrResource, "service", "databases-for-postgresql"),
 					resource.TestCheckResourceAttr(pitrResource, "plan", "standard"),
 					resource.TestCheckResourceAttr(pitrResource, "location", acc.Region()),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIBMDatabaseInstancePostgresReadReplicaPromotion(t *testing.T) {
+	t.Parallel()
+
+	databaseResourceGroup := "default"
+
+	var sourceInstanceCRN string
+	var replicaInstanceCRN string
+
+	serviceName := fmt.Sprintf("tf-Pgress-%d", acctest.RandIntRange(10, 100))
+	readReplicaName := serviceName + "-replica"
+
+	sourceResource := "ibm_database." + serviceName
+	replicaReplicaResource := "ibm_database." + readReplicaName
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMDatabaseInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMDatabaseInstancePostgresMinimal(databaseResourceGroup, serviceName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMDatabaseInstanceExists(sourceResource, &sourceInstanceCRN),
+					resource.TestCheckResourceAttr(sourceResource, "name", serviceName),
+					resource.TestCheckResourceAttr(sourceResource, "service", "databases-for-postgresql"),
+					resource.TestCheckResourceAttr(sourceResource, "plan", "standard"),
+					resource.TestCheckResourceAttr(sourceResource, "location", acc.Region()),
+				),
+			},
+			{
+				Config: acc.ConfigCompose(
+					testAccCheckIBMDatabaseInstancePostgresMinimal(databaseResourceGroup, serviceName),
+					testAccCheckIBMDatabaseInstancePostgresMinimal_ReadReplica(databaseResourceGroup, serviceName)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMDatabaseInstanceExists(replicaReplicaResource, &replicaInstanceCRN),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "name", readReplicaName),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "service", "databases-for-postgresql"),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "plan", "standard"),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "location", acc.Region()),
+				),
+			},
+			{
+				Config: acc.ConfigCompose(
+					testAccCheckIBMDatabaseInstancePostgresMinimal(databaseResourceGroup, serviceName),
+					testAccCheckIBMDatabaseInstancePostgresReadReplicaPromote(databaseResourceGroup, readReplicaName)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMDatabaseInstanceExists(replicaReplicaResource, &replicaInstanceCRN),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "name", readReplicaName),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "service", "databases-for-postgresql"),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "plan", "standard"),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "location", acc.Region()),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "remote_leader_id", ""),
+					resource.TestCheckResourceAttr(replicaReplicaResource, "skip_initial_backup", "true"),
 				),
 			},
 		},
@@ -532,6 +591,7 @@ func testAccCheckIBMDatabaseInstancePostgresGroupBasic(databaseResourceGroup str
 				id = "multitenant"
 			}
 		}
+		service_endpoints            = "public"
 		users {
 			name     = "user123"
 			password = "password12345678"
@@ -684,6 +744,7 @@ func testAccCheckIBMDatabaseInstancePostgresImport(databaseResourceGroup string,
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints = "public-and-private"
 	  }
 				`, databaseResourceGroup, name, acc.Region())
 }
@@ -701,6 +762,7 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal(databaseResourceGroup string
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints            = "public-and-private"
 	}
 				`, databaseResourceGroup, name, acc.Region())
 }
@@ -718,6 +780,7 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal_PITR(databaseResourceGroup s
 		service           = "databases-for-postgresql"
 		plan              = "standard"
 		location          = "%[3]s"
+		service_endpoints = "public-and-private"
 	}
 
 	resource "ibm_database" "%[2]s-pitr" {
@@ -728,6 +791,36 @@ func testAccCheckIBMDatabaseInstancePostgresMinimal_PITR(databaseResourceGroup s
 		location                              = "%[3]s"
 		point_in_time_recovery_deployment_id  = ibm_database.%[2]s.id
 		point_in_time_recovery_time           = ""
+		service_endpoints                     = "public-and-private"
 	}
 				`, databaseResourceGroup, name, acc.Region())
+}
+
+func testAccCheckIBMDatabaseInstancePostgresMinimal_ReadReplica(databaseResourceGroup string, name string) string {
+	return fmt.Sprintf(`
+	resource "ibm_database" "%[2]s-replica" {
+		resource_group_id = data.ibm_resource_group.test_acc.id
+		name                = "%[2]s-replica"
+		service             = "databases-for-postgresql"
+		plan                = "standard"
+		location            = "%[3]s"
+		service_endpoints   = "public-and-private"
+		remote_leader_id    = ibm_database.%[2]s.id
+	}
+	`, databaseResourceGroup, name, acc.Region())
+}
+
+func testAccCheckIBMDatabaseInstancePostgresReadReplicaPromote(databaseResourceGroup string, readReplicaName string) string {
+	return fmt.Sprintf(`
+	resource "ibm_database" "%[2]s" {
+		resource_group_id = data.ibm_resource_group.test_acc.id
+		name                = "%[2]s"
+		service             = "databases-for-postgresql"
+		plan                = "standard"
+		location            = "%[3]s"
+		service_endpoints   = "public-and-private"
+		remote_leader_id    = ""
+		skip_initial_backup = true
+	}
+	`, databaseResourceGroup, readReplicaName, acc.Region())
 }

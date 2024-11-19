@@ -121,8 +121,20 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validate.ValidateAllowedStringValues([]string{DHCPVlan, PubVlan, Vlan}),
 			},
+			Arg_UserTags: {
+				Description: "The user tags attached to this resource.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Optional:    true,
+				Set:         schema.HashString,
+				Type:        schema.TypeSet,
+			},
 
-			// Attributes
+			//Computed Attributes
+			Attr_CRN: {
+				Computed:    true,
+				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
 			Attr_NetworkID: {
 				Computed:    true,
 				Description: "The unique identifier of the network.",
@@ -157,7 +169,9 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 			body.DNSServers = networkdns
 		}
 	}
-
+	if tags, ok := d.GetOk(Arg_UserTags); ok {
+		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
+	}
 	if v, ok := d.GetOk(Arg_NetworkJumbo); ok {
 		body.Jumbo = v.(bool)
 	}
@@ -229,6 +243,16 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
+	if _, ok := d.GetOk(Arg_UserTags); ok {
+		if networkResponse.Crn != "" {
+			oldList, newList := d.GetChange(Arg_UserTags)
+			err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, string(networkResponse.Crn), "", UserTagType)
+			if err != nil {
+				log.Printf("Error on update of pi snapshot (%s) pi_user_tags during creation: %s", networkID, err)
+			}
+		}
+	}
+
 	return resourceIBMPINetworkRead(ctx, d, meta)
 }
 
@@ -248,7 +272,14 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
+	if networkdata.Crn != "" {
+		d.Set(Attr_CRN, networkdata.Crn)
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(networkdata.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of pi network (%s) pi_user_tags: %s", *networkdata.NetworkID, err)
+		}
+		d.Set(Arg_UserTags, tags)
+	}
 	d.Set(Arg_Cidr, networkdata.Cidr)
 	d.Set(Arg_DNS, networkdata.DNSServers)
 	d.Set(Arg_Gateway, networkdata.Gateway)
@@ -313,6 +344,16 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		_, err = networkC.Update(networkID, body)
 		if err != nil {
 			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChange(Arg_UserTags) {
+		if crn, ok := d.GetOk(Attr_CRN); ok {
+			oldList, newList := d.GetChange(Arg_UserTags)
+			err := flex.UpdateGlobalTagsUsingCRN(oldList, newList, meta, crn.(string), "", UserTagType)
+			if err != nil {
+				log.Printf("Error on update of pi network (%s) pi_user_tags: %s", networkID, err)
+			}
 		}
 	}
 

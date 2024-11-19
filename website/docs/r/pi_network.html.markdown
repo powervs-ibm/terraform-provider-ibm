@@ -71,11 +71,13 @@ Review the argument references that you can specify for your resource.
 - `pi_network_mtu` - (Optional, Integer) Maximum Transmission Unit option of the network. Minimum is 1450 and maximum is 9000.
 - `pi_network_name` - (Required, String) The name of the network.
 - `pi_network_type` - (Required, String) The type of network that you want to create. Valid values are `pub-vlan`, `vlan` and `dhcp-vlan`.
+- `pi_user_tags` - (Optional, List) The user tags attached to this resource.
 
 ## Attribute reference
 
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
+- `crn` - (String) The CRN of this resource.
 - `id` - (String) The unique identifier of the network. The ID is composed of `<pi_cloud_instance_id>/<network_id>`.
 - `network_id` - (String) The unique identifier of the network.
 - `vlan_id` - (Integer) The ID of the VLAN that your network is attached to.
