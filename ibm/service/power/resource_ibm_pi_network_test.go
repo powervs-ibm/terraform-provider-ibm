@@ -50,6 +50,7 @@ func TestAccIBMPINetworkbasic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccIBMPINetworkGatewaybasic(t *testing.T) {
 	name := fmt.Sprintf("tf-pi-network-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
