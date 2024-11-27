@@ -287,6 +287,7 @@ const (
 	Attr_NetworkSecurityGroupID             = "network_security_group_id"
 	Attr_NetworkSecurityGroupMemberID       = "network_security_group_member_id"
 	Attr_NetworkSecurityGroups              = "network_security_groups"
+	Attr_NetworkSecurityGroupsHref                   = "network_security_groups_href"
 	Attr_NumberOfVolumes                    = "number_of_volumes"
 	Attr_Onboardings                        = "onboardings"
 	Attr_OperatingSystem                    = "operating_system"
