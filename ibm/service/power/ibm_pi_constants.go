@@ -3,6 +3,7 @@ package power
 import "time"
 
 const (
+
 	// Arguments
 	Arg_Action                              = "pi_action"
 	Arg_AffinityInstance                    = "pi_affinity_instance"
@@ -11,6 +12,13 @@ const (
 	Arg_AntiAffinityInstances               = "pi_anti_affinity_instances"
 	Arg_AntiAffinityVolumes                 = "pi_anti_affinity_volumes"
 	Arg_BootVolumeReplicationEnabled        = "pi_boot_volume_replication_enabled"
+	Arg_CaptureCloudStorageAccessKey        = "pi_capture_cloud_storage_access_key"
+	Arg_CaptureCloudStorageRegion           = "pi_capture_cloud_storage_region"
+	Arg_CaptureCloudStorageSecretKey        = "pi_capture_cloud_storage_secret_key"
+	Arg_CaptureDestination                  = "pi_capture_destination"
+	Arg_CaptureName                         = "pi_capture_name"
+	Arg_CaptureStorageImagePath             = "pi_capture_storage_image_path"
+	Arg_CaptureVolumeIDs                    = "pi_capture_volume_ids"
 	Arg_Cidr                                = "pi_cidr"
 	Arg_CloudConnectionID                   = "pi_cloud_connection_id"
 	Arg_CloudConnectionName                 = "pi_cloud_connection_name"
@@ -447,8 +455,10 @@ const (
 	Allow                     = "allow"
 	AntiAffinity              = "anti-affinity"
 	Attach                    = "attach"
+	Both                      = "both"
 	BYOL                      = "byol"
 	Capped                    = "capped"
+	CloudStorage              = "cloud-storage"
 	Critical                  = "CRITICAL"
 	CUSTOM_VIRTUAL_CORES      = "custom-virtualcores"
 	Dedicated                 = "dedicated"
@@ -467,6 +477,7 @@ const (
 	Host                      = "host"
 	HostGroup                 = "hostGroup"
 	ICMP                      = "icmp"
+	ImageCatalog              = "image-catalog"
 	IPV4_Address              = "ipv4-address"
 	NAG                       = "network-address-group"
 	MaxVolumeSupport          = "maxVolumeSupport"
