@@ -68,16 +68,15 @@ ibm_pi_capture provides the following [timeouts](https://www.terraform.io/docs/l
 
 Review the argument references that you can specify for your resource.
 
-- `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- `pi_capture_name` - (Required, String) Name of the deployable image created for the captured PVMInstance.
-- `pi_instance_name` - (Required, String) The name of the instance.
-- `pi_capture_destination`- (Required, String) Destination for the deployable image.
-`[image-catalog,cloud-storage,both]`
-- `pi_capture_volume_ids`- (Optional, List of String)  List of Data volume IDs to include in the captured   PVMInstance.
-- `pi_capture_cloud_storage_region`- (Optional,String) The Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `che01`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
 - `pi_capture_cloud_storage_access_key`- (Optional,String) Cloud Storage Access key
+- `pi_capture_cloud_storage_region`- (Optional,String) The Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
 - `pi_capture_cloud_storage_secret_key`- (Optional,String) Cloud Storage Secret key
+- `pi_capture_destination`- (Required, String) Destination for the deployable image.`[image-catalog,cloud-storage,both]`
+- `pi_capture_name` - (Required, String) Name of the deployable image created for the captured PVMInstance.
 - `pi_capture_storage_image_path` - (Optional,String) Cloud Storage Image Path (bucket-name [/folder/../..])
+- `pi_capture_volume_ids`- (Optional, List of String)  List of Data volume IDs to include in the captured   PVMInstance.
+- `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_instance_name` - (Required, String) The name of the instance.
 - `pi_user_tags` - (Optional, List) List of user tags attached to the resource.
 
 ## Attribute reference
