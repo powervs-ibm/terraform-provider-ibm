@@ -77,9 +77,7 @@ jobs:
           if [ -n "$modified_test_files" ]; then
             echo "Modified test files: $modified_test_files"
             go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
-            echo "Test Results:"
-            cat test-results/test-report.log
-            go-junit-report < test-results/test-report.log > test-results/test-report.xml
+        
           else
             echo "No modified test files detected."
           fi
@@ -104,10 +102,9 @@ jobs:
           IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
           
 
-      # Step 7: Upload Test Results (JUnit)
-      - name: Upload JUnit test results as artifact
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: acceptance-test-results
-          path: test-results/test-report.xml
+      # Step 7: Display Test Results 
+      - name: Display Test Results
+        run: |
+          echo "Test Results:"
+          cat test-results/test-report.log
+        if: always() 
