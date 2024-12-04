@@ -77,7 +77,8 @@ jobs:
           if [ -n "$modified_test_files" ]; then
             echo "Modified test files: $modified_test_files"
             go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
-
+            echo "Test Results:"
+            cat test-results/test-report.log
             go-junit-report < test-results/test-report.log > test-results/test-report.xml
           else
             echo "No modified test files detected."
