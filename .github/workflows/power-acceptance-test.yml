@@ -9,6 +9,7 @@ on:
 jobs:
   acceptance-test:
     runs-on: ubuntu-latest
+    if: github.repository == 'powervs-ibm/terraform-provider-ibm'
 
     steps:
       # Step 1: Checkout code
