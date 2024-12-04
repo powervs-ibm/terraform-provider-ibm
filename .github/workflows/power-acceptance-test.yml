@@ -1,0 +1,106 @@
+name: Run Acceptance Tests on Pull Request
+
+on:
+  pull_request:
+    paths:
+      - 'ibm/service/power/*.go'  # Trigger only when test files within power are changed
+    types: [opened, synchronize, reopened]
+
+jobs:
+  acceptance-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.22' 
+      # Step 3: Cache Go modules
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod download
+
+      # Step 5: Install go-junit-report (before Step 7)
+      - name: Install go-junit-report
+        run: |
+          go install github.com/jstemmer/go-junit-report@latest
+
+      # Step 6 : Find modified files, set environment variables, and run tests
+      - name: Find modified files and run acceptance tests
+        run: |
+          # Get the list of modified Go files in the PR under the service/power directory
+          modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'service/power/*.go')
+
+          # Initialize an empty list for test files
+          modified_test_files=""
+
+          # Loop through modified Go files to identify corresponding test files
+          for file in $modified_go_files; do
+            # Skip constants.go since it has no corresponding test file
+            if [[ "$file" == "ibm/service/power/ibm_pi_constants.go" ]]; then
+              echo "Skipping ibm_pi_constants.go as it has no test file."
+              continue
+            fi
+
+            # Get the test file corresponding to the modified Go file by replacing .go with _test.go
+            test_file="${file%.go}_test.go"
+            
+            # If the test file exists, add it to the list of test files to run
+            if [ -f "$test_file" ]; then
+              modified_test_files+=" $test_file"
+            fi
+          done
+
+          # If there are modified test files, run the tests
+          if [ -n "$modified_test_files" ]; then
+            echo "Modified test files: $modified_test_files"
+            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files
+          else
+            echo "No modified test files detected."
+          fi
+        env:
+          TF_ACC: ${{ secrets.TF_ACC }}
+          TF_CLI_ARGS_plan: ${{ secrets.TF_CLI_ARGS_plan }}
+          TF_CLI_ARGS_apply: ${{ secrets.TF_CLI_ARGS_apply }}
+          IC_API_KEY: ${{ secrets.IC_API_KEY }} 
+
+      # Step 7: Upload Test Results as JUnit Report (Optional Improvement)
+      - name: Upload test results
+        if: always()
+        run: |
+          # Create a directory for the test results
+          mkdir -p test-results
+
+          # Run the tests and output in JUnit format
+          go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
+
+          # Convert the output into JUnit XML format
+          go-junit-report < test-results/test-report.log > test-results/test-report.xml
+          
+        # Make sure the test results can be uploaded
+        continue-on-error: true  # Allow workflow to continue even if tests fail
+
+      # Step 8: Upload Test Results (JUnit)
+      - name: Upload JUnit test results as artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: acceptance-test-results
+          path: test-results/test-report.xml
