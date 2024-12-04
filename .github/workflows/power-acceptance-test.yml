@@ -76,7 +76,7 @@ jobs:
           # If there are modified test files, run the tests
           if [ -n "$modified_test_files" ]; then
             echo "Modified test files: $modified_test_files"
-            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
+            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | grep -E '^(=== RUN|--- PASS|--- FAIL|PASS|FAIL)' | tee test-results/test-report.log
         
           else
             echo "No modified test files detected."
