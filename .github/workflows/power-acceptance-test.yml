@@ -45,6 +45,8 @@ jobs:
       # Step 6 : Find modified files, set environment variables, and run tests
       - name: Find modified files and run acceptance tests
         run: |
+          # Create report file
+          mkdir -p test-results
           # Get the list of modified Go files in the PR under the ibm/service/power directory
           git fetch origin
           modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
@@ -74,7 +76,9 @@ jobs:
           # If there are modified test files, run the tests
           if [ -n "$modified_test_files" ]; then
             echo "Modified test files: $modified_test_files"
-            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files
+            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
+
+            go-junit-report < test-results/test-report.log > test-results/test-report.xml
           else
             echo "No modified test files detected."
           fi
@@ -82,7 +86,8 @@ jobs:
           TF_ACC: ${{ secrets.TF_ACC }}
           TF_CLI_ARGS_plan: ${{ secrets.TF_CLI_ARGS_plan }}
           TF_CLI_ARGS_apply: ${{ secrets.TF_CLI_ARGS_apply }}
-          IAAS_CLASSIC_API_KEY: ${{ secrets.IC_API_KEY }}
+          IC_API_KEY: ${{ secrets.IC_API_KEY }}
+          IAAS_CLASSIC_API_KEY: ${{ secrets.IAAS_CLASSIC_API_KEY }}
           TF_LOG: ${{vars.TF_LOG}}
           # Endpoints
           IBMCLOUD_PI_API_ENDPOINT: ${{ vars.IBMCLOUD_PI_API_ENDPOINT }} 
@@ -98,25 +103,7 @@ jobs:
           IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
           
 
-
-
-      # Step 7: Upload Test Results as JUnit Report (Optional Improvement)
-      - name: Upload test results
-        if: always()
-        run: |
-          # Create a directory for the test results
-          mkdir -p test-results
-
-          # Run the tests and output in JUnit format
-          go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files | tee test-results/test-report.log
-
-          # Convert the output into JUnit XML format
-          go-junit-report < test-results/test-report.log > test-results/test-report.xml
-          
-        # Make sure the test results can be uploaded
-        continue-on-error: true  # Allow workflow to continue even if tests fail
-
-      # Step 8: Upload Test Results (JUnit)
+      # Step 7: Upload Test Results (JUnit)
       - name: Upload JUnit test results as artifact
         if: always()
         uses: actions/upload-artifact@v3
