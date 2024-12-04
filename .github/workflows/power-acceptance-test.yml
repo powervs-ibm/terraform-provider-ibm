@@ -46,7 +46,7 @@ jobs:
       - name: Find modified files and run acceptance tests
         run: |
           # Get the list of modified Go files in the PR under the service/power directory
-          modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'service/power/*.go')
+          modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
 
           # Initialize an empty list for test files
           modified_test_files=""
