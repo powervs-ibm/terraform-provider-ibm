@@ -45,8 +45,11 @@ jobs:
       # Step 6 : Find modified files, set environment variables, and run tests
       - name: Find modified files and run acceptance tests
         run: |
-          # Get the list of modified Go files in the PR under the service/power directory
+          # Get the list of modified Go files in the PR under the ibm/service/power directory
+          git fetch origin
           modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
+
+          echo "Modified files: $modified_go_files"
 
           # Initialize an empty list for test files
           modified_test_files=""
