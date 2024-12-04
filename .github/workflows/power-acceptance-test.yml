@@ -88,6 +88,7 @@ jobs:
           TF_CLI_ARGS_apply: ${{ secrets.TF_CLI_ARGS_apply }}
           IC_API_KEY: ${{ secrets.IC_API_KEY }}
           IAAS_CLASSIC_API_KEY: ${{ secrets.IAAS_CLASSIC_API_KEY }}
+          IAAS_CLASSIC_USERNAME: ${{ secrets.IAAS_CLASSIC_USERNAME }}
           TF_LOG: ${{vars.TF_LOG}}
           # Endpoints
           IBMCLOUD_PI_API_ENDPOINT: ${{ vars.IBMCLOUD_PI_API_ENDPOINT }} 
