@@ -82,7 +82,23 @@ jobs:
           TF_ACC: ${{ secrets.TF_ACC }}
           TF_CLI_ARGS_plan: ${{ secrets.TF_CLI_ARGS_plan }}
           TF_CLI_ARGS_apply: ${{ secrets.TF_CLI_ARGS_apply }}
-          IC_API_KEY: ${{ secrets.IC_API_KEY }} 
+          IAAS_CLASSIC_API_KEY: ${{ secrets.IC_API_KEY }}
+          TF_LOG: ${{vars.TF_LOG}}
+          # Endpoints
+          IBMCLOUD_PI_API_ENDPOINT: ${{ vars.IBMCLOUD_PI_API_ENDPOINT }} 
+          IBMCLOUD_IAM_API_ENDPOINT: ${{ vars.IBMCLOUD_IAM_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_CATALOG_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_CATALOG_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_MANAGEMENT_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_MANAGEMENT_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_CONTROLLER_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_CONTROLLER_API_ENDPOINT }}
+          IBMCLOUD_GS_API_ENDPOINT: ${{ vars.IBMCLOUD_GS_API_ENDPOINT }}
+          IBMCLOUD_GT_API_ENDPOINT: ${{ vars.IBMCLOUD_GT_API_ENDPOINT }}
+          # Power
+          PI_CLOUDINSTANCE_ID: ${{ vars.PI_CLOUDINSTANCE_ID }}
+          IBMCLOUD_REGION: ${{ vars.IBMCLOUD_REGION }}
+          IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
+          
+
+
 
       # Step 7: Upload Test Results as JUnit Report (Optional Improvement)
       - name: Upload test results
