@@ -1,4 +1,4 @@
-name: Run Acceptance Tests on Pull Request
+name: PowerVS Acceptance Tests
 
 on:
   pull_request:
