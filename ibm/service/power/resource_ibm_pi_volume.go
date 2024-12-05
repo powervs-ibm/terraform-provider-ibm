@@ -138,7 +138,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 			// Attributes
 			Attr_Auxiliary: {
 				Computed:    true,
-				Description: "Indicates if the volume is auxiliary or not.",
+				Description: "Indicates if the volume is auxiliary or not .",
 				Type:        schema.TypeBool,
 			},
 			Attr_AuxiliaryVolumeName: {
