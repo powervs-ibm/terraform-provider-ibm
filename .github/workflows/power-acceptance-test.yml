@@ -77,8 +77,10 @@ jobs:
           # If there are modified test files, run the tests
           if [ -n "$modified_test_files" ]; then
             echo "Modified test files: $modified_test_files"
-            # go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | tee test-results/test-report.log
-            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files -json 2>&1 | tee test-results/test-report.json
+            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | tee test-results/test-report.log
+            if grep -q 'FAIL' test-results/test-report.log; then
+              exit 1
+            fi
 
             # go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | grep -E '^(=== RUN|--- PASS|--- FAIL|PASS|FAIL)' | tee test-results/test-report.log
         
