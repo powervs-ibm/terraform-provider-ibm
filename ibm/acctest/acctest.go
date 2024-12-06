@@ -1074,7 +1074,7 @@ func init() {
 	// Added for Power Colo Testing
 	Pi_image = os.Getenv("PI_IMAGE")
 	if Pi_image == "" {
-		Pi_image = "5b9568e5-8e39-420e-be63-a16cf7faa98e"
+		Pi_image = "5b9568e5-8e39-420e-be63-a16cf7faa98f"
 		fmt.Println("[INFO] Set the environment variable PI_IMAGE for testing ibm_pi_image resource else it is set to default value '7200-03-03'")
 	}
 	Pi_sap_image = os.Getenv("PI_SAP_IMAGE")
