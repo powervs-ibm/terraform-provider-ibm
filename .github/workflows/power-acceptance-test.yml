@@ -9,6 +9,7 @@ on:
 jobs:
   check-permissions:
     runs-on: ubuntu-latest
+    if: github.repository == 'powervs-ibm/terraform-provider-ibm' 
     outputs:
       is_authorized: ${{ steps.check-permission.outputs.is_authorized }}
     steps:
