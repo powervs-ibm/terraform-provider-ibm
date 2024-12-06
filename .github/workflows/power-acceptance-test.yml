@@ -7,7 +7,29 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if the user is allowed to trigger this workflow
+        run: |
+          # Fetch the GitHub actor (the user who triggered the action)
+          actor="${GITHUB_ACTOR}"
+          
+          # Define allowed users
+          allowed_users="${{ secrets.ALLOWED_USERS }}"
+          
+          # Convert it to an array
+          IFS=' ' read -r -a allowed_users_array <<< "$allowed_users"
+          
+          # Check if the actor is in the allowed list
+          if [[ ! " ${allowed_users_array[@]} " =~ " ${actor} " ]]; then
+            echo "User ${actor} is not authorized to run this workflow."
+            exit 0  # This will stop the workflow if the user is not authorized
+          fi
+
+          echo "User ${actor} is authorized to run the workflow."
   acceptance-test:
+    needs: check-permissions
     runs-on: ubuntu-latest
     if: github.repository == 'powervs-ibm/terraform-provider-ibm'
 
