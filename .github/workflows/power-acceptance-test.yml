@@ -103,7 +103,7 @@ jobs:
           IBMCLOUD_GS_API_ENDPOINT: ${{ vars.IBMCLOUD_GS_API_ENDPOINT }}
           IBMCLOUD_GT_API_ENDPOINT: ${{ vars.IBMCLOUD_GT_API_ENDPOINT }}
           # Power
-          PI_CLOUDINSTANCE_ID: ${{ vars.PI_CLOUDINSTANCE_ID }}
+          PI_CLOUDINSTANCE_ID: ${{ secrets.PI_CLOUDINSTANCE_ID }}
           IBMCLOUD_REGION: ${{ vars.IBMCLOUD_REGION }}
           IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
           
