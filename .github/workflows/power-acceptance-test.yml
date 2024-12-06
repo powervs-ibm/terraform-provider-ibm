@@ -9,8 +9,11 @@ on:
 jobs:
   check-permissions:
     runs-on: ubuntu-latest
+    outputs:
+      is_authorized: ${{ steps.check-permission.outputs.is_authorized }}
     steps:
       - name: Check if the user is allowed to trigger this workflow
+        id: check-permission
         run: |
           # Fetch the GitHub actor (the user who triggered the action)
           actor="${GITHUB_ACTOR}"
@@ -24,14 +27,16 @@ jobs:
           # Check if the actor is in the allowed list
           if [[ ! " ${allowed_users_array[@]} " =~ " ${actor} " ]]; then
             echo "User ${actor} is not authorized to run this workflow."
-            exit 1  # This will stop the workflow if the user is not authorized
+            echo "::set-output name=is_authorized::false"  # Set output to false
+          else
+            echo "User ${actor} is authorized to run the workflow."
+            echo "::set-output name=is_authorized::true"   # Set output to true
           fi
-
-          echo "User ${actor} is authorized to run the workflow."
   acceptance-test:
     needs: check-permissions
     runs-on: ubuntu-latest
-    if: github.repository == 'powervs-ibm/terraform-provider-ibm'
+    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == 'powervs-ibm/terraform-provider-ibm' }}
+
 
     steps:
       # Step 1: Checkout code
