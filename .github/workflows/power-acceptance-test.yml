@@ -1,0 +1,143 @@
+name: PowerVS Acceptance Tests
+
+on:
+  pull_request:
+    paths:
+      - 'ibm/service/power/*.go'  # Trigger only when test files within power are changed
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    if: github.repository == 'powervs-ibm/terraform-provider-ibm' 
+    outputs:
+      is_authorized: ${{ steps.check-permission.outputs.is_authorized }}
+    steps:
+      - name: Check if the user is allowed to trigger this workflow
+        id: check-permission
+        run: |
+          # Fetch the GitHub actor (the user who triggered the action)
+          actor="${GITHUB_ACTOR}"
+          
+          # Define allowed users
+          allowed_users="${{ secrets.ALLOWED_USERS }}"
+          
+          # Convert it to an array
+          IFS=' ' read -r -a allowed_users_array <<< "$allowed_users"
+          
+          # Check if the actor is in the allowed list
+          if [[ ! " ${allowed_users_array[@]} " =~ " ${actor} " ]]; then
+            echo "User ${actor} is not authorized to run this workflow."
+            echo "is_authorized=false" >> $GITHUB_ENV  # Set output to false
+          else
+            echo "User ${actor} is authorized to run the workflow."
+            echo "is_authorized=true" >> $GITHUB_ENV   # Set output to true
+          fi
+  acceptance-test:
+    needs: check-permissions
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == 'powervs-ibm/terraform-provider-ibm' }}
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.22' 
+      # Step 3: Cache Go modules
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod download
+
+      # Step 5: Install go-junit-report (before Step 7)
+      - name: Install go-junit-report
+        run: |
+          go install github.com/jstemmer/go-junit-report@latest
+
+      # Step 6 : Find modified files, set environment variables, and run tests
+      - name: Find modified files and run acceptance tests
+        run: |
+          # Create report file
+          mkdir -p test-results
+          # Get the list of modified Go files in the PR under the ibm/service/power directory
+          git fetch origin
+          modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
+
+          echo "Modified files: $modified_go_files"
+
+          # Initialize an empty list for test files
+          modified_test_files=""
+
+          # Loop through modified Go files to identify corresponding test files
+          for file in $modified_go_files; do
+            # Skip constants.go since it has no corresponding test file
+            if [[ "$file" == "ibm/service/power/ibm_pi_constants.go" ]]; then
+              echo "Skipping ibm_pi_constants.go as it has no test file."
+              continue
+            fi
+
+            # Get the test file corresponding to the modified Go file by replacing .go with _test.go
+            test_file="${file%.go}_test.go"
+            
+            # If the test file exists, add it to the list of test files to run
+            if [ -f "$test_file" ]; then
+              modified_test_files+=" $test_file"
+            fi
+          done
+
+          # If there are modified test files, run the tests
+          if [ -n "$modified_test_files" ]; then
+            echo "Modified test files: $modified_test_files"
+            go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | tee test-results/test-report.log
+            if grep -q 'FAIL' test-results/test-report.log; then
+              exit 1
+            fi
+
+            # go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | grep -E '^(=== RUN|--- PASS|--- FAIL|PASS|FAIL)' | tee test-results/test-report.log
+        
+          else
+            echo "No modified test files detected."
+          fi
+        env:
+          TF_ACC: ${{ secrets.TF_ACC }}
+          TF_CLI_ARGS_plan: ${{ secrets.TF_CLI_ARGS_plan }}
+          TF_CLI_ARGS_apply: ${{ secrets.TF_CLI_ARGS_apply }}
+          IC_API_KEY: ${{ secrets.IC_API_KEY }}
+          IAAS_CLASSIC_API_KEY: ${{ secrets.IAAS_CLASSIC_API_KEY }}
+          IAAS_CLASSIC_USERNAME: ${{ secrets.IAAS_CLASSIC_USERNAME }}
+          # Endpoints
+          IBMCLOUD_PI_API_ENDPOINT: ${{ vars.IBMCLOUD_PI_API_ENDPOINT }} 
+          IBMCLOUD_IAM_API_ENDPOINT: ${{ vars.IBMCLOUD_IAM_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_CATALOG_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_CATALOG_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_MANAGEMENT_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_MANAGEMENT_API_ENDPOINT }}
+          IBMCLOUD_RESOURCE_CONTROLLER_API_ENDPOINT: ${{ vars.IBMCLOUD_RESOURCE_CONTROLLER_API_ENDPOINT }}
+          IBMCLOUD_GS_API_ENDPOINT: ${{ vars.IBMCLOUD_GS_API_ENDPOINT }}
+          IBMCLOUD_GT_API_ENDPOINT: ${{ vars.IBMCLOUD_GT_API_ENDPOINT }}
+          # Power
+          PI_CLOUDINSTANCE_ID: ${{ secrets.PI_CLOUDINSTANCE_ID }}
+          IBMCLOUD_REGION: ${{ vars.IBMCLOUD_REGION }}
+          IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
+          
+
+      # Step 7: Display Test Results 
+      # - name: Display Test Results
+      #   run: |
+      #     echo "Test Results:"
+      #     cat test-results/test-report.log
+      #   if: always() 
