@@ -27,16 +27,15 @@ jobs:
           # Check if the actor is in the allowed list
           if [[ ! " ${allowed_users_array[@]} " =~ " ${actor} " ]]; then
             echo "User ${actor} is not authorized to run this workflow."
-            echo "::set-output name=is_authorized::false"  # Set output to false
+            echo "is_authorized=false" >> $GITHUB_ENV  # Set output to false
           else
             echo "User ${actor} is authorized to run the workflow."
-            echo "::set-output name=is_authorized::true"   # Set output to true
+            echo "is_authorized=true" >> $GITHUB_ENV   # Set output to true
           fi
   acceptance-test:
     needs: check-permissions
     runs-on: ubuntu-latest
     if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == 'powervs-ibm/terraform-provider-ibm' }}
-
 
     steps:
       # Step 1: Checkout code
