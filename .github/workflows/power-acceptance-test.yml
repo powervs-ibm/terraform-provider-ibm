@@ -24,7 +24,7 @@ jobs:
           # Check if the actor is in the allowed list
           if [[ ! " ${allowed_users_array[@]} " =~ " ${actor} " ]]; then
             echo "User ${actor} is not authorized to run this workflow."
-            exit 0  # This will stop the workflow if the user is not authorized
+            exit 1  # This will stop the workflow if the user is not authorized
           fi
 
           echo "User ${actor} is authorized to run the workflow."
