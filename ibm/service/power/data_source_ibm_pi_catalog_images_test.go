@@ -14,7 +14,7 @@ import (
 
 func testAccCheckIBMPICatalogImagesDataSourceBasicConfig() string {
 	return fmt.Sprintf(`
-		data "ibm_pi_catalog_images" "power_catalog_images_basic" {
+		data "ibm_pi_catalog_images" "power_catalog_images_basic " {
 			pi_cloud_instance_id = "%s"
 		}`, acc.Pi_cloud_instance_id)
 }
