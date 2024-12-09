@@ -65,16 +65,12 @@ jobs:
           go mod tidy
           go mod download
 
-      # Step 5: Install go-junit-report (before Step 7)
-      - name: Install go-junit-report
-        run: |
-          go install github.com/jstemmer/go-junit-report@latest
-
-      # Step 6 : Find modified files, set environment variables, and run tests
+      # Step 5 : Find modified files, set environment variables, and run tests
       - name: Find modified files and run acceptance tests
         run: |
           # Create report file
           mkdir -p test-results
+          declare -A modified_test_files_map
           # Get the list of modified Go files in the PR under the ibm/service/power directory
           git fetch origin
           modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
@@ -92,25 +88,28 @@ jobs:
               continue
             fi
 
-            # Get the test file corresponding to the modified Go file by replacing .go with _test.go
-            test_file="${file%.go}_test.go"
-            
-            # If the test file exists, add it to the list of test files to run
-            if [ -f "$test_file" ]; then
-              modified_test_files+=" $test_file"
-            fi
+            if [["$file" == *_test.go ]]; then
+              modified_test_files_map["$file"]=1
+            else
+
+              # Get the test file corresponding to the modified Go file by replacing .go with _test.go
+              test_file="${file%.go}_test.go"
+              
+              # If the test file exists, add it to the list of test files to run
+              if [ -f "$test_file" ]; then
+                modified_test_files_map["$test_file"]=1
+              fi
+            fi  
           done
 
           # If there are modified test files, run the tests
-          if [ -n "$modified_test_files" ]; then
+          if [ ${#modified_test_files_map[@]} -gt 0  ]; then
+            modified_test_files=$(echo "${!modified_test_files_map[@]}")
             echo "Modified test files: $modified_test_files"
             go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | tee test-results/test-report.log
             if grep -q 'FAIL' test-results/test-report.log; then
               exit 1
-            fi
-
-            # go test -v -tags=all -test.v -test.run '^TestAcc' $modified_test_files 2>&1 | grep -E '^(=== RUN|--- PASS|--- FAIL|PASS|FAIL)' | tee test-results/test-report.log
-        
+            fi        
           else
             echo "No modified test files detected."
           fi
@@ -131,13 +130,13 @@ jobs:
           IBMCLOUD_GT_API_ENDPOINT: ${{ vars.IBMCLOUD_GT_API_ENDPOINT }}
           # Power
           PI_CLOUDINSTANCE_ID: ${{ secrets.PI_CLOUDINSTANCE_ID }}
-          IBMCLOUD_REGION: ${{ vars.IBMCLOUD_REGION }}
-          IBMCLOUD_ZONE: ${{ vars.IBMCLOUD_ZONE }}
+          IBMCLOUD_REGION: ${{ secrets.IBMCLOUD_REGION }}
+          IBMCLOUD_ZONE: ${{ secrets.IBMCLOUD_ZONE }}
           
 
-      # Step 7: Display Test Results 
-      # - name: Display Test Results
-      #   run: |
-      #     echo "Test Results:"
-      #     cat test-results/test-report.log
-      #   if: always() 
+      # Step 6: Display Test Results 
+      - name: Display Test Results
+        run: |
+          echo "Test Results:"
+          grep -E '^(=== RUN|--- PASS|--- FAIL|PASS|FAIL)' test-results/test-report.log
+        if: always() 
