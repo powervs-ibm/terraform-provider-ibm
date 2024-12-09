@@ -990,17 +990,6 @@ func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInsta
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isPIInstanceDeleteRefreshFunc(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		pvm, err := client.Get(id)
-		if err != nil {
-			log.Printf("The power vm does not exist")
-			return pvm, State_NotFound, nil
-		}
-		return pvm, State_Deleting, nil
-	}
-}
-
 func isWaitForPIInstanceAvailable(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for PIInstance (%s) to be available and active ", id)
 
@@ -1038,11 +1027,11 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 			} else {
 				err = fmt.Errorf("failed to create the lpar")
 			}
-			return pvm, *pvm.Status, err
+			return pvm, State_Error, err
 		}
 
 		if pvm.Health.Status == instanceReadyStatus || instanceReadyStatus == Any || pvm.Health.Status == OK {
-			return pvm, *pvm.Status, nil
+			return pvm, strings.ToLower(*pvm.Status), nil
 		}
 
 		return pvm, State_Pending, nil
