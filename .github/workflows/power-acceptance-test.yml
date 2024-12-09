@@ -36,7 +36,7 @@ jobs:
   acceptance-test:
     needs: check-permissions
     runs-on: ubuntu-latest
-    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == 'powervs-ibm/terraform-provider-ibm' }}
+    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == secrets.REPO }}
 
     steps:
       # Step 1: Checkout code
