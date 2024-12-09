@@ -16,7 +16,6 @@ jobs:
       - name: Check if the user is allowed to trigger this workflow
         id: check-permission
         run: |
-          echo "REPO=${{ secrets.REPO }}" >> $GITHUB_ENV
           # Fetch the GitHub actor (the user who triggered the action)
           actor="${GITHUB_ACTOR}"
           
@@ -34,10 +33,11 @@ jobs:
             echo "User ${actor} is authorized to run the workflow."
             echo "is_authorized=true" >> $GITHUB_ENV   # Set output to true
           fi
+
   acceptance-test:
     needs: check-permissions
     runs-on: ubuntu-latest
-    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == env.REPO }}
+    if: ${{ needs.check-permissions.outputs.is_authorized == 'true' && github.repository == 'powervs-ibm/terraform-provider-ibm'}}
 
     steps:
       # Step 1: Checkout code
