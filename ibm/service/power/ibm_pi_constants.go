@@ -448,6 +448,7 @@ const (
 
 	// Allowed Values
 	Affinity                  = "affinity"
+	Any                       = "any"
 	All                       = "all"
 	Allow                     = "allow"
 	AntiAffinity              = "anti-affinity"

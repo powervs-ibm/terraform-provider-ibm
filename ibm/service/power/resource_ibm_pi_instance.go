@@ -682,7 +682,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		if err != nil {
 			return diag.Errorf("failed to update the lpar: %v", err)
 		}
-		_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, OK, d.Timeout(schema.TimeoutUpdate))
+		_, err = isWaitForPIInstanceUpdate(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -779,7 +779,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				return diag.Errorf("failed to update the lpar with the change %v", err)
 			}
 			if strings.ToLower(instanceState) == State_Shutoff {
-				_, err = isWaitforPIInstanceUpdate(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+				_, err = isWaitForPIInstanceUpdate(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -979,9 +979,9 @@ func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInsta
 	log.Printf("Waiting for  (%s) to be deleted.", id)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Retry, State_Deleting},
+		Pending:    []string{State_Pending, State_Retry, State_Deleting},
 		Target:     []string{State_NotFound},
-		Refresh:    isPIInstanceDeleteRefreshFunc(client, id),
+		Refresh:    isPIInstanceRefreshFunc(client, id, Any),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active,
 		Timeout:    timeout,
@@ -1025,13 +1025,13 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 	return func() (interface{}, string, error) {
 
 		pvm, err := client.Get(id)
+		if err != nil && !strings.Contains(err.Error(), "Not Found") {
+			return pvm, State_NotFound, nil
+		}
 		if err != nil {
 			return nil, "", err
 		}
-		// Check for `instanceReadyStatus` health status and also the final health status "OK"
-		if strings.ToLower(*pvm.Status) == State_Active && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == OK) {
-			return pvm, State_Active, nil
-		}
+
 		if strings.ToLower(*pvm.Status) == State_Error {
 			if pvm.Fault != nil {
 				err = fmt.Errorf("failed to create the lpar: %s", pvm.Fault.Message)
@@ -1041,7 +1041,11 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 			return pvm, *pvm.Status, err
 		}
 
-		return pvm, State_Build, nil
+		if pvm.Health.Status == instanceReadyStatus || instanceReadyStatus == Any || pvm.Health.Status == OK {
+			return pvm, *pvm.Status, nil
+		}
+
+		return pvm, State_Pending, nil
 	}
 }
 
@@ -1171,36 +1175,13 @@ func isWaitForPIInstanceShutoff(ctx context.Context, client *instance.IBMPIInsta
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Pending, State_Build, Warning},
 		Target:     []string{OK, State_Error, "", State_Shutoff},
-		Refresh:    isPIInstanceShutoffRefreshFunc(client, id, instanceReadyStatus),
+		Refresh:    isPIInstanceRefreshFunc(client, id, instanceReadyStatus),
 		Delay:      Timeout_Delay,
 		MinTimeout: queryTimeOut,
 		Timeout:    timeout,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func isPIInstanceShutoffRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceReadyStatus string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-
-		pvm, err := client.Get(id)
-		if err != nil {
-			return nil, "", err
-		}
-		if strings.ToLower(*pvm.Status) == State_Shutoff && (pvm.Health.Status == instanceReadyStatus || pvm.Health.Status == OK) {
-			return pvm, State_Shutoff, nil
-		}
-		if strings.ToLower(*pvm.Status) == State_Error {
-			if pvm.Fault != nil {
-				err = fmt.Errorf("failed to create the lpar: %s", pvm.Fault.Message)
-			} else {
-				err = fmt.Errorf("failed to create the lpar")
-			}
-			return pvm, *pvm.Status, err
-		}
-
-		return pvm, State_Build, nil
-	}
 }
 
 // This function takes the input string and encodes into base64 if isn't already encoded
@@ -1216,30 +1197,15 @@ func isWaitForPIInstanceStopped(ctx context.Context, client *instance.IBMPIInsta
 	log.Printf("Waiting for PIInstance (%s) to be stopped and powered off ", id)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Stopping, State_Resize, State_VerifyResize, Warning},
+		Pending:    []string{State_Pending, State_Stopping, State_Resize, State_VerifyResize, Warning},
 		Target:     []string{OK, State_Shutoff},
-		Refresh:    isPIInstanceRefreshFuncOff(client, id),
+		Refresh:    isPIInstanceRefreshFunc(client, id, OK),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active, // This is the time that the client will execute to check the status of the request
 		Timeout:    timeout,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func isPIInstanceRefreshFuncOff(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-
-		log.Printf("Calling the check Refresh status of the pvm instance %s", id)
-		pvm, err := client.Get(id)
-		if err != nil {
-			return nil, "", err
-		}
-		if strings.ToLower(*pvm.Status) == State_Shutoff && pvm.Health.Status == OK {
-			return pvm, State_Shutoff, nil
-		}
-		return pvm, State_Stopping, nil
-	}
 }
 
 func stopLparForResourceChange(ctx context.Context, client *instance.IBMPIInstanceClient, id string, d *schema.ResourceData) error {
@@ -1299,7 +1265,7 @@ func performChangeAndReboot(ctx context.Context, client *instance.IBMPIInstanceC
 		return fmt.Errorf("failed to update the lpar with the change, %s", updateErr)
 	}
 
-	_, err = isWaitforPIInstanceUpdate(ctx, client, id, d.Timeout(schema.TimeoutUpdate))
+	_, err = isWaitForPIInstanceUpdate(ctx, client, id, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return fmt.Errorf("failed to get an update from the Service after the resource change, %s", err)
 	}
@@ -1315,36 +1281,19 @@ func performChangeAndReboot(ctx context.Context, client *instance.IBMPIInstanceC
 
 }
 
-func isWaitforPIInstanceUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
 	log.Printf("Waiting for PIInstance (%s) to be ACTIVE or SHUTOFF AFTER THE RESIZE Due to DLPAR Operation ", id)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Resize, State_VerifyResize},
+		Pending:    []string{State_Pending, State_Resize, State_Updating, State_VerifyResize},
 		Target:     []string{State_Active, State_Shutoff, OK},
-		Refresh:    isPIInstanceShutAfterResourceChange(client, id),
+		Refresh:    isPIInstanceRefreshFunc(client, id, OK),
 		Delay:      Timeout_Delay,
 		MinTimeout: 5 * time.Minute,
 		Timeout:    timeout,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func isPIInstanceShutAfterResourceChange(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-
-		pvm, err := client.Get(id)
-		if err != nil {
-			return nil, "", err
-		}
-
-		if strings.ToLower(*pvm.Status) == State_Shutoff && pvm.Health.Status == OK {
-			log.Printf("The lpar is now off after the resource change...")
-			return pvm, State_Shutoff, nil
-		}
-
-		return pvm, State_Resize, nil
-	}
 }
 
 func expandPVMNetworks(networks []interface{}) []*models.PVMInstanceAddNetwork {
