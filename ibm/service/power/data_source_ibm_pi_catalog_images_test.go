@@ -74,6 +74,7 @@ func TestAccIBMPICatalogImagesDataSourceSAP(t *testing.T) {
 	})
 }
 
+// VTL test
 func TestAccIBMPICatalogImagesDataSourceVTL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
