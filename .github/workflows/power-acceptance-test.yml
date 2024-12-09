@@ -42,7 +42,7 @@ jobs:
       # Step 5 : Find modified files, set environment variables, and run tests
       - name: Find modified files and run acceptance tests
         run: |
-          # Create report file
+          # Process test files
           mkdir -p test-results
           declare -A modified_test_files_map
           # Get the list of modified Go files in the PR under the ibm/service/power directory
@@ -61,10 +61,10 @@ jobs:
               echo "Skipping ibm_pi_constants.go as it has no test file."
               continue
             fi
-            
+
             echo "Processing file: $file"
             if [[ "$file" == *_test.go ]]; then
-              echo "Adding $file to the map"
+              echo "Adding $file to the list map"
               modified_test_files_map["$file"]=1
             else
 
@@ -76,11 +76,6 @@ jobs:
                 modified_test_files_map["$test_file"]=1
               fi
             fi  
-          done
-
-          echo "Keys and Values of modified_test_files_map:"
-          for key in "${!modified_test_files_map[@]}"; do
-            echo "$key => ${modified_test_files_map[$key]}"
           done
 
           # If there are modified test files, run the tests
