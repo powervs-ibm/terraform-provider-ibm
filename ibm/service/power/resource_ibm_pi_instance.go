@@ -671,12 +671,22 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	cores_enabled := checkCloudInstanceCapability(cloudInstance, CUSTOM_VIRTUAL_CORES)
 
 	if d.HasChanges(Arg_InstanceName, Arg_VirtualOpticalDevice) {
+		if d.HasChange(Arg_InstanceName) && d.HasChange(Arg_VirtualOpticalDevice) {
+			oldVOD, _ := d.GetChange(Arg_VirtualOpticalDevice)
+			d.Set(Arg_VirtualOpticalDevice, oldVOD)
+			return diag.Errorf("updates to %s and %s are mutually exclusive", Arg_InstanceName, Arg_VirtualOpticalDevice)
+		}
 		body := &models.PVMInstanceUpdate{}
 		if d.HasChange(Arg_InstanceName) {
 			body.ServerName = name
 		}
 		if d.HasChange(Arg_VirtualOpticalDevice) {
-			body.CloudInitialization.VirtualOpticalDevice = d.Get(Arg_VirtualOpticalDevice).(string)
+			body.CloudInitialization = &models.CloudInitialization{}
+			if vod, ok := d.GetOk(Arg_VirtualOpticalDevice); ok {
+				body.CloudInitialization.VirtualOpticalDevice = vod.(string)
+			} else {
+				body.CloudInitialization.VirtualOpticalDevice = Detach
+			}
 		}
 		_, err = client.Update(instanceID, body)
 		if err != nil {

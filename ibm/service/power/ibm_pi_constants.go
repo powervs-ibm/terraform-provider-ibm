@@ -463,6 +463,7 @@ const (
 	DeploymentTypeEpic        = "EPIC"
 	DeploymentTypeVMNoStorage = "VMNoStorage"
 	DestinationUnreach        = "destination-unreach"
+	Detach                    = "detach"
 	DHCPVlan                  = "dhcp-vlan"
 	Disable                   = "disable"
 	Echo                      = "echo"
