@@ -46,7 +46,7 @@ jobs:
           mkdir -p test-results
           declare -A modified_test_files_map
           # Get the list of modified Go files in the PR under the ibm/service/power directory
-          git fetch origin
+          git fetch origin -q
           modified_go_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'ibm/service/power/*.go')
 
           echo "Modified files: $modified_go_files"
@@ -61,8 +61,9 @@ jobs:
               echo "Skipping ibm_pi_constants.go as it has no test file."
               continue
             fi
-
-            if [["$file" == *_test.go ]]; then
+            
+            echo "Processing file: $file"
+            if [[ "$file" == *_test.go ]]; then
               echo "Adding $file to the map"
               modified_test_files_map["$file"]=1
             else
@@ -81,7 +82,7 @@ jobs:
           for key in "${!modified_test_files_map[@]}"; do
             echo "$key => ${modified_test_files_map[$key]}"
           done
-          
+
           # If there are modified test files, run the tests
           if [ ${#modified_test_files_map[@]} -gt 0  ]; then
             modified_test_files=$(echo "${!modified_test_files_map[@]}")
