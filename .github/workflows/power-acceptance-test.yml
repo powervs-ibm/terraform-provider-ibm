@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '1.22' 
-          
+
       # Step 3: Cache Go modules
       - name: Cache Go modules
         uses: actions/cache@v3
@@ -63,6 +63,7 @@ jobs:
             fi
 
             if [["$file" == *_test.go ]]; then
+              echo "Adding $file to the map"
               modified_test_files_map["$file"]=1
             else
 
@@ -76,6 +77,11 @@ jobs:
             fi  
           done
 
+          echo "Keys and Values of modified_test_files_map:"
+          for key in "${!modified_test_files_map[@]}"; do
+            echo "$key => ${modified_test_files_map[$key]}"
+          done
+          
           # If there are modified test files, run the tests
           if [ ${#modified_test_files_map[@]} -gt 0  ]; then
             modified_test_files=$(echo "${!modified_test_files_map[@]}")
