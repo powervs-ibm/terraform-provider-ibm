@@ -1024,7 +1024,7 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 	return func() (interface{}, string, error) {
 
 		pvm, err := client.Get(id)
-		if err != nil && !strings.Contains(err.Error(), "Not Found") {
+		if err != nil && strings.Contains(err.Error(), NotFound) {
 			return pvm, State_NotFound, nil
 		}
 		if err != nil {
