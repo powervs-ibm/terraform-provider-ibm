@@ -83,7 +83,7 @@ func testAccCheckIBMPIInstanceDeploymentTypeConfig(name, instanceHealthStatus, e
 	  }
 	  resource "ibm_pi_instance" "power_instance" {
 		pi_cloud_instance_id  = "%[1]s"
-		pi_deployment_type          = "%[6]s"
+		pi_deployment_type    = "%[6]s"
 		pi_health_status      = "%[5]s"
 		pi_image_id           = data.ibm_pi_image.power_image.id
 		pi_instance_name      = "%[2]s"
