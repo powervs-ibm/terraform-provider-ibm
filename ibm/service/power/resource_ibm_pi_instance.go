@@ -990,7 +990,7 @@ func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInsta
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Active, State_Deleting, State_Pending, State_Retry, State_Shutoff},
-		Target:     []string{State_NotFound},
+		Target:     []string{State_Deleted, State_NotFound},
 		Refresh:    isPIInstanceRefreshFunc(client, id, Any),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active,
