@@ -788,16 +788,9 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			if err != nil {
 				return diag.Errorf("failed to update the lpar with the change %v", err)
 			}
-			if strings.ToLower(instanceState) == State_Shutoff {
-				_, err = isWaitForPIInstanceUpdate(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					return diag.FromErr(err)
-				}
-			} else {
-				_, err = isWaitForPIInstanceAvailable(ctx, client, instanceID, Arg_HealthStatus, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					return diag.FromErr(err)
-				}
+			_, err = isWaitForPIInstanceUpdate(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
+				return diag.FromErr(err)
 			}
 		}
 	}
