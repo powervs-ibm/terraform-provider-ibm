@@ -989,8 +989,8 @@ func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInsta
 	log.Printf("Waiting for  (%s) to be deleted.", id)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{State_Active, State_Deleting, State_Pending, State_Retry, State_Shutoff},
-		Target:     []string{State_Deleted, State_NotFound},
+		Pending:    []string{State_Active, State_Deleted, State_Deleting, State_Pending, State_Retry, State_Shutoff},
+		Target:     []string{State_NotFound},
 		Refresh:    isPIInstanceRefreshFunc(client, id, Any),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active,
@@ -1025,6 +1025,7 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 
 		pvm, err := client.Get(id)
 		if err != nil && strings.Contains(err.Error(), NotFound) {
+			log.Printf("The power vm does not exist")
 			return pvm, State_NotFound, nil
 		}
 		if err != nil {
