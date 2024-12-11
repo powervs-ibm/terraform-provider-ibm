@@ -683,7 +683,6 @@ func testAccIBMPIInstanceMixedStorage(name, healthStatus string) string {
 func TestAccIBMPIInstanceUpdateActiveState(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
-	nameUpdated := name + "-updated"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -698,11 +697,11 @@ func TestAccIBMPIInstanceUpdateActiveState(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckIBMPIActiveInstanceConfigUpdate(nameUpdated, power.OK, "0.5", "4"),
+				Config: testAccCheckIBMPIActiveInstanceConfigUpdate(name, power.OK, "0.5", "4"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceStatus(instanceRes, strings.ToUpper(power.State_Active)),
 					testAccCheckIBMPIInstanceExists(instanceRes),
-					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", nameUpdated),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 				),
 			},
 		},
@@ -712,7 +711,6 @@ func TestAccIBMPIInstanceUpdateActiveState(t *testing.T) {
 func TestAccIBMPIInstanceUpdateStoppedState(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
-	nameUpdated := name + "-updated"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -726,11 +724,11 @@ func TestAccIBMPIInstanceUpdateStoppedState(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckIBMPIStoppedInstanceConfigUpdate(nameUpdated, power.OK, "0.5", "4", "stop"),
+				Config: testAccCheckIBMPIStoppedInstanceConfigUpdate(name, power.OK, "0.5", "4", "stop"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceStatus(instanceRes, strings.ToUpper(power.State_Shutoff)),
 					testAccCheckIBMPIInstanceExists(instanceRes),
-					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", nameUpdated),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 				),
 			},
 		},
