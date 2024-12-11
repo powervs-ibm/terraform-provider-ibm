@@ -83,7 +83,7 @@ func testAccCheckIBMPIInstanceDeploymentTypeConfig(name, instanceHealthStatus, e
 	  }
 	  resource "ibm_pi_instance" "power_instance" {
 		pi_cloud_instance_id  = "%[1]s"
-		pi_deployment_type          = "%[6]s"
+		pi_deployment_type    = "%[6]s"
 		pi_health_status      = "%[5]s"
 		pi_image_id           = data.ibm_pi_image.power_image.id
 		pi_instance_name      = "%[2]s"
@@ -394,7 +394,7 @@ func TestAccIBMPIInstanceBasic(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceConfig(name, power.Warning),
+				Config: testAccCheckIBMPIInstanceConfig(name, power.OK),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
@@ -703,7 +703,6 @@ func TestAccIBMPIInstanceUpdateActiveState(t *testing.T) {
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -731,7 +730,6 @@ func TestAccIBMPIInstanceUpdateStoppedState(t *testing.T) {
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

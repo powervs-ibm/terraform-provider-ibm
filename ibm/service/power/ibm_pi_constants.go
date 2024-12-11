@@ -448,6 +448,7 @@ const (
 
 	// Allowed Values
 	Affinity                  = "affinity"
+	Any                       = "any"
 	All                       = "all"
 	Allow                     = "allow"
 	AntiAffinity              = "anti-affinity"
@@ -462,6 +463,7 @@ const (
 	DeploymentTypeEpic        = "EPIC"
 	DeploymentTypeVMNoStorage = "VMNoStorage"
 	DestinationUnreach        = "destination-unreach"
+	Detach                    = "detach"
 	DHCPVlan                  = "dhcp-vlan"
 	Disable                   = "disable"
 	Echo                      = "echo"
