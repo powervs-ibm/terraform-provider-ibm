@@ -27,6 +27,7 @@ func TestAccIBMPIImagesDataSource_basic(t *testing.T) {
 	})
 }
 
+// testAccCheckIBMPIImagesDataSourceConfig returns the Terraform configuration for checking IBM Cloud Images data source.
 func testAccCheckIBMPIImagesDataSourceConfig() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_images" "testacc_ds_image" {
