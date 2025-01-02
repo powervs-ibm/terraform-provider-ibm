@@ -546,6 +546,7 @@ const (
 	State_Creating           = "creating"
 	State_Deleted            = "deleted"
 	State_Deleting           = "deleting"
+	State_Detaching          = "detaching"
 	State_Down               = "down"
 	State_Error              = "error"
 	State_ERROR              = "ERROR"
