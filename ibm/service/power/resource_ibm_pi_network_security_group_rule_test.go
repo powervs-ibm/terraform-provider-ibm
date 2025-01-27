@@ -135,15 +135,6 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigAddRuleTCP() string {
 		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id, acc.Pi_remote_id, acc.Pi_remote_type)
 }
 
-func testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule() string {
-	return fmt.Sprintf(`
-		resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
-			pi_cloud_instance_id = "%[1]s"
-			pi_network_security_group_id = "%[2]s"
-			pi_network_security_group_rule_id = "%[3]s"
-		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id, acc.Pi_network_security_group_rule_id)
-}
-
 func testAccCheckIBMPINetworkSecurityGroupRuleConfigPorts(sourcePortBegin string, sourcePortEnd string, destinationPortBegin string, destinationPortEnd string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
@@ -166,6 +157,15 @@ func testAccCheckIBMPINetworkSecurityGroupRuleConfigPorts(sourcePortBegin string
 				type = "%[4]s"
 			}
 		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id, acc.Pi_remote_id, acc.Pi_remote_type, sourcePortBegin, sourcePortEnd, destinationPortBegin, destinationPortEnd)
+}
+
+func testAccCheckIBMPINetworkSecurityGroupRuleConfigRemoveRule() string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_network_security_group_rule" "network_security_group_rule" {
+			pi_cloud_instance_id = "%[1]s"
+			pi_network_security_group_id = "%[2]s"
+			pi_network_security_group_rule_id = "%[3]s"
+		}`, acc.Pi_cloud_instance_id, acc.Pi_network_security_group_id, acc.Pi_network_security_group_rule_id)
 }
 
 func testAccCheckIBMPINetworkSecurityGroupRuleExists(n string) resource.TestCheckFunc {
