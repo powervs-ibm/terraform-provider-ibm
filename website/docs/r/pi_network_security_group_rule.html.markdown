@@ -78,7 +78,7 @@ Review the argument references that you can specify for your resource.
     Nested schema for `pi_destination_port`:
       - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
       - `minimum` - (Optional, Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.
-- `pi_destination_ports` - (Optional, List, Deprecated) The list of destination port. Deprecated, please use `pi_destination_port`.
+- `pi_destination_ports` - (Deprecated, Optional, List) The list of destination port. Deprecated, please use `pi_destination_port`.
 
     Nested schema for `pi_destination_ports`:
       - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
@@ -101,7 +101,7 @@ Review the argument references that you can specify for your resource.
     Nested schema for `pi_source_port`:
     - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
     - `minimum` - (Optional, Int) The start of the port range, if applicable. If the value is not present then the default value of 1 will be the minimum port number.
-- `pi_source_ports` - (Optional, List, Deprecated) List of source port. Deprecated, please use `pi_source_port`.
+- `pi_source_ports` - (Deprecated, Optional, List) List of source port. Deprecated, please use `pi_source_port`.
 
     Nested schema for `pi_source_ports`:
     - `maximum` - (Optional, Int) The end of the port range, if applicable. If the value is not present then the default value of 65535 will be the maximum port number.
