@@ -603,18 +603,15 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	if powervmdata.Status != nil {
 		d.Set(Attr_Status, powervmdata.Status)
 	}
-	d.Set(Arg_ProcType, powervmdata.ProcType)
-	d.Set(Attr_MinProcessors, powervmdata.Minproc)
-	d.Set(Attr_Progress, powervmdata.Progress)
-	if powervmdata.StorageType != nil && *powervmdata.StorageType != "" {
-		d.Set(Arg_StorageType, powervmdata.StorageType)
-	}
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set(Arg_ImageID, powervmdata.ImageID)
 	d.Set(Arg_InstanceName, powervmdata.ServerName)
+	d.Set(Arg_ProcType, powervmdata.ProcType)
 	d.Set(Arg_StoragePool, powervmdata.StoragePool)
 	d.Set(Arg_StoragePoolAffinity, powervmdata.StoragePoolAffinity)
 	d.Set(Attr_InstanceID, powervmdata.PvmInstanceID)
+	d.Set(Attr_MinProcessors, powervmdata.Minproc)
+	d.Set(Attr_Progress, powervmdata.Progress)
 	if *powervmdata.PlacementGroup != None {
 		d.Set(Arg_PlacementGroupID, powervmdata.PlacementGroup)
 	}

@@ -32,7 +32,7 @@ func TestAccIBMPIInstanceBasic(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceConfig(name, power.Warning),
+				Config: testAccCheckIBMPIInstanceConfig(name, power.OK),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
