@@ -95,6 +95,7 @@ func testAccCheckIBMPIImageConfig() string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
+		pi_image_name		= "power_image"
 		pi_image_id         = "%[2]s"
 	  }
 	`, acc.Pi_cloud_instance_id, acc.Pi_image)
@@ -174,6 +175,7 @@ func testAccCheckIBMPIImageUserTagsConfig(userTagsString string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
+		pi_image_name		= "power_image"
 		pi_image_id         = "%[2]s"
 		pi_user_tags        = %[3]s
 	  }
