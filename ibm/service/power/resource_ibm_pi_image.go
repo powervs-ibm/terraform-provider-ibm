@@ -141,11 +141,12 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:          schema.TypeString,
 			},
 			Arg_ImageName: {
-				Description:  "Image name",
-				ForceNew:     true,
-				Optional:     true,
-				Type:         schema.TypeString,
-				ValidateFunc: validation.NoZeroValues,
+				Description:      "Image name",
+				DiffSuppressFunc: flex.ApplyOnce,
+				ForceNew:         true,
+				Optional:         true,
+				Type:             schema.TypeString,
+				ValidateFunc:     validation.NoZeroValues,
 			},
 			Arg_ImageSecretKey: {
 				Description:  "Cloud Object Storage secret key; required for buckets with private access",
