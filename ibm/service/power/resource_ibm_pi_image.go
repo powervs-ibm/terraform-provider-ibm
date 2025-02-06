@@ -121,7 +121,7 @@ func ResourceIBMPIImage() *schema.Resource {
 				ExactlyOneOf:  []string{Arg_ImageID, Arg_ImageBucketName},
 				ForceNew:      true,
 				Optional:      true,
-				RequiredWith:  []string{Arg_ImageBucketRegion, Arg_ImageBucketFileName, Arg_ImageName},
+				RequiredWith:  []string{Arg_ImageBucketRegion, Arg_ImageBucketFileName},
 				Type:          schema.TypeString,
 			},
 			Arg_ImageBucketRegion: {
@@ -141,11 +141,9 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:          schema.TypeString,
 			},
 			Arg_ImageName: {
-				Computed:     true,
 				Description:  "Image name",
 				ForceNew:     true,
 				Optional:     true,
-				RequiredWith: []string{Arg_ImageBucketName},
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
@@ -403,7 +401,6 @@ func resourceIBMPIImageRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set(Attr_ImageID, imageid)
-	d.Set(Arg_ImageName, imagedata.Name)
 
 	return nil
 }

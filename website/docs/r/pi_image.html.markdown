@@ -18,7 +18,6 @@ The following example enables you to create a image in your project:
 
 ```terraform
 resource "ibm_pi_image" "testacc_image  "{
-  pi_image_name       = "7200-03-02"
   pi_image_id         = <"image id obtained from the datasource">
   pi_cloud_instance_id = "<value of the cloud_instance_id>"
 }
@@ -84,7 +83,9 @@ Review the argument references that you can specify for your resource.
 - `pi_image_id` - (Optional, String) Image ID of existing source image; required for copy image.
   - Either `pi_image_id` or `pi_image_bucket_name` is required.
   - You can retrieve this value from [pi_catalog_images](https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs/data-sources/pi_catalog_images#image_id) as `image_id` from the stock image you intend to use.
-- `pi_image_name` - (Optional, String) The name of an image for importing only. Required if importing from bucket. Conflicts with `pi_image_id`.
+- `pi_image_name` - (Optional, String) The name of an image for importing only. Required if importing from bucket.
+
+    ~> **NOTE** will  be required with `pi_image_bucket_name` and conflict with `pi_image_id` in future releases.
 - `pi_image_secret_key` - (Optional, String, Sensitive) Cloud Object Storage secret key; required for buckets with private access.
   - `pi_image_secret_key` is required with `pi_image_access_key`
 - `pi_image_storage_pool` - (Optional, String) Storage pool where the image will be loaded, if provided then `pi_affinity_policy` will be ignored. Used only when importing an image from cloud storage.
