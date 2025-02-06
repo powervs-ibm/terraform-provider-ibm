@@ -85,7 +85,7 @@ Review the argument references that you can specify for your resource.
   - You can retrieve this value from [pi_catalog_images](https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs/data-sources/pi_catalog_images#image_id) as `image_id` from the stock image you intend to use.
 - `pi_image_name` - (Optional, String) The name of an image for importing only. Required if importing from bucket.
 
-    ~> **NOTE** will  be required with `pi_image_bucket_name` and conflict with `pi_image_id` in future releases.
+    ~> **NOTE** will  be required with `pi_image_bucket_name` and conflict with `pi_image_id` in future releases. Currently has no effect if copying from catalog.
 - `pi_image_secret_key` - (Optional, String, Sensitive) Cloud Object Storage secret key; required for buckets with private access.
   - `pi_image_secret_key` is required with `pi_image_access_key`
 - `pi_image_storage_pool` - (Optional, String) Storage pool where the image will be loaded, if provided then `pi_affinity_policy` will be ignored. Used only when importing an image from cloud storage.
