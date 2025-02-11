@@ -86,6 +86,7 @@ func DataSourceIBMPINetworkPort() *schema.Resource {
 				},
 			},
 		},
+		DeprecationMessage: "Data Source ibm_pi_network_port_attach is deprecated.",
 	}
 }
 
