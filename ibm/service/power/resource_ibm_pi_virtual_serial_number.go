@@ -15,6 +15,7 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
@@ -62,6 +63,13 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Required:         true,
 				Type:             schema.TypeString,
 			},
+			Arg_SoftwareTier: {
+				Description:      "Software tier for virtual serial number.",
+				DiffSuppressFunc: supressVSNDiffAutoAssign,
+				Optional:         true,
+				Type:             schema.TypeString,
+				ValidateFunc:     validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
+			},
 		},
 	}
 }
@@ -77,7 +85,12 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 
 	vsnArg := d.Get(Arg_Serial).(string)
 	if _, ok := d.GetOk(Arg_InstanceID); !ok && vsnArg == AutoAssign {
-		return diag.Errorf("cannot use '%s' unless %s is specified", AutoAssign, Arg_InstanceID)
+		if vsnArg == AutoAssign {
+			return diag.Errorf("cannot use '%s' unless %s is specified", AutoAssign, Arg_InstanceID)
+		}
+		if _, ok := d.GetOk(Arg_SoftwareTier); ok {
+			return diag.Errorf("cannot use '%s' unless %s is specified", Arg_SoftwareTier, Arg_InstanceID)
+		}
 	}
 
 	serialString := ""
@@ -133,6 +146,9 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 			}
 			if v, ok := d.GetOk(Arg_Description); ok {
 				addBody.Description = v.(string)
+			}
+			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+				addBody.SoftwareTier = v.(models.SoftwareTier)
 			}
 			_, err = client.PVMInstanceAttachVSN(pvmInstanceIdArg, addBody)
 			if err != nil {
@@ -266,19 +282,26 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
-	if d.HasChange(Arg_Description) && !d.HasChange(Arg_InstanceID) {
-		newDescription := d.Get(Arg_Description).(string)
+	if (d.HasChange(Arg_Description) || d.HasChange(Arg_SoftwareTier)) && !d.HasChange(Arg_InstanceID) {
+
 		if v, ok := d.GetOk(Arg_InstanceID); ok {
 			pvmInstanceId := v.(string)
-			updateBody := &models.UpdateServerVirtualSerialNumber{
-				Description: &newDescription,
+			updateBody := &models.UpdateServerVirtualSerialNumber{}
+			if d.HasChange(Arg_Description) {
+				newDescription := d.Get(Arg_Description).(string)
+				updateBody.Description = &newDescription
 			}
 
+			if d.HasChange(Arg_SoftwareTier) {
+				newSoftwareTier := d.Get(Arg_SoftwareTier).(models.SoftwareTier)
+				updateBody.SoftwareTier = newSoftwareTier
+			}
 			_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
 			if err != nil {
 				return diag.FromErr(err)
 			}
-		} else {
+		} else if d.HasChange(Arg_Description) {
+			newDescription := d.Get(Arg_Description).(string)
 			updateBody := &models.UpdateVirtualSerialNumber{
 				Description: &newDescription,
 			}
@@ -337,6 +360,10 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			if v, ok := d.GetOk(Arg_Description); ok {
 				description := v.(string)
 				addBody.Description = description
+			}
+			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+				softwareTier := v.(models.SoftwareTier)
+				addBody.SoftwareTier = softwareTier
 			}
 			_, err = client.PVMInstanceAttachVSN(newIdString, addBody)
 			if err != nil {

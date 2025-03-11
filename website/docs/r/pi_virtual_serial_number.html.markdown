@@ -60,6 +60,7 @@ Review the argument references that you can specify for your resource.
 - `pi_serial` - (Required, String) Virtual serial number of existing serial. Cannot use 'auto-assign' unless `pi_instance_id` is specified.
 
     ~> **Note** When set to "auto-assign" in the configuration, changes to `pi_serial` outside of terraform will not be detected. 
+- `pi_software_tier` - (Optional, String) Specifies software tier of virtual serial number. Can only be used with `pi_instance_id`. Allowed values are: ["P05", "P10", "P20", "P30"].
 
 ## Attribute reference
  In addition to all argument reference list, you can access the following attribute reference after your resource is created.
