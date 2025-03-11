@@ -435,6 +435,7 @@ const (
 	Attr_SharedProcessorPoolStatusDetail             = "status_detail"
 	Attr_Size                                        = "size"
 	Attr_SnapshotID                                  = "snapshot_id"
+	Attr_SoftwareTier                                = "software_tier"
 	Attr_Source                                      = "source"
 	Attr_SourceChecksum                              = "source_checksum"
 	Attr_SourceIP                                    = "source_ip"

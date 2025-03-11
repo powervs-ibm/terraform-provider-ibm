@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -380,6 +381,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: supressVSNDiffAutoAssign,
 							Type:             schema.TypeString,
+						},
+						Attr_SoftwareTier: {
+							Description:  "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
+							Optional:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 						},
 					},
 				},
@@ -1053,6 +1060,10 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					Description: description,
 					Serial:      &serial,
 				}
+				softwareTier := newVSNMap[Attr_SoftwareTier].(models.SoftwareTier)
+				if softwareTier != "" {
+					addBody.SoftwareTier = softwareTier
+				}
 				_, err := vsnClient.PVMInstanceAttachVSN(instanceID, addBody)
 				if err != nil {
 					return diag.FromErr(err)
@@ -1072,11 +1083,17 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 
-		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) && d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) {
-			newDescriptionString := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
-			updateBody := &models.UpdateServerVirtualSerialNumber{
-				Description: &newDescriptionString,
+		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) && (d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) || d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_SoftwareTier)) {
+			updateBody := &models.UpdateServerVirtualSerialNumber{}
+			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_Description) {
+				newDescriptionString := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
+				updateBody.Description = &newDescriptionString
 			}
+			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
+				newSoftwareTier := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier).(models.SoftwareTier)
+				updateBody.SoftwareTier = newSoftwareTier
+			}
+
 			_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
 			if err != nil {
 				return diag.FromErr(err)
@@ -1937,6 +1954,10 @@ func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSe
 	description := vsnItemMap[Attr_Description].(string)
 	if description != "" {
 		model.Description = description
+	}
+	softwareTier := vsnItemMap[Attr_SoftwareTier].(models.SoftwareTier)
+	if softwareTier != "" {
+		model.SoftwareTier = softwareTier
 	}
 
 	return model
