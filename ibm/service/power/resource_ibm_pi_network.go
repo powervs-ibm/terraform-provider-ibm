@@ -45,6 +45,18 @@ func ResourceIBMPINetwork() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
+			Arg_AdvertiseExternally: {
+				Computed:    true,
+				Description: "Enable the network to be advertised externally.",
+				Optional:    true,
+				Type:        schema.TypeBool,
+			},
+			Arg_ARPBroadcast: {
+				Computed:    true,
+				Description: "Enable ARP Broadcast.",
+				Optional:    true,
+				Type:        schema.TypeBool,
+			},
 			Arg_Cidr: {
 				Computed:    true,
 				Description: "The network CIDR. Required for `vlan` network type.",
@@ -173,7 +185,7 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Type:        schema.TypeSet,
 			},
 
-			//Computed Attributes
+			// Attributes
 			Attr_CRN: {
 				Computed:    true,
 				Description: "The CRN of this resource.",
@@ -248,6 +260,12 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 	if _, ok := d.GetOk(Arg_NetworkPeer); ok {
 		peerModel := networkMapToNetworkCreatePeer(d.Get(Arg_NetworkPeer + ".0").(map[string]interface{}))
 		body.Peer = peerModel
+	}
+	if v, ok := d.GetOk(Arg_AdvertiseExternally); ok {
+		body.AdvertiseExternally = flex.PtrToBool(v.(bool))
+	}
+	if v, ok := d.GetOk(Arg_ARPBroadcast); ok {
+		body.ArpBroadcast = flex.PtrToBool(v.(bool))
 	}
 
 	if networktype == DHCPVlan || networktype == Vlan {
@@ -348,6 +366,8 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 		}
 		d.Set(Arg_UserTags, tags)
 	}
+	d.Set(Arg_AdvertiseExternally, networkdata.AdvertiseExternally)
+	d.Set(Arg_ARPBroadcast, networkdata.ArpBroadcast)
 	d.Set(Arg_Cidr, networkdata.Cidr)
 	d.Set(Arg_DNS, networkdata.DNSServers)
 	d.Set(Arg_Gateway, networkdata.Gateway)
@@ -393,11 +413,22 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(Arg_NetworkName, Arg_DNS, Arg_Gateway, Arg_IPAddressRange) {
+	if d.HasChanges(Arg_AdvertiseExternally, Arg_ARPBroadcast, Arg_DNS, Arg_Gateway, Arg_IPAddressRange, Arg_NetworkName) {
 		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
-		body := &models.NetworkUpdate{
-			DNSServers: flex.ExpandStringList((d.Get(Arg_DNS).(*schema.Set)).List()),
+		body := &models.NetworkUpdate{}
+
+		if d.HasChange(Arg_AdvertiseExternally) {
+			body.AdvertiseExternally = d.Get(Arg_AdvertiseExternally).(bool)
 		}
+
+		if d.HasChange(Arg_ARPBroadcast) {
+			body.ArpBroadcast = d.Get(Arg_ARPBroadcast).(bool)
+		}
+
+		if d.HasChange(Arg_DNS) {
+			body.DNSServers = flex.ExpandStringList((d.Get(Arg_DNS).(*schema.Set)).List())
+		}
+
 		networkType := d.Get(Arg_NetworkType).(string)
 		if d.HasChange(Arg_IPAddressRange) || d.HasChange(Arg_Gateway) {
 			if networkType == Vlan {
