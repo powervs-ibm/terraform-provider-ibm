@@ -10,7 +10,7 @@ description: |-
 
 Retrieve a list of networks that you can use in your Power Systems Virtual Server instance. For more information, about power virtual server instance networks, see [setting up an IBM network install server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-configuring-subnet).
 
-## Example usage
+## Example Usage
 
 ```terraform
 data "ibm_pi_networks" "ds_network" {
@@ -34,13 +34,13 @@ Example usage:
     }
   ```
   
-## Argument reference
+## Argument Reference
 
 Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 
-## Attribute reference
+## Attribute Reference
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
@@ -48,6 +48,8 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `networks`:
   - `access_config` - (Deprecated, String) The network communication configuration option of the network (for on-prem locations only). Use `peer_id` instead.
+  - `advertise_externally` - (Bool) Indicates if the network is advertised externally.
+  - `arp_broadcast` - (Bool) Indicates if ARP Broadcast is enabled.
   - `crn` - (String) The CRN of this resource.
   - `dhcp_managed` - (Boolean) Indicates if the network DHCP Managed.
   - `href` - (String) The hyper link of a network.
