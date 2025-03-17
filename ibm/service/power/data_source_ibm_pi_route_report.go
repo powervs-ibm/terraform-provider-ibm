@@ -37,7 +37,7 @@ func DataSourceIBMPIRouteReport() *schema.Resource {
 						Description: "Indicates if the route is advertised externally.",
 						Type:        schema.TypeBool,
 					},
-					Attr_DestinationCIDR: {
+					Attr_Destination: {
 						Computed:    true,
 						Description: "The destination CIDR.",
 						Type:        schema.TypeString,
@@ -85,7 +85,7 @@ func flattenRouteReports(routes []*models.RouteReportRoute) []map[string]interfa
 		routeReport := map[string]interface{}{
 			// TODO: Find a way to check if 'Attr_AdvertiseExternally' is set or not (not required, go defaults it to false)
 			Attr_AdvertiseExternally: r.AdvertiseExternally,
-			Attr_DestinationCIDR:     r.DestinationCIDR,
+			Attr_Destination:         r.Destination,
 			Attr_Type:                r.Type,
 		}
 

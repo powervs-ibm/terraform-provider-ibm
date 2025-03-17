@@ -249,9 +249,9 @@ func resourceIBMPIRouteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 	name := d.Get(Arg_Name).(string)
 	nextHop := d.Get(Arg_NextHop).(string)
 	body := &models.RouteUpdate{
-		Destination: &destination,
+		Destination: destination,
 		Name:        name,
-		NextHop:     &nextHop,
+		NextHop:     nextHop,
 	}
 
 	if d.HasChange(Arg_Action) {
