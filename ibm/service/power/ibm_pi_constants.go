@@ -234,7 +234,6 @@ const (
 	Attr_DeploymentType                              = "deployment_type"
 	Attr_Description                                 = "description"
 	Attr_Destination                                 = "destination"
-	Attr_DestinationCIDR                             = "destination_cidr"
 	Attr_DestinationPort                             = "destination_port"
 	Attr_DestinationType                             = "destination_type"
 	Attr_Details                                     = "details"
