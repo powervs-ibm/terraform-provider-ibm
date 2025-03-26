@@ -19,7 +19,7 @@ func TestAccIBMPIRouteDataSource_basic(t *testing.T) {
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPISnapshotDataSourceConfig(),
+				Config: testAccCheckIBMPIRouteDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(routeData, "id"),
 				),
@@ -31,7 +31,7 @@ func TestAccIBMPIRouteDataSource_basic(t *testing.T) {
 func testAccCheckIBMPIRouteDataSourceConfig() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_route" "route_data" {
-			pi_cloud_instance_id = "%s"
-			pi_route_id          = "%s"
+			pi_cloud_instance_id = "%[2]s"
+			pi_route_id          = "%[1]s"
 		}`, acc.Pi_route_id, acc.Pi_cloud_instance_id)
 }
