@@ -33,68 +33,70 @@ func DataSourceIBMPIRoutes() *schema.Resource {
 			Attr_Routes: {
 				Computed:    true,
 				Description: "List of routes.",
-				Elem: map[string]*schema.Schema{
-					Attr_RouteID: {
-						Description: "Unique ID of the route.",
-						Required:    true,
-						Type:        schema.TypeString,
-					},
-					Attr_Action: {
-						Computed:    true,
-						Description: "The route action.",
-						Type:        schema.TypeString,
-					},
-					Attr_AdvertiseExternally: {
-						Computed:    true,
-						Description: "Indicates if the route is advertised externally.",
-						Type:        schema.TypeBool,
-					},
-					Attr_CRN: {
-						Computed:    true,
-						Description: "The CRN of this resource.",
-						Type:        schema.TypeString,
-					},
-					Attr_Destination: {
-						Computed:    true,
-						Description: "The route destination.",
-						Type:        schema.TypeString,
-					},
-					Attr_DestinationType: {
-						Computed:    true,
-						Description: "The destination type. Enum: [\"ipv4-address\"].",
-						Type:        schema.TypeString,
-					},
-					Attr_Enabled: {
-						Computed:    true,
-						Description: "Indicates if the route should be enabled in the fabric.",
-						Type:        schema.TypeBool,
-					},
-					Attr_Name: {
-						Computed:    true,
-						Description: "Name of the route.",
-						Type:        schema.TypeString,
-					},
-					Attr_NextHop: {
-						Computed:    true,
-						Description: "The next hop in the route.",
-						Type:        schema.TypeString,
-					},
-					Attr_NextHopType: {
-						Computed:    true,
-						Description: "The next hop type. Enum: [\"ipv4-address\"].",
-						Type:        schema.TypeString,
-					},
-					Attr_State: {
-						Computed:    true,
-						Description: "The state of the route.",
-						Type:        schema.TypeString,
-					},
-					Attr_UserTags: {
-						Computed:    true,
-						Description: "List of user tags attached to the resource.",
-						Elem:        &schema.Schema{Type: schema.TypeString},
-						Set:         schema.HashString,
-						Type:        schema.TypeSet,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_RouteID: {
+							Description: "Unique ID of the route.",
+							Required:    true,
+							Type:        schema.TypeString,
+						},
+						Attr_Action: {
+							Computed:    true,
+							Description: "The route action.",
+							Type:        schema.TypeString,
+						},
+						Attr_AdvertiseExternally: {
+							Computed:    true,
+							Description: "Indicates if the route is advertised externally.",
+							Type:        schema.TypeBool,
+						},
+						Attr_CRN: {
+							Computed:    true,
+							Description: "The CRN of this resource.",
+							Type:        schema.TypeString,
+						},
+						Attr_Destination: {
+							Computed:    true,
+							Description: "The route destination.",
+							Type:        schema.TypeString,
+						},
+						Attr_DestinationType: {
+							Computed:    true,
+							Description: "The destination type. Enum: [\"ipv4-address\"].",
+							Type:        schema.TypeString,
+						},
+						Attr_Enabled: {
+							Computed:    true,
+							Description: "Indicates if the route should be enabled in the fabric.",
+							Type:        schema.TypeBool,
+						},
+						Attr_Name: {
+							Computed:    true,
+							Description: "Name of the route.",
+							Type:        schema.TypeString,
+						},
+						Attr_NextHop: {
+							Computed:    true,
+							Description: "The next hop in the route.",
+							Type:        schema.TypeString,
+						},
+						Attr_NextHopType: {
+							Computed:    true,
+							Description: "The next hop type. Enum: [\"ipv4-address\"].",
+							Type:        schema.TypeString,
+						},
+						Attr_State: {
+							Computed:    true,
+							Description: "The state of the route.",
+							Type:        schema.TypeString,
+						},
+						Attr_UserTags: {
+							Computed:    true,
+							Description: "List of user tags attached to the resource.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Set:         schema.HashString,
+							Type:        schema.TypeSet,
+						},
 					},
 				},
 				Type: schema.TypeList,

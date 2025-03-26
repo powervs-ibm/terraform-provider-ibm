@@ -31,26 +31,28 @@ func DataSourceIBMPIRouteReport() *schema.Resource {
 			Attr_RouteReportRoutes: {
 				Computed:    true,
 				Description: "A report of routes in a workspace.",
-				Elem: map[string]*schema.Schema{
-					Attr_AdvertiseExternally: {
-						Computed:    true,
-						Description: "Indicates if the route is advertised externally.",
-						Type:        schema.TypeBool,
-					},
-					Attr_Destination: {
-						Computed:    true,
-						Description: "The destination CIDR.",
-						Type:        schema.TypeString,
-					},
-					Attr_NextHop: {
-						Computed:    true,
-						Description: "The next hop in the route.",
-						Type:        schema.TypeString,
-					},
-					Attr_Type: {
-						Computed:    true,
-						Description: "The route type. Enum [\"external\"].",
-						Type:        schema.TypeString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_AdvertiseExternally: {
+							Computed:    true,
+							Description: "Indicates if the route is advertised externally.",
+							Type:        schema.TypeBool,
+						},
+						Attr_Destination: {
+							Computed:    true,
+							Description: "The destination CIDR.",
+							Type:        schema.TypeString,
+						},
+						Attr_NextHop: {
+							Computed:    true,
+							Description: "The next hop in the route.",
+							Type:        schema.TypeString,
+						},
+						Attr_Type: {
+							Computed:    true,
+							Description: "The route type. Enum [\"external\"].",
+							Type:        schema.TypeString,
+						},
 					},
 				},
 				Type: schema.TypeList,
