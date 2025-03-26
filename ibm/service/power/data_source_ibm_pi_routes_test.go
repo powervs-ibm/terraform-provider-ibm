@@ -13,13 +13,13 @@ import (
 )
 
 func TestAccIBMPIRoutesDataSource_basic(t *testing.T) {
-	routesData := "data.ibm_pi_route.routes_data"
+	routesData := "data.ibm_pi_routes.routes_data"
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPINetworkDataSourceConfig(),
+				Config: testAccCheckIBMPIRoutesDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(routesData, "id"),
 				),
@@ -30,7 +30,7 @@ func TestAccIBMPIRoutesDataSource_basic(t *testing.T) {
 
 func testAccCheckIBMPIRoutesDataSourceConfig() string {
 	return fmt.Sprintf(`
-		data "ibm_pi_route" "routes_data" {
+		data "ibm_pi_routes" "routes_data" {
 			pi_cloud_instance_id = "%s"
 		}`, acc.Pi_cloud_instance_id)
 }

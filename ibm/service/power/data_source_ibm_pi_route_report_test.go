@@ -19,7 +19,7 @@ func TestAccIBMPIRouteReportDataSource_basic(t *testing.T) {
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPINetworkDataSourceConfig(),
+				Config: testAccCheckIBMPIRouteReportDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(routeReportData, "id"),
 				),
