@@ -27,9 +27,10 @@ func DataSourceIBMPIRoute() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_RouteID: {
-				Description: "Unique ID of the route.",
-				Required:    true,
-				Type:        schema.TypeString,
+				Description:  "Unique ID of the route.",
+				Required:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			// Attributes
