@@ -211,7 +211,7 @@ func resourceIBMPIRouteRead(ctx context.Context, d *schema.ResourceData, meta in
 		}
 		return diag.FromErr(err)
 	}
-
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set(Arg_Action, route.Action)
 	d.Set(Arg_AdvertiseExternally, route.AdvertiseExternally)
 	if route.Crn != nil {
