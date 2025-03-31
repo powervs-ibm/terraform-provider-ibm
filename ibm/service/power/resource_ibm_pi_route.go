@@ -66,14 +66,14 @@ func ResourceIBMPIRoute() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_DestinationType: {
-				Description:  "The destination type",
+				Description:  "The destination type.",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"ipv4-address"}, false),
 			},
 			Arg_Enabled: {
 				Computed:    true,
-				Description: "Indicates if the route should be enabled in the fabric",
+				Description: "Indicates if the route should be enabled in the fabric.",
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
@@ -116,7 +116,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Attr_State: {
 				Computed:    true,
-				Description: "The state of the route",
+				Description: "The state of the route.",
 				Type:        schema.TypeString,
 			},
 		},
