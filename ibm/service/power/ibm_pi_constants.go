@@ -419,7 +419,6 @@ const (
 	Attr_ResultsVolumeOnboardingFailures             = "results_volume_onboarding_failures"
 	Attr_RouteID                                     = "route_id"
 	Attr_Routes                                      = "routes"
-	Attr_RouteReportRoutes                           = "routes"
 	Attr_Rules                                       = "rules"
 	Attr_SAPS                                        = "saps"
 	Attr_Secondaries                                 = "secondaries"
