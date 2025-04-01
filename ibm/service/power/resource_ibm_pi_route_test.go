@@ -49,9 +49,12 @@ func testAccCheckIBMPIRouteBasicConfig(name string, nextHop string, destination 
 	return fmt.Sprintf(`
 		resource "ibm_pi_route" "route" {
 			pi_cloud_instance_id = "%[1]s"
+			pi_action            = "deliver"
 			pi_name              = "%[2]s"
 			pi_next_hop          = "%[3]s"
 			pi_destination       = "%[4]s"
+			pi_destination_type  = "ipv4-address"
+			pi_next_hop_type     = "ipv4-address"
 		}
 	`, acc.Pi_cloud_instance_id, name, nextHop, destination)
 }

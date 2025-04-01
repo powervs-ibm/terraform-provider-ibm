@@ -50,7 +50,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Arg_Action: {
 				Description:  "Action for route.",
-				Optional:     true,
+				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"deliver"}, false),
 			},
@@ -67,7 +67,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Arg_DestinationType: {
 				Description:  "The destination type.",
-				Optional:     true,
+				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"ipv4-address"}, false),
 			},
@@ -88,9 +88,8 @@ func ResourceIBMPIRoute() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_NextHopType: {
-				Computed:     true,
 				Description:  "The next hop type.",
-				Optional:     true,
+				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{"ipv4-address"}, false),
 			},
