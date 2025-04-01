@@ -28,7 +28,7 @@ func DataSourceIBMPIRouteReport() *schema.Resource {
 			},
 
 			// Attributes
-			Attr_RouteReportRoutes: {
+			Attr_Routes: {
 				Computed:    true,
 				Description: "A report of routes in a workspace.",
 				Elem: &schema.Resource{
@@ -76,7 +76,7 @@ func dataSourceIBMPIRouteReportRead(ctx context.Context, d *schema.ResourceData,
 	}
 	var clientgenU, _ = uuid.GenerateUUID()
 	d.SetId(clientgenU)
-	d.Set(Attr_RouteReportRoutes, flattenRouteReports(routeReports.Routes))
+	d.Set(Attr_Routes, flattenRouteReports(routeReports.Routes))
 
 	return nil
 }
