@@ -166,8 +166,8 @@ func testAccCheckIBMPIRouteDestroy(s *terraform.State) error {
 		}
 		parts, _ := flex.IdParts(rs.Primary.ID)
 		cloudinstanceid := parts[0]
-		placementGroupC := instance.NewIBMPIPlacementGroupClient(context.Background(), sess, cloudinstanceid)
-		_, err = placementGroupC.Get(parts[1])
+		routeC := instance.NewIBMPIRouteClient(context.Background(), sess, cloudinstanceid)
+		_, err = routeC.Get(parts[1])
 		if err == nil {
 			return fmt.Errorf("PI route still exists: %s", rs.Primary.ID)
 		}
@@ -196,7 +196,7 @@ func testAccCheckIBMPIRouteExists(n string) resource.TestCheckFunc {
 			return err
 		}
 		cloudinstanceid := parts[0]
-		client := instance.NewIBMPIPRouteClient(context.Background(), sess, cloudinstanceid)
+		client := instance.NewIBMPIRouteClient(context.Background(), sess, cloudinstanceid)
 
 		_, err = client.Get(parts[1])
 		if err != nil {

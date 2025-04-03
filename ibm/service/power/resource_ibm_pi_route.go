@@ -132,7 +132,7 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 	destination := d.Get(Arg_Destination).(string)
 	name := d.Get(Arg_Name).(string)
 	nextHop := d.Get(Arg_NextHop).(string)
-	routeClient := instance.NewIBMPIPRouteClient(ctx, sess, cloudInstanceID)
+	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 
 	body := &models.RouteCreate{
 		Destination: &destination,
@@ -201,7 +201,7 @@ func resourceIBMPIRouteRead(ctx context.Context, d *schema.ResourceData, meta in
 		return diag.FromErr(err)
 	}
 
-	routeClient := instance.NewIBMPIPRouteClient(ctx, sess, cloudInstanceID)
+	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 	route, err := routeClient.Get(routeID)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), NotFound) {
@@ -243,7 +243,7 @@ func resourceIBMPIRouteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	routeClient := instance.NewIBMPIPRouteClient(ctx, sess, cloudInstanceID)
+	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 	destination := d.Get(Arg_Destination).(string)
 	name := d.Get(Arg_Name).(string)
 	nextHop := d.Get(Arg_NextHop).(string)
@@ -300,7 +300,7 @@ func resourceIBMPIRouteDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	routeClient := instance.NewIBMPIPRouteClient(ctx, sess, cloudInstanceID)
+	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 	err = routeClient.Delete(routeID)
 	if err != nil {
 		return diag.FromErr(err)

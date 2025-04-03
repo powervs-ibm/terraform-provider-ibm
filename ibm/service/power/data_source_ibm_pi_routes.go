@@ -112,7 +112,7 @@ func dataSourceIBMPIRoutesRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
-	client := instance.NewIBMPIPRouteClient(ctx, sess, cloudInstanceID)
+	client := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 
 	routes, err := client.GetAll()
 	if err != nil {
