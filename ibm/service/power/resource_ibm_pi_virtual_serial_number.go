@@ -15,6 +15,7 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
@@ -67,6 +68,7 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				DiffSuppressFunc: supressVSNDiffAutoAssign,
 				Optional:         true,
 				Type:             schema.TypeString,
+				ValidateFunc:     validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 			},
 		},
 	}

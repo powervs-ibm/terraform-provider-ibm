@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -382,9 +383,10 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:             schema.TypeString,
 						},
 						Attr_SoftwareTier: {
-							Description: "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
-							Optional:    true,
-							Type:        schema.TypeString,
+							Description:  "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
+							Optional:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 						},
 					},
 				},
