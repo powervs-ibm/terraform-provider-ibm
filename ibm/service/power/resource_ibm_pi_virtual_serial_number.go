@@ -15,7 +15,6 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
@@ -68,7 +67,6 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				DiffSuppressFunc: supressVSNDiffAutoAssign,
 				Optional:         true,
 				Type:             schema.TypeString,
-				ValidateFunc:     validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 			},
 		},
 	}
@@ -148,7 +146,8 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 				addBody.Description = v.(string)
 			}
 			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
-				addBody.SoftwareTier = v.(models.SoftwareTier)
+				softwareTier := v.(string)
+				addBody.SoftwareTier = models.SoftwareTier(softwareTier)
 			}
 			_, err = client.PVMInstanceAttachVSN(pvmInstanceIdArg, addBody)
 			if err != nil {
@@ -293,8 +292,8 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 
 			if d.HasChange(Arg_SoftwareTier) {
-				newSoftwareTier := d.Get(Arg_SoftwareTier).(models.SoftwareTier)
-				updateBody.SoftwareTier = newSoftwareTier
+				newSoftwareTier := d.Get(Arg_SoftwareTier).(string)
+				updateBody.SoftwareTier = models.SoftwareTier(newSoftwareTier)
 			}
 			_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
 			if err != nil {
@@ -362,8 +361,8 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				addBody.Description = description
 			}
 			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
-				softwareTier := v.(models.SoftwareTier)
-				addBody.SoftwareTier = softwareTier
+				softwareTier := v.(string)
+				addBody.SoftwareTier = models.SoftwareTier(softwareTier)
 			}
 			_, err = client.PVMInstanceAttachVSN(newIdString, addBody)
 			if err != nil {

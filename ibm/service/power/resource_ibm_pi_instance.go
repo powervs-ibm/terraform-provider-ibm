@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -383,10 +382,9 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:             schema.TypeString,
 						},
 						Attr_SoftwareTier: {
-							Description:  "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
-							Optional:     true,
-							Type:         schema.TypeString,
-							ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
+							Description: "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
+							Optional:    true,
+							Type:        schema.TypeString,
 						},
 					},
 				},
@@ -1060,9 +1058,9 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					Description: description,
 					Serial:      &serial,
 				}
-				softwareTier := newVSNMap[Attr_SoftwareTier].(models.SoftwareTier)
+				softwareTier := newVSNMap[Attr_SoftwareTier].(string)
 				if softwareTier != "" {
-					addBody.SoftwareTier = softwareTier
+					addBody.SoftwareTier = models.SoftwareTier(softwareTier)
 				}
 				_, err := vsnClient.PVMInstanceAttachVSN(instanceID, addBody)
 				if err != nil {
@@ -1090,8 +1088,8 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				updateBody.Description = &newDescriptionString
 			}
 			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
-				newSoftwareTier := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier).(models.SoftwareTier)
-				updateBody.SoftwareTier = newSoftwareTier
+				newSoftwareTier := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier).(string)
+				updateBody.SoftwareTier = models.SoftwareTier(newSoftwareTier)
 			}
 
 			_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
@@ -1955,9 +1953,9 @@ func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSe
 	if description != "" {
 		model.Description = description
 	}
-	softwareTier := vsnItemMap[Attr_SoftwareTier].(models.SoftwareTier)
+	softwareTier := vsnItemMap[Attr_SoftwareTier].(string)
 	if softwareTier != "" {
-		model.SoftwareTier = softwareTier
+		model.SoftwareTier = models.SoftwareTier(softwareTier)
 	}
 
 	return model
