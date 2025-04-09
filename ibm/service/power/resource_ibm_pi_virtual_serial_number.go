@@ -278,10 +278,6 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	if _, ok := d.GetOk(Arg_InstanceID); !ok {
-		return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
-	}
-
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -326,6 +322,10 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 		oldId, newId := d.GetChange(Arg_InstanceID)
 		oldIdString, newIdString := oldId.(string), newId.(string)
 		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+
+		if _, ok := d.GetOk(Arg_SoftwareTier); ok && newIdString == "" {
+			return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
+		}
 
 		if oldIdString != "" {
 			restartInstance, err := stopLparForVSNChange(ctx, instanceClient, oldIdString, d.Timeout(schema.TimeoutUpdate))
