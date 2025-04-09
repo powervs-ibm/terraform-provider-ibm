@@ -1969,6 +1969,10 @@ func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) 
 		Attr_Description: vsn.Description,
 		Attr_Serial:      vsn.Serial,
 	}
+	if vsn.SoftwareTier != "" {
+		v[0][Attr_SoftwareTier] = vsn.SoftwareTier
+	}
+
 	return v
 }
 
