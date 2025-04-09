@@ -64,11 +64,10 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Type:             schema.TypeString,
 			},
 			Arg_SoftwareTier: {
-				Description:      "Software tier for virtual serial number.",
-				DiffSuppressFunc: supressVSNDiffAutoAssign,
-				Optional:         true,
-				Type:             schema.TypeString,
-				ValidateFunc:     validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
+				Description:  "Software tier for virtual serial number.",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 			},
 		},
 	}
@@ -86,10 +85,10 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 	vsnArg := d.Get(Arg_Serial).(string)
 	if _, ok := d.GetOk(Arg_InstanceID); !ok && vsnArg == AutoAssign {
 		if vsnArg == AutoAssign {
-			return diag.Errorf("cannot use '%s' unless %s is specified", AutoAssign, Arg_InstanceID)
+			return diag.Errorf("cannot use '%s' unless '%s' is specified", AutoAssign, Arg_InstanceID)
 		}
 		if _, ok := d.GetOk(Arg_SoftwareTier); ok {
-			return diag.Errorf("cannot use '%s' unless %s is specified", Arg_SoftwareTier, Arg_InstanceID)
+			return diag.Errorf("cannot use '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
 		}
 	}
 
@@ -276,6 +275,10 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 }
 
 func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	if _, ok := d.GetOk(Arg_InstanceID); !ok {
+		return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
+	}
+
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
