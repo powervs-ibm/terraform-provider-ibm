@@ -268,6 +268,11 @@ func resourceIBMPIRouteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 		body.DestinationType = &destinationType
 	}
 
+	if d.HasChange(Arg_Enabled) {
+		enabled := d.Get(Arg_Enabled).(bool)
+		body.Enabled = &enabled
+	}
+
 	if d.HasChange(Arg_NextHopType) {
 		nextHopType := d.Get(Arg_NextHopType).(string)
 		body.NextHopType = &nextHopType

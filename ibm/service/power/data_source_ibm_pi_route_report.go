@@ -33,19 +33,9 @@ func DataSourceIBMPIRouteReport() *schema.Resource {
 				Description: "A report of routes in a workspace.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						Attr_AdvertiseExternally: {
-							Computed:    true,
-							Description: "Indicates if the route is advertised externally.",
-							Type:        schema.TypeBool,
-						},
 						Attr_Destination: {
 							Computed:    true,
 							Description: "The destination CIDR.",
-							Type:        schema.TypeString,
-						},
-						Attr_NextHop: {
-							Computed:    true,
-							Description: "The next hop in the route.",
 							Type:        schema.TypeString,
 						},
 						Attr_Type: {
@@ -85,14 +75,8 @@ func flattenRouteReports(routes []*models.RouteReportRoute) []map[string]interfa
 	result := make([]map[string]interface{}, len(routes))
 	for _, r := range routes {
 		routeReport := map[string]interface{}{
-			// TODO: Find a way to check if 'Attr_AdvertiseExternally' is set or not (not required, go defaults it to false)
-			Attr_AdvertiseExternally: r.AdvertiseExternally,
-			Attr_Destination:         r.Destination,
-			Attr_Type:                r.Type,
-		}
-
-		if r.NextHop != "" {
-			routeReport[Attr_NextHop] = r.NextHop
+			Attr_Destination: r.Destination,
+			Attr_Type:        r.Type,
 		}
 
 		result = append(result, routeReport)
