@@ -129,20 +129,21 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	action := d.Get(Arg_Action).(string)
 	destination := d.Get(Arg_Destination).(string)
+	destinationType := d.Get(Arg_DestinationType).(string)
 	name := d.Get(Arg_Name).(string)
 	nextHop := d.Get(Arg_NextHop).(string)
+	nextHopType := d.Get(Arg_NextHopType).(string)
 	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 
 	body := &models.RouteCreate{
-		Destination: &destination,
-		Name:        &name,
-		NextHop:     &nextHop,
-	}
-
-	if v, ok := d.GetOk(Arg_Action); ok {
-		action := v.(string)
-		body.Action = &action
+		Action:          &action,
+		Destination:     &destination,
+		DestinationType: &destinationType,
+		Name:            &name,
+		NextHop:         &nextHop,
+		NextHopType:     &nextHopType,
 	}
 
 	if v, ok := d.GetOk(Arg_AdvertiseExternally); ok {
@@ -150,19 +151,9 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 		body.AdvertiseExternally = &advertiseExternally
 	}
 
-	if v, ok := d.GetOk(Arg_DestinationType); ok {
-		destinationType := v.(string)
-		body.DestinationType = &destinationType
-	}
-
 	if v, ok := d.GetOk(Arg_Enabled); ok {
 		enabled := v.(bool)
 		body.Enabled = &enabled
-	}
-
-	if v, ok := d.GetOk(Arg_NextHopType); ok {
-		nextHopType := v.(string)
-		body.NextHopType = &nextHopType
 	}
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
