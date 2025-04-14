@@ -55,8 +55,8 @@ func ResourceIBMPIRoute() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"deliver"}, false),
 			},
 			Arg_AdvertiseExternally: {
-				Computed:    true,
 				Description: "Indicates if the route is advertised externally.",
+				Default:     true,
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
@@ -72,8 +72,8 @@ func ResourceIBMPIRoute() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"ipv4-address"}, false),
 			},
 			Arg_Enabled: {
-				Computed:    true,
 				Description: "Indicates if the route should be enabled in the fabric.",
+				Default:     true,
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
@@ -130,30 +130,24 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	action := d.Get(Arg_Action).(string)
+	advertiseExternally := d.Get(Arg_AdvertiseExternally).(bool)
 	destination := d.Get(Arg_Destination).(string)
 	destinationType := d.Get(Arg_DestinationType).(string)
+	enabled := d.Get(Arg_Enabled).(bool)
 	name := d.Get(Arg_Name).(string)
 	nextHop := d.Get(Arg_NextHop).(string)
 	nextHopType := d.Get(Arg_NextHopType).(string)
 	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 
 	body := &models.RouteCreate{
-		Action:          &action,
-		Destination:     &destination,
-		DestinationType: &destinationType,
-		Name:            &name,
-		NextHop:         &nextHop,
-		NextHopType:     &nextHopType,
-	}
-
-	if v, ok := d.GetOk(Arg_AdvertiseExternally); ok {
-		advertiseExternally := v.(bool)
-		body.AdvertiseExternally = &advertiseExternally
-	}
-
-	if v, ok := d.GetOk(Arg_Enabled); ok {
-		enabled := v.(bool)
-		body.Enabled = &enabled
+		Action:              &action,
+		AdvertiseExternally: &advertiseExternally,
+		Destination:         &destination,
+		DestinationType:     &destinationType,
+		Enabled:             &enabled,
+		Name:                &name,
+		NextHop:             &nextHop,
+		NextHopType:         &nextHopType,
 	}
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
