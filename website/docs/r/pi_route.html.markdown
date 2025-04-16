@@ -16,10 +16,10 @@ The following example enables you to create a route:
 
 ```terraform
 resource "ibm_pi_route" "route" {
-	pi_cloud_instance_id = "<cloud-instance-id>"
-	pi_name              = "test-route"
-	pi_next_hop          = "<next-hop-ip>"
-	pi_destination       = "<destination-cidr>"
+  pi_cloud_instance_id = "<cloud-instance-id>"
+  pi_name              = "test-route"
+  pi_next_hop          = "<next-hop-ip>"
+  pi_destination       = "<destination-cidr>"
 }
 ```
 
@@ -52,14 +52,14 @@ ibm_pi_route provides the following [timeouts](https://www.terraform.io/docs/lan
 Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- `pi_action` - (Required, String) Specifies action for route. Enum: ['deliver'].
-- `pi_adverstise_externally` - (Optional, Boolean) Indicates if the route is advertised externally. Default is true.
+- `pi_action` - (Required, String) Specifies action for route. Enum: ['deliver']. Default is `ipv4-address`.
+- `pi_adverstise_externally` - (Optional, Boolean) Indicates if the route is advertised externally. Default is `true`.
 - `pi_destination` - (Required, String) Destination of route.
 - `pi_destination_type` - (Required, String) The destination type. Enum: ['ipv4-address'].
-- `pi_enabled` - (Optional, Boolean) Indicates if the route should be enabled in the fabric. Defaults to true.
+- `pi_enabled` - (Optional, Boolean) Indicates if the route should be enabled in the fabric. Defaults is `true`.
 - `pi_name` - (Required, String) Name of the route.
 - `pi_next_hop` - (Required, String) The next hop.
-- `pi_next_hop_type` - (Required, String) The next hop type. Enum: ['ipv4-address'].
+- `pi_next_hop_type` - (Required, String) The next hop type. Enum: ['ipv4-address']. Default is `ipv4-address`.
 - `pi_user_tags` - (Optional, Set of String) The user tags attached to this resource.
 
 ## Attribute reference
@@ -70,7 +70,6 @@ Review the argument references that you can specify for your resource.
 - `id` - (String) The unique identifier of the route in the terraform state.
 - `route_id` - (String) The unique route ID.
 - `state` - (String) The state of the route.
-
 
 ## Import
 
