@@ -53,7 +53,7 @@ Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_action` - (Required, String) Specifies action for route. Enum: ['deliver']. Default is `ipv4-address`.
-- `pi_adverstise_externally` - (Optional, Boolean) Indicates if the route is advertised externally. Default is `true`.
+- `pi_advertise` - (Optional, String) Indicates if the route is advertised externally. Default is `enable`.
 - `pi_destination` - (Required, String) Destination of route.
 - `pi_destination_type` - (Required, String) The destination type. Enum: ['ipv4-address'].
 - `pi_enabled` - (Optional, Boolean) Indicates if the route should be enabled in the fabric. Defaults is `true`.

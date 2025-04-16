@@ -39,10 +39,10 @@ func DataSourceIBMPIRoute() *schema.Resource {
 				Description: "The route action.",
 				Type:        schema.TypeString,
 			},
-			Attr_AdvertiseExternally: {
+			Attr_Advertise: {
 				Computed:    true,
-				Description: "Indicates if the route is advertised externally.",
-				Type:        schema.TypeBool,
+				Description: "Indicates if the route is advertised.",
+				Type:        schema.TypeString,
 			},
 			Attr_CRN: {
 				Computed:    true,
@@ -111,7 +111,7 @@ func dataSourceIBMPIRouteRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	d.Set(Attr_Action, route.Action)
-	d.Set(Attr_AdvertiseExternally, route.AdvertiseExternally)
+	d.Set(Attr_Advertise, route.Advertise)
 	if route.Crn != nil {
 		d.Set(Attr_CRN, *route.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, *route.Crn, "", UserTagType)

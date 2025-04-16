@@ -47,7 +47,5 @@ In addition to all argument reference list, you can access the following attribu
 - `routes` - (List) List of all route report routes.
 
   Nested scheme for `routes`:
-  - `advertise_externally` - (Boolean) Indicates if the route is advertised externally.
   - `destination` - (String) The route destination.
-  - `next_hop` - (String) The next hop in the route.
   - `type` - (String) The route type. Enum ['external'].

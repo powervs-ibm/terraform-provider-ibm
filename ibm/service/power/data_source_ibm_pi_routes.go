@@ -45,10 +45,10 @@ func DataSourceIBMPIRoutes() *schema.Resource {
 							Description: "The route action.",
 							Type:        schema.TypeString,
 						},
-						Attr_AdvertiseExternally: {
+						Attr_Advertise: {
 							Computed:    true,
-							Description: "Indicates if the route is advertised externally.",
-							Type:        schema.TypeBool,
+							Description: "Indicates if the route is advertised.",
+							Type:        schema.TypeString,
 						},
 						Attr_CRN: {
 							Computed:    true,
@@ -129,16 +129,16 @@ func flattenRoutes(routes []*models.Route, meta interface{}) []map[string]interf
 	result := make([]map[string]interface{}, len(routes))
 	for _, r := range routes {
 		route := map[string]interface{}{
-			Attr_RouteID:             r.ID,
-			Attr_Action:              r.Action,
-			Attr_AdvertiseExternally: r.AdvertiseExternally,
-			Attr_Destination:         r.Destination,
-			Attr_DestinationType:     r.DestinationType,
-			Attr_Enabled:             r.Enabled,
-			Attr_Name:                r.Name,
-			Attr_NextHop:             r.NextHop,
-			Attr_NextHopType:         r.NextHopType,
-			Attr_State:               r.State,
+			Attr_RouteID:         r.ID,
+			Attr_Action:          r.Action,
+			Attr_Advertise:       r.Advertise,
+			Attr_Destination:     r.Destination,
+			Attr_DestinationType: r.DestinationType,
+			Attr_Enabled:         r.Enabled,
+			Attr_Name:            r.Name,
+			Attr_NextHop:         r.NextHop,
+			Attr_NextHopType:     r.NextHopType,
+			Attr_State:           r.State,
 		}
 
 		if r.Crn != nil {

@@ -47,13 +47,13 @@ Review the argument references that you can specify for your data source.
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
 - `action` - (String) The route action.
-- `advertise_externally` - (Boolean) Indicates if the route is advertised externally. Default is true.
+- `advertise` - (String) Indicates if the route is advertised externally.
 - `crn` - (String) The CRN of this resource.
 - `destination` - (String) The route destination.
-- `destination_type` - (String) The destination type. Enum: ['ipv4-address'].
-- `enabled` - (Boolean) Indicates if the route should be enabled in the fabric. Default is true.
+- `destination_type` - (String) The destination type.
+- `enabled` - (Boolean) Indicates if the route should be enabled in the fabric.
 - `name` - (String) Name of the route.
 - `next_hop` - (String) The next hop in the route.
-- `next_hop_type` - (String) The next hop type. Enum: ['ipv4-address'].
+- `next_hop_type` - (String) The next hop type.
 - `state` - (String) The state of the route.
 - `user_tags` - (Set of String) List of user tags attached to the resource.

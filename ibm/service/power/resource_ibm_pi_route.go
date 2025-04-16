@@ -55,11 +55,12 @@ func ResourceIBMPIRoute() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Deliver}, false),
 			},
-			Arg_AdvertiseExternally: {
-				Default:     true,
-				Description: "Indicates if the route is advertised externally.",
-				Optional:    true,
-				Type:        schema.TypeBool,
+			Arg_Advertise: {
+				Default:      Enable,
+				Description:  "Indicates if the route is advertised. Enum: [\"enable\", \"disable\"].",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
 			},
 			Arg_Destination: {
 				Description: "Destination of route.",
@@ -133,7 +134,7 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	action := d.Get(Arg_Action).(string)
-	advertiseExternally := d.Get(Arg_AdvertiseExternally).(bool)
+	advertiseExternally := d.Get(Arg_Advertise).(string)
 	destination := d.Get(Arg_Destination).(string)
 	destinationType := d.Get(Arg_DestinationType).(string)
 	enabled := d.Get(Arg_Enabled).(bool)
@@ -143,14 +144,14 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 	routeClient := instance.NewIBMPIRouteClient(ctx, sess, cloudInstanceID)
 
 	body := &models.RouteCreate{
-		Action:              &action,
-		AdvertiseExternally: &advertiseExternally,
-		Destination:         &destination,
-		DestinationType:     &destinationType,
-		Enabled:             &enabled,
-		Name:                &name,
-		NextHop:             &nextHop,
-		NextHopType:         &nextHopType,
+		Action:          &action,
+		Advertise:       &advertiseExternally,
+		Destination:     &destination,
+		DestinationType: &destinationType,
+		Enabled:         &enabled,
+		Name:            &name,
+		NextHop:         &nextHop,
+		NextHopType:     &nextHopType,
 	}
 
 	if v, ok := d.GetOk(Arg_UserTags); ok {
@@ -200,7 +201,7 @@ func resourceIBMPIRouteRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set(Arg_Action, route.Action)
-	d.Set(Arg_AdvertiseExternally, route.AdvertiseExternally)
+	d.Set(Arg_Advertise, route.Advertise)
 	if route.Crn != nil {
 		d.Set(Attr_CRN, route.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(*route.Crn), "", UserTagType)
@@ -246,9 +247,9 @@ func resourceIBMPIRouteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 		body.Action = &action
 	}
 
-	if d.HasChange(Arg_AdvertiseExternally) {
-		advertiseExternally := d.Get(Arg_AdvertiseExternally).(bool)
-		body.AdvertiseExternally = &advertiseExternally
+	if d.HasChange(Arg_Advertise) {
+		advertise := d.Get(Arg_Advertise).(string)
+		body.Advertise = advertise
 	}
 
 	if d.HasChange(Arg_DestinationType) {
