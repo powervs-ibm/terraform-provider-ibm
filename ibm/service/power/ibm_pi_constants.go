@@ -563,6 +563,7 @@ const (
 	CUSTOM_VIRTUAL_CORES       = "custom-virtualcores"
 	Dedicated                  = "dedicated"
 	DefaultNAG                 = "default-network-address-group"
+	Deliver                    = "deliver"
 	Deny                       = "deny"
 	DeploymentTypeEpic         = "EPIC"
 	DeploymentTypeVMNoStorage  = "VMNoStorage"
