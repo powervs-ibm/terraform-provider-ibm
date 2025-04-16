@@ -783,7 +783,7 @@ func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s922"),
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
@@ -791,11 +791,21 @@ func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
 				),
 			},
+			{
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttrSet(instanceRes, "pi_virtual_serial_number.0.serial"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P05"),
+				),
+			},
 		},
 	})
 }
 
-func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, systype string) string {
+func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, systype string, softwareTier string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_key" "key" {
 		pi_cloud_instance_id = "%[1]s"
@@ -825,11 +835,12 @@ func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, sy
 			network_id = data.ibm_pi_network.power_networks.id
 		}
 		pi_virtual_serial_number {
-			serial      = "auto-assign"
-			description = "VSN for TF test"
+			serial        = "auto-assign"
+			description   = "VSN for TF test"
+			software_tier = "%[8]s" != "" ? "%[8]s": null
 		}
 	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, systype, acc.PiStorageType)
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, systype, acc.PiStorageType, softwareTier)
 }
 
 func TestAccIBMPIInstanceDeploymentGRS(t *testing.T) {
