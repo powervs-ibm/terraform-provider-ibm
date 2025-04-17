@@ -134,7 +134,7 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	action := d.Get(Arg_Action).(string)
-	advertiseExternally := d.Get(Arg_Advertise).(string)
+	advertise := d.Get(Arg_Advertise).(string)
 	destination := d.Get(Arg_Destination).(string)
 	destinationType := d.Get(Arg_DestinationType).(string)
 	enabled := d.Get(Arg_Enabled).(bool)
@@ -145,7 +145,7 @@ func resourceIBMPIRouteCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	body := &models.RouteCreate{
 		Action:          &action,
-		Advertise:       &advertiseExternally,
+		Advertise:       &advertise,
 		Destination:     &destination,
 		DestinationType: &destinationType,
 		Enabled:         &enabled,
