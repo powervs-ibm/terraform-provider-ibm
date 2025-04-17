@@ -40,7 +40,7 @@ func TestAccIBMPIRouteBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(routeRes, "pi_destination", destination),
 					resource.TestCheckResourceAttr(routeRes, "pi_destination_type", "ipv4-address"),
 					resource.TestCheckResourceAttr(routeRes, "pi_next_hop_type", "ipv4-address"),
-					resource.TestCheckResourceAttr(routeRes, "pi_enabled", "true"),
+					resource.TestCheckResourceAttr(routeRes, "pi_enabled", "false"),
 					resource.TestCheckResourceAttr(routeRes, "pi_advertise", "enable"),
 					resource.TestCheckResourceAttrSet(routeRes, "state"),
 				),
@@ -82,7 +82,7 @@ func TestAccIBMPIRouteAllArgs(t *testing.T) {
 					resource.TestCheckResourceAttr(routeRes, "pi_advertise", "disable"),
 					resource.TestCheckResourceAttr(routeRes, "pi_action", "deliver"),
 					resource.TestCheckResourceAttr(routeRes, "pi_destination_type", "ipv4-address"),
-					resource.TestCheckResourceAttr(routeRes, "pi_enabled", "false"),
+					resource.TestCheckResourceAttr(routeRes, "pi_enabled", "true"),
 					resource.TestCheckResourceAttr(routeRes, "pi_next_hop_type", "ipv4-address"),
 					resource.TestCheckResourceAttrSet(routeRes, "state"),
 				),
@@ -101,7 +101,7 @@ func testAccCheckIBMPIRouteAllArgsConfig(name string, nextHop string, destinatio
 			pi_advertise            = "disable"
 			pi_action               = "deliver"
 			pi_destination_type     = "ipv4-address"
-			pi_enabled              = false
+			pi_enabled              = true
 			pi_next_hop_type        = "ipv4-address"
 		}
 	`, acc.Pi_cloud_instance_id, name, nextHop, destination)

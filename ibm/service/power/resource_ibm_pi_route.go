@@ -75,7 +75,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{IPV4_Address}, false),
 			},
 			Arg_Enabled: {
-				Default:     true,
+				Default:     false,
 				Description: "Indicates if the route should be enabled in the fabric.",
 				Optional:    true,
 				Type:        schema.TypeBool,
