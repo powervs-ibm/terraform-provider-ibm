@@ -118,10 +118,7 @@ func dataSourceIBMPISAPProfilesRead(ctx context.Context, d *schema.ResourceData,
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 
 	client := instance.NewIBMPISAPInstanceClient(ctx, sess, cloudInstanceID)
-	filters := map[string]string{
-		Arg_FamilyFilter: "",
-		Arg_PrefixFilter: "",
-	}
+	filters := map[string]string{}
 	if v, ok := d.GetOk(Arg_FamilyFilter); ok {
 		filters[Arg_FamilyFilter] = v.(string)
 	}
@@ -129,7 +126,7 @@ func dataSourceIBMPISAPProfilesRead(ctx context.Context, d *schema.ResourceData,
 		filters[Arg_PrefixFilter] = v.(string)
 	}
 
-	sapProfiles, err := client.GetAllSAPProfilesWithFilters(cloudInstanceID, filters[Arg_FamilyFilter], filters[Arg_PrefixFilter])
+	sapProfiles, err := client.GetAllSAPProfilesWithFilters(cloudInstanceID, filters)
 	if err != nil {
 		log.Printf("[DEBUG] get all sap profiles failed %v", err)
 		return diag.FromErr(err)
