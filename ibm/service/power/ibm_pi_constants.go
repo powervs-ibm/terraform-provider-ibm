@@ -5,7 +5,7 @@ import "time"
 const (
 	// Arguments
 	Arg_Action                               = "pi_action"
-	Arg_AdvertiseExternally                  = "pi_advertise_externally"
+	Arg_Advertise                            = "pi_advertise"
 	Arg_AffinityInstance                     = "pi_affinity_instance"
 	Arg_AffinityPolicy                       = "pi_affinity_policy"
 	Arg_AffinityVolume                       = "pi_affinity_volume"
@@ -173,7 +173,7 @@ const (
 	Attr_AccessConfig                                = "access_config"
 	Attr_Action                                      = "action"
 	Attr_Addresses                                   = "addresses"
-	Attr_AdvertiseExternally                         = "advertise_externally"
+	Attr_Advertise                                   = "advertise_externally"
 	Attr_AllocatedCores                              = "allocated_cores"
 	Attr_Architecture                                = "architecture"
 	Attr_ARPBroadcast                                = "arp_broadcast"

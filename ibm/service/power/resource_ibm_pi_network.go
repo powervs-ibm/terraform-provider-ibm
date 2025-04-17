@@ -45,17 +45,19 @@ func ResourceIBMPINetwork() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
-			Arg_AdvertiseExternally: {
-				Computed:    true,
-				Description: "Enable the network to be advertised externally.",
-				Optional:    true,
-				Type:        schema.TypeBool,
+			Arg_Advertise: {
+				Default:      Enable,
+				Description:  "Enable the network to be advertised. If not specified, the default is \"enable\".",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
 			},
 			Arg_ARPBroadcast: {
-				Computed:    true,
-				Description: "Enable ARP Broadcast.",
-				Optional:    true,
-				Type:        schema.TypeBool,
+				Default:      Disable,
+				Description:  "Enable ARP Broadcast. If not specified, the default is \"disable\".",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
 			},
 			Arg_Cidr: {
 				Computed:    true,
@@ -261,11 +263,11 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		peerModel := networkMapToNetworkCreatePeer(d.Get(Arg_NetworkPeer + ".0").(map[string]interface{}))
 		body.Peer = peerModel
 	}
-	if v, ok := d.GetOk(Arg_AdvertiseExternally); ok {
-		body.AdvertiseExternally = flex.PtrToBool(v.(bool))
+	if v, ok := d.GetOk(Arg_Advertise); ok {
+		body.Advertise = flex.PtrToString(v.(string))
 	}
 	if v, ok := d.GetOk(Arg_ARPBroadcast); ok {
-		body.ArpBroadcast = flex.PtrToBool(v.(bool))
+		body.ArpBroadcast = flex.PtrToString(v.(string))
 	}
 
 	if networktype == DHCPVlan || networktype == Vlan {
@@ -366,7 +368,7 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 		}
 		d.Set(Arg_UserTags, tags)
 	}
-	d.Set(Arg_AdvertiseExternally, networkdata.AdvertiseExternally)
+	d.Set(Arg_Advertise, networkdata.Advertise)
 	d.Set(Arg_ARPBroadcast, networkdata.ArpBroadcast)
 	d.Set(Arg_Cidr, networkdata.Cidr)
 	d.Set(Arg_DNS, networkdata.DNSServers)
@@ -413,16 +415,16 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		return diag.FromErr(err)
 	}
 
-	if d.HasChanges(Arg_AdvertiseExternally, Arg_ARPBroadcast, Arg_DNS, Arg_Gateway, Arg_IPAddressRange, Arg_NetworkName) {
+	if d.HasChanges(Arg_Advertise, Arg_ARPBroadcast, Arg_DNS, Arg_Gateway, Arg_IPAddressRange, Arg_NetworkName) {
 		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 		body := &models.NetworkUpdate{}
 
-		if d.HasChange(Arg_AdvertiseExternally) {
-			body.AdvertiseExternally = d.Get(Arg_AdvertiseExternally).(bool)
+		if d.HasChange(Arg_Advertise) {
+			body.Advertise = d.Get(Arg_Advertise).(string)
 		}
 
 		if d.HasChange(Arg_ARPBroadcast) {
-			body.ArpBroadcast = d.Get(Arg_ARPBroadcast).(bool)
+			body.ArpBroadcast = d.Get(Arg_ARPBroadcast).(string)
 		}
 
 		if d.HasChange(Arg_DNS) {
