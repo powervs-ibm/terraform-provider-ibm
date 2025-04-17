@@ -47,7 +47,7 @@ Review the argument references that you can specify for your data source.
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
 - `action` - (String) The route action.
-- `advertise` - (String) Indicates if the route is advertised externally.
+- `advertise` - (String) Indicates if the route is advertised.
 - `crn` - (String) The CRN of this resource.
 - `destination` - (String) The route destination.
 - `destination_type` - (String) The destination type.

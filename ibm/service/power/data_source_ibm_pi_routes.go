@@ -62,7 +62,7 @@ func DataSourceIBMPIRoutes() *schema.Resource {
 						},
 						Attr_DestinationType: {
 							Computed:    true,
-							Description: "The destination type. Enum: [\"ipv4-address\"].",
+							Description: "The destination type.",
 							Type:        schema.TypeString,
 						},
 						Attr_Enabled: {
@@ -82,7 +82,7 @@ func DataSourceIBMPIRoutes() *schema.Resource {
 						},
 						Attr_NextHopType: {
 							Computed:    true,
-							Description: "The next hop type. Enum: [\"ipv4-address\"].",
+							Description: "The next hop type.",
 							Type:        schema.TypeString,
 						},
 						Attr_State: {

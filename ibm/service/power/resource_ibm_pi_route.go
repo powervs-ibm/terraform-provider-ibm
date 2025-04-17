@@ -50,14 +50,14 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Arg_Action: {
 				Default:      Deliver,
-				Description:  "Action for route.",
+				Description:  "Action for route. Valid values are \"deliver\".",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Deliver}, false),
 			},
 			Arg_Advertise: {
 				Default:      Enable,
-				Description:  "Indicates if the route is advertised. Enum: [\"enable\", \"disable\"].",
+				Description:  "Indicates if the route is advertised. Valid values are \"enable\" and \"disable\".",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
@@ -69,7 +69,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Arg_DestinationType: {
 				Default:      IPV4_Address,
-				Description:  "The destination type.",
+				Description:  "The destination type. Valid values are \"ipv4-address\".",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{IPV4_Address}, false),
@@ -92,7 +92,7 @@ func ResourceIBMPIRoute() *schema.Resource {
 			},
 			Arg_NextHopType: {
 				Default:      IPV4_Address,
-				Description:  "The next hop type.",
+				Description:  "The next hop type. Valid values are \"ipv4-address\".",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{IPV4_Address}, false),

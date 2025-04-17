@@ -48,13 +48,13 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `routes`:
   - `action` - (String) The route action.
-  - `advertise` - (String) Indicates if the route is advertised externally.
+  - `advertise` - (String) Indicates if the route is advertised.
   - `crn` - (String) The CRN of this resource.
   - `destination` - (String) The route destination.
-  - `destination_type` - (String) The destination type. Enum: ['ipv4-address'].
+  - `destination_type` - (String) The destination type.
   - `enabled` - (Boolean) Indicates if the route should be enabled in the fabric.
   - `name` - (String) Name of the route.
   - `next_hop` - (String) The next hop in the route.
-  - `next_hop_type` - (String) The next hop type. Enum: ['ipv4-address'].
+  - `next_hop_type` - (String) The next hop type.
   - `state` - (String) The state of the route.
   - `user_tags` - (Set of String) List of user tags attached to the resource.

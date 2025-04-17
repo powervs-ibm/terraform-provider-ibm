@@ -40,7 +40,7 @@ func DataSourceIBMPIRouteReport() *schema.Resource {
 						},
 						Attr_Type: {
 							Computed:    true,
-							Description: "The route type. Enum [\"external\"].",
+							Description: "The route type.",
 							Type:        schema.TypeString,
 						},
 					},

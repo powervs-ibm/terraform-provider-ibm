@@ -48,4 +48,4 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `routes`:
   - `destination` - (String) The route destination.
-  - `type` - (String) The route type. Enum ['external'].
+  - `type` - (String) The route type.
