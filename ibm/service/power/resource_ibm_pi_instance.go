@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/power/models"
@@ -379,6 +380,13 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: supressVSNDiffAutoAssign,
 							Type:             schema.TypeString,
+						},
+						Attr_SoftwareTier: {
+							Computed:     true,
+							Description:  "Software tier. Enum: [\"P05\", \"P10\", \"P20\", \"P30\"].",
+							Optional:     true,
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
 						},
 					},
 				},
@@ -1035,6 +1043,8 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				}
 				err := vsnClient.PVMInstanceDeleteVSN(instanceID, deleteBody)
 				if err != nil {
+					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
 
@@ -1052,8 +1062,11 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					Description: description,
 					Serial:      &serial,
 				}
+
 				_, err := vsnClient.PVMInstanceAttachVSN(instanceID, addBody)
 				if err != nil {
+					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
 
@@ -1071,12 +1084,33 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 
-		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) && d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) {
-			newDescriptionString := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
-			updateBody := &models.UpdateServerVirtualSerialNumber{
-				Description: &newDescriptionString,
+		if !d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Serial) && (d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) || d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_SoftwareTier)) {
+			updateBody := &models.UpdateServerVirtualSerialNumber{}
+			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_Description) {
+				newDescriptionString := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
+				updateBody.Description = &newDescriptionString
 			}
+
+			restartInstance := false
+			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
+				restartInstance, err = stopLparForVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				newSoftwareTier := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier).(string)
+				updateBody.SoftwareTier = models.SoftwareTier(newSoftwareTier)
+			}
+
 			_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
+			if err != nil {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, instanceClient, d, err)
+				return diag.FromErr(err)
+			}
+
+			if restartInstance {
+				err = startLparAfterVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+			}
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -1937,6 +1971,10 @@ func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSe
 	if description != "" {
 		model.Description = description
 	}
+	softwareTier := vsnItemMap[Attr_SoftwareTier].(string)
+	if softwareTier != "" {
+		model.SoftwareTier = models.SoftwareTier(softwareTier)
+	}
 
 	return model
 }
@@ -1947,10 +1985,24 @@ func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) 
 		Attr_Description: vsn.Description,
 		Attr_Serial:      vsn.Serial,
 	}
+	if vsn.SoftwareTier != "" {
+		v[0][Attr_SoftwareTier] = vsn.SoftwareTier
+	}
+
 	return v
 }
 
 // Do not show a diff if VSN is changed to existing assigned VSN
 func supressVSNDiffAutoAssign(k, old, new string, d *schema.ResourceData) bool {
 	return new == old || (new == AutoAssign && old != "")
+}
+
+func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, restartInstance bool, instanceClient *instance.IBMPIInstanceClient, d *schema.ResourceData, err error) error {
+	if restartInstance {
+		startErr := startLparAfterVSNChange(ctx, instanceClient, instanceID, d.Timeout(schema.TimeoutDelete))
+		if startErr != nil {
+			err = fmt.Errorf("%w; %w", err, startErr)
+		}
+	}
+	return err
 }
