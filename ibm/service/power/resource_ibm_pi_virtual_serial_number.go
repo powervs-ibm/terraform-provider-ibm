@@ -15,6 +15,7 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
@@ -62,6 +63,13 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Required:         true,
 				Type:             schema.TypeString,
 			},
+			Arg_SoftwareTier: {
+				Computed:     true,
+				Description:  "Software tier for virtual serial number.",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{"P05", "P10", "P20", "P30"}, false),
+			},
 		},
 	}
 }
@@ -76,8 +84,13 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
 	vsnArg := d.Get(Arg_Serial).(string)
-	if _, ok := d.GetOk(Arg_InstanceID); !ok && vsnArg == AutoAssign {
-		return diag.Errorf("cannot use '%s' unless %s is specified", AutoAssign, Arg_InstanceID)
+	if _, ok := d.GetOk(Arg_InstanceID); !ok {
+		if vsnArg == AutoAssign {
+			return diag.Errorf("cannot use '%s' unless '%s' is specified", AutoAssign, Arg_InstanceID)
+		}
+		if _, ok := d.GetOk(Arg_SoftwareTier); ok {
+			return diag.Errorf("cannot use '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
+		}
 	}
 
 	serialString := ""
@@ -136,12 +149,27 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 			}
 			_, err = client.PVMInstanceAttachVSN(pvmInstanceIdArg, addBody)
 			if err != nil {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
 			_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
 			if err != nil {
 				return diag.FromErr(err)
+			}
+
+			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+				softwareTier := v.(string)
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					SoftwareTier: models.SoftwareTier(softwareTier),
+				}
+				_, err = client.PVMInstanceUpdateVSN(pvmInstanceIdArg, updateBody)
+				if err != nil {
+					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
 			}
 
 			if restartInstance {
@@ -196,6 +224,9 @@ func resourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.Resourc
 	d.Set(Arg_Description, vsn.Description)
 	d.Set(Arg_InstanceID, vsn.PvmInstanceID)
 	d.Set(Arg_Serial, vsn.Serial)
+	if vsn.SoftwareTier != "" {
+		d.Set(Arg_SoftwareTier, vsn.SoftwareTier)
+	}
 
 	return nil
 }
@@ -230,10 +261,12 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 		}
 		err = client.PVMInstanceDeleteVSN(pvmInstanceId, deleteBody)
 		if err != nil {
+			instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+			err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 			return diag.FromErr(err)
 		}
 
-		_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+		_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutDelete))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -266,19 +299,46 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
 
-	if d.HasChange(Arg_Description) && !d.HasChange(Arg_InstanceID) {
-		newDescription := d.Get(Arg_Description).(string)
+	if (d.HasChange(Arg_Description) || d.HasChange(Arg_SoftwareTier)) && !d.HasChange(Arg_InstanceID) {
+
+		if _, ok := d.GetOk(Arg_InstanceID); !ok {
+			if _, ok := d.GetOk(Arg_SoftwareTier); ok {
+				return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
+			}
+		}
+
 		if v, ok := d.GetOk(Arg_InstanceID); ok {
 			pvmInstanceId := v.(string)
-			updateBody := &models.UpdateServerVirtualSerialNumber{
-				Description: &newDescription,
+			updateBody := &models.UpdateServerVirtualSerialNumber{}
+			if d.HasChange(Arg_Description) {
+				newDescription := d.Get(Arg_Description).(string)
+				updateBody.Description = &newDescription
 			}
 
+			restartInstance := false
+			if d.HasChange(Arg_SoftwareTier) {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				newSoftwareTier := d.Get(Arg_SoftwareTier).(string)
+				updateBody.SoftwareTier = models.SoftwareTier(newSoftwareTier)
+			}
 			_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
 			if err != nil {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
-		} else {
+
+			if restartInstance {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = startLparAfterVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+			}
+
+		} else if d.HasChange(Arg_Description) {
+			newDescription := d.Get(Arg_Description).(string)
 			updateBody := &models.UpdateVirtualSerialNumber{
 				Description: &newDescription,
 			}
@@ -297,6 +357,10 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 		oldIdString, newIdString := oldId.(string), newId.(string)
 		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
+		if _, ok := d.GetOk(Arg_SoftwareTier); ok && newIdString == "" {
+			return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
+		}
+
 		if oldIdString != "" {
 			restartInstance, err := stopLparForVSNChange(ctx, instanceClient, oldIdString, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
@@ -308,6 +372,8 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 			err = client.PVMInstanceDeleteVSN(oldIdString, detachBody)
 			if err != nil {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = instanceRestartAfterVSNFailure(ctx, oldIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
@@ -340,12 +406,27 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 			_, err = client.PVMInstanceAttachVSN(newIdString, addBody)
 			if err != nil {
+				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
 			_, err = isWaitForPIInstanceStopped(ctx, instanceClient, newIdString, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				return diag.FromErr(err)
+			}
+
+			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+				softwareTier := v.(string)
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					SoftwareTier: models.SoftwareTier(softwareTier),
+				}
+				_, err = client.PVMInstanceUpdateVSN(newIdString, updateBody)
+				if err != nil {
+					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
 			}
 
 			if restartInstance {

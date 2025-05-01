@@ -56,6 +56,35 @@ func TestAccIBMPIVirtualSerialNumberWithInstance(t *testing.T) {
 	})
 }
 
+func TestAccIBMPIVirtualSerialNumberSoftwareTier(t *testing.T) {
+	resLocator := "ibm_pi_virtual_serial_number.power_virtual_serial_number"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIVirtualSerialNumberDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIBMPIVirtualSerialNumberSoftwareTier("P05"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
+					resource.TestCheckResourceAttr(resLocator, "pi_software_tier", "P05"),
+				),
+			},
+			{
+				Config: testAccIBMPIVirtualSerialNumberSoftwareTier("P10"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
+					resource.TestCheckResourceAttr(resLocator, "pi_software_tier", "P10"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckIBMPIVirtualSerialNumberExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -130,4 +159,17 @@ func testAccIBMPIVirtualSerialNumberWithInstanceConfig() string {
 			pi_serial 						= "auto-assign"
 		}
 	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
+}
+
+func testAccIBMPIVirtualSerialNumberSoftwareTier(softwareTier string) string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
+			pi_cloud_instance_id            = "%[1]s"
+			pi_description   				= "TF test description"
+			pi_instance_id                  = "%[2]s"
+			pi_retain_virtual_serial_number = false
+			pi_serial 						= "auto-assign"
+			pi_software_tier                = "%[3]s"
+		}
+	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, softwareTier)
 }
