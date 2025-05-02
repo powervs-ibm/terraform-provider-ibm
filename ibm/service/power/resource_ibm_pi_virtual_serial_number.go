@@ -298,7 +298,6 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
 	if (d.HasChange(Arg_Description) || d.HasChange(Arg_SoftwareTier)) && !d.HasChange(Arg_InstanceID) {
-
 		if _, ok := d.GetOk(Arg_InstanceID); !ok {
 			if _, ok := d.GetOk(Arg_SoftwareTier); ok {
 				return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
