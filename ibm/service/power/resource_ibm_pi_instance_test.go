@@ -802,6 +802,16 @@ func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P10"),
 				),
 			},
+			{
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttrSet(instanceRes, "pi_virtual_serial_number.0.serial"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P05"),
+				),
+			},
 		},
 	})
 }

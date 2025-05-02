@@ -149,7 +149,6 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 			}
 			_, err = client.PVMInstanceAttachVSN(pvmInstanceIdArg, addBody)
 			if err != nil {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
@@ -166,7 +165,6 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 				}
 				_, err = client.PVMInstanceUpdateVSN(pvmInstanceIdArg, updateBody)
 				if err != nil {
-					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
@@ -261,7 +259,6 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 		}
 		err = client.PVMInstanceDeleteVSN(pvmInstanceId, deleteBody)
 		if err != nil {
-			instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 			err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 			return diag.FromErr(err)
 		}
@@ -298,6 +295,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	client := instance.NewIBMPIVSNClient(ctx, sess, cloudInstanceID)
+	instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
 	if (d.HasChange(Arg_Description) || d.HasChange(Arg_SoftwareTier)) && !d.HasChange(Arg_InstanceID) {
 
@@ -316,8 +314,9 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 
 			restartInstance := false
+			waitForStopped := false
 			if d.HasChange(Arg_SoftwareTier) {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+				waitForStopped = true
 				restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
@@ -327,14 +326,22 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 			_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
 			if err != nil {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
+			if waitForStopped {
+				_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
+			}
+
 			if restartInstance {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 				err = startLparAfterVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 
 		} else if d.HasChange(Arg_Description) {
@@ -355,7 +362,6 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	if d.HasChange(Arg_InstanceID) {
 		oldId, newId := d.GetChange(Arg_InstanceID)
 		oldIdString, newIdString := oldId.(string), newId.(string)
-		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
 		if _, ok := d.GetOk(Arg_SoftwareTier); ok && newIdString == "" {
 			return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
@@ -372,7 +378,6 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 			err = client.PVMInstanceDeleteVSN(oldIdString, detachBody)
 			if err != nil {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 				err = instanceRestartAfterVSNFailure(ctx, oldIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
@@ -406,7 +411,6 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 			_, err = client.PVMInstanceAttachVSN(newIdString, addBody)
 			if err != nil {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 				err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
@@ -423,7 +427,6 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				}
 				_, err = client.PVMInstanceUpdateVSN(newIdString, updateBody)
 				if err != nil {
-					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
