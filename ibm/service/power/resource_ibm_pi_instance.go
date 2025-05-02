@@ -1042,8 +1042,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				}
 				err := vsnClient.PVMInstanceDeleteVSN(instanceID, deleteBody)
 				if err != nil {
-					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
-					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, instanceClient, d, err)
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, client, d, err)
 					return diag.FromErr(err)
 				}
 
@@ -1064,8 +1063,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 				_, err := vsnClient.PVMInstanceAttachVSN(instanceID, addBody)
 				if err != nil {
-					instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
-					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, instanceClient, d, err)
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, instanceRestart, client, d, err)
 					return diag.FromErr(err)
 				}
 
@@ -1091,7 +1089,9 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 
 			restartInstance := false
+			waitForStopped := false
 			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
+				waitForStopped = true
 				restartInstance, err = stopLparForVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
@@ -1102,16 +1102,22 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 			_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
 			if err != nil {
-				instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
-				err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, instanceClient, d, err)
+				err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 				return diag.FromErr(err)
+			}
+
+			if waitForStopped {
+				_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 
 			if restartInstance {
 				err = startLparAfterVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
-			}
-			if err != nil {
-				return diag.FromErr(err)
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 		}
 	}

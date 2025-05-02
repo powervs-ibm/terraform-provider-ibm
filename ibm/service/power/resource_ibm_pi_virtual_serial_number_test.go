@@ -81,6 +81,15 @@ func TestAccIBMPIVirtualSerialNumberSoftwareTier(t *testing.T) {
 					resource.TestCheckResourceAttr(resLocator, "pi_software_tier", "P10"),
 				),
 			},
+			{
+				Config: testAccIBMPIVirtualSerialNumberSoftwareTier("P05"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
+					resource.TestCheckResourceAttr(resLocator, "pi_software_tier", "P05"),
+				),
+			},
 		},
 	})
 }
