@@ -314,9 +314,9 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 
 			restartInstance := false
-			waitForStopped := false
+			waitForInstanceStoppedAfterUpdate := false
 			if d.HasChange(Arg_SoftwareTier) {
-				waitForStopped = true
+				waitForInstanceStoppedAfterUpdate = true
 				restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
@@ -330,7 +330,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			if waitForStopped {
+			if waitForInstanceStoppedAfterUpdate {
 				_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
