@@ -20,15 +20,26 @@ import (
 
 func TestAccIBMPIVirtualSerialNumberBasic(t *testing.T) {
 	resLocator := "ibm_pi_virtual_serial_number.power_virtual_serial_number"
+	description := "TF test description"
+	descriptionUpdated := "TF test description updated"
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIBMPIVirtualSerialNumberBasicConfig(),
+				Config: testAccIBMPIVirtualSerialNumberBasicConfig(description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
 					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttr(resLocator, "pi_description", description),
+				),
+			},
+			{
+				Config: testAccIBMPIVirtualSerialNumberBasicConfig(descriptionUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttr(resLocator, "pi_description", descriptionUpdated),
 				),
 			},
 		},
@@ -37,18 +48,30 @@ func TestAccIBMPIVirtualSerialNumberBasic(t *testing.T) {
 
 func TestAccIBMPIVirtualSerialNumberWithInstance(t *testing.T) {
 	resLocator := "ibm_pi_virtual_serial_number.power_virtual_serial_number"
+	description := "TF test description"
+	descriptionUpdated := "TF test description updated"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
 		CheckDestroy: testAccCheckIBMPIVirtualSerialNumberDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccIBMPIVirtualSerialNumberWithInstanceConfig(),
+				Config: testAccIBMPIVirtualSerialNumberWithInstanceConfig(description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
 					resource.TestCheckResourceAttrSet(resLocator, "id"),
 					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
-					resource.TestCheckResourceAttr(resLocator, "pi_description", "TF test description"),
+					resource.TestCheckResourceAttr(resLocator, "pi_description", description),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_instance_id"),
+				),
+			},
+			{
+				Config: testAccIBMPIVirtualSerialNumberWithInstanceConfig(descriptionUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVirtualSerialNumberExists(resLocator),
+					resource.TestCheckResourceAttrSet(resLocator, "id"),
+					resource.TestCheckResourceAttrSet(resLocator, "pi_serial"),
+					resource.TestCheckResourceAttr(resLocator, "pi_description", descriptionUpdated),
 					resource.TestCheckResourceAttrSet(resLocator, "pi_instance_id"),
 				),
 			},
@@ -148,26 +171,26 @@ func testAccCheckIBMPIVirtualSerialNumberDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccIBMPIVirtualSerialNumberBasicConfig() string {
+func testAccIBMPIVirtualSerialNumberBasicConfig(description string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
 			pi_cloud_instance_id 			= "%[1]s"
-			pi_description       			= "TF test description"
+			pi_description       			= "%[3]s"
 			pi_serial            			= "%[2]s"
 		}
-	`, acc.Pi_cloud_instance_id, acc.Pi_virtual_serial_number)
+	`, acc.Pi_cloud_instance_id, acc.Pi_virtual_serial_number, description)
 }
 
-func testAccIBMPIVirtualSerialNumberWithInstanceConfig() string {
+func testAccIBMPIVirtualSerialNumberWithInstanceConfig(description string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
 			pi_cloud_instance_id            = "%[1]s"
-			pi_description   				= "TF test description"
+			pi_description   				= "%[3]s"
 			pi_instance_id                  = "%[2]s"
 			pi_retain_virtual_serial_number = false
 			pi_serial 						= "auto-assign"
 		}
-	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
+	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, description)
 }
 
 func testAccIBMPIVirtualSerialNumberSoftwareTier(softwareTier string) string {
