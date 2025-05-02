@@ -818,11 +818,6 @@ func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 
 func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, systype string, softwareTier string) string {
 	return fmt.Sprintf(`
-	resource "ibm_pi_key" "key" {
-		pi_cloud_instance_id = "%[1]s"
-		pi_key_name          = "%[2]s"
-		pi_ssh_key           = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR"
-	  }
 	  data "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
 		pi_image_name        = "%[3]s"
@@ -836,7 +831,6 @@ func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, sy
 		pi_health_status      = "%[5]s"
 		pi_image_id           = data.ibm_pi_image.power_image.id
 		pi_instance_name      = "%[2]s"
-		pi_key_pair_name      = ibm_pi_key.key.name
 		pi_memory             = "2"
 		pi_proc_type          = "shared"
 		pi_processors         = "0.25"
