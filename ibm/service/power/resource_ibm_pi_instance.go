@@ -1046,7 +1046,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					return diag.FromErr(err)
 				}
 
-				_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+				_, err = isWaitForPIInstanceVSNRemoved(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -1067,7 +1067,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					return diag.FromErr(err)
 				}
 
-				_, err = isWaitForPIInstanceVSNAssigned(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, nil, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
@@ -1089,9 +1089,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 
 			restartInstance := false
-			waitForStoppedAfterUpdate := false
 			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
-				waitForStoppedAfterUpdate = true
 				restartInstance, err = stopLparForVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
@@ -1106,11 +1104,9 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				return diag.FromErr(err)
 			}
 
-			if waitForStoppedAfterUpdate {
-				_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					return diag.FromErr(err)
-				}
+			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
+				return diag.FromErr(err)
 			}
 
 			if restartInstance {
@@ -2012,14 +2008,15 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 	return err
 }
 
-func isWaitForPIInstanceVSNAssigned(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+// isWaitForPIInstanceVSNAssigned will wait for VSN assigned, will also wait for correct software tier if specified (specify "" to ignore software tier check)
+func isWaitForPIInstanceVSNAssignedOrUpdated(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (interface{}, error) {
 
 	log.Printf("Waiting until VSN assigned to %s.", id)
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Updating},
-		Target:     []string{State_Active, State_Shutoff},
-		Refresh:    isPIInstanceVSNAssignedRefreshFunc(client, id),
+		Target:     []string{State_Shutoff},
+		Refresh:    isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client, id, updateBody),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active,
 		Timeout:    timeout,
@@ -2028,18 +2025,52 @@ func isWaitForPIInstanceVSNAssigned(ctx context.Context, client *instance.IBMPII
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func isPIInstanceVSNAssignedRefreshFunc(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
+func isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		pvm, err := client.Get(id)
 		if err != nil {
 			return nil, "", err
 		}
+		if updateBody != nil && updateBody.SoftwareTier != "" && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.SoftwareTier != updateBody.SoftwareTier {
+			return pvm, State_Updating, nil
+		}
+		if updateBody != nil && updateBody.Description != nil && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.Description != updateBody.Description {
+			return pvm, State_Updating, nil
+		}
 		if pvm.VirtualSerialNumber != nil && strings.ToLower(*pvm.Status) == State_Shutoff && pvm.Health.Status == OK {
 			return pvm, State_Shutoff, nil
 		}
-		if pvm.VirtualSerialNumber != nil && strings.ToLower(*pvm.Status) == State_Active && pvm.Health.Status == OK {
-			return pvm, State_Active, nil
-		}
+
 		return pvm, State_Updating, nil
+	}
+}
+
+func isWaitForPIInstanceVSNRemoved(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+
+	log.Printf("Waiting until VSN removed from %s.", id)
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Removing},
+		Target:     []string{State_Shutoff},
+		Refresh:    isPIInstanceVSNRemovedRefreshFunc(client, id),
+		Delay:      Timeout_Delay,
+		MinTimeout: Timeout_Active,
+		Timeout:    timeout,
+	}
+
+	return stateConf.WaitForStateContext(ctx)
+}
+
+func isPIInstanceVSNRemovedRefreshFunc(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		pvm, err := client.Get(id)
+		if err != nil {
+			return nil, "", err
+		}
+		if pvm.VirtualSerialNumber == nil && strings.ToLower(*pvm.Status) == State_Shutoff && pvm.Health.Status == OK {
+			return pvm, State_Shutoff, nil
+		}
+
+		return pvm, State_Removing, nil
 	}
 }
