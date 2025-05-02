@@ -173,7 +173,7 @@ const (
 	Attr_AccessConfig                                = "access_config"
 	Attr_Action                                      = "action"
 	Attr_Addresses                                   = "addresses"
-	Attr_Advertise                                   = "advertise_externally"
+	Attr_Advertise                                   = "advertise"
 	Attr_AllocatedCores                              = "allocated_cores"
 	Attr_Architecture                                = "architecture"
 	Attr_ARPBroadcast                                = "arp_broadcast"
