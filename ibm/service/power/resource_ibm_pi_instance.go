@@ -2012,7 +2012,7 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 // isWaitForPIInstanceVSNAssigned will wait for VSN assigned, will also wait for correct values in updateBody if specified (specify nil to ignore updateBody checks)
 func isWaitForPIInstanceVSNAssignedOrUpdated(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (interface{}, error) {
 
-	log.Printf("Waiting until VSN assigned to %s.", id)
+	log.Printf("Waiting until VSN assigned to %s or updated.", id)
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Updating},
@@ -2035,7 +2035,7 @@ func isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client *instance.IBMPIInstanceC
 		if updateBody != nil && updateBody.SoftwareTier != "" && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.SoftwareTier != updateBody.SoftwareTier {
 			return pvm, State_Updating, nil
 		}
-		if updateBody != nil && updateBody.Description != nil && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.Description != updateBody.Description {
+		if updateBody != nil && updateBody.Description != nil && pvm.VirtualSerialNumber != nil && (pvm.VirtualSerialNumber.Description == nil || *pvm.VirtualSerialNumber.Description != *updateBody.Description) {
 			return pvm, State_Updating, nil
 		}
 		if pvm.VirtualSerialNumber != nil && (strings.ToLower(*pvm.Status) == State_Shutoff || strings.ToLower(*pvm.Status) == State_Active) && pvm.Health.Status == OK {
