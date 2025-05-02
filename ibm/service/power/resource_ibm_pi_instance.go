@@ -2009,7 +2009,7 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 	return err
 }
 
-// isWaitForPIInstanceVSNAssigned will wait for VSN assigned, will also wait for correct software tier if specified (specify "" to ignore software tier check)
+// isWaitForPIInstanceVSNAssigned will wait for VSN assigned, will also wait for correct values in updateBody if specified (specify nil to ignore updateBody checks)
 func isWaitForPIInstanceVSNAssignedOrUpdated(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (interface{}, error) {
 
 	log.Printf("Waiting until VSN assigned to %s.", id)
