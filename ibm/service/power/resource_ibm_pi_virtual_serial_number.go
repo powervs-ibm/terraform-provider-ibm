@@ -153,7 +153,7 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceStopped(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+			_, err = isWaitForPIInstanceVSNAssigned(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -415,7 +415,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceStopped(ctx, instanceClient, newIdString, d.Timeout(schema.TimeoutUpdate))
+			_, err = isWaitForPIInstanceVSNAssigned(ctx, instanceClient, newIdString, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				return diag.FromErr(err)
 			}
