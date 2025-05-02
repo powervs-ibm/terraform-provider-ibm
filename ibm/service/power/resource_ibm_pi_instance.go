@@ -2016,7 +2016,7 @@ func isWaitForPIInstanceVSNAssignedOrUpdated(ctx context.Context, client *instan
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Updating},
-		Target:     []string{State_Shutoff},
+		Target:     []string{State_Completed},
 		Refresh:    isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client, id, updateBody),
 		Delay:      Timeout_Delay,
 		MinTimeout: Timeout_Active,
@@ -2038,8 +2038,8 @@ func isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client *instance.IBMPIInstanceC
 		if updateBody != nil && updateBody.Description != nil && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.Description != updateBody.Description {
 			return pvm, State_Updating, nil
 		}
-		if pvm.VirtualSerialNumber != nil && strings.ToLower(*pvm.Status) == State_Shutoff && pvm.Health.Status == OK {
-			return pvm, State_Shutoff, nil
+		if pvm.VirtualSerialNumber != nil && (strings.ToLower(*pvm.Status) == State_Shutoff || strings.ToLower(*pvm.Status) == State_Active) && pvm.Health.Status == OK {
+			return pvm, State_Completed, nil
 		}
 
 		return pvm, State_Updating, nil
