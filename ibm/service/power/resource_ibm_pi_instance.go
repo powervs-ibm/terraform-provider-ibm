@@ -1067,10 +1067,27 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					return diag.FromErr(err)
 				}
 
-				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, nil, d.Timeout(schema.TimeoutUpdate))
+				pvm, err := isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, nil, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
+
+				pvmInstance := pvm.(*models.PVMInstance)
+				softwareTier := models.SoftwareTier(newVSNMap[Attr_SoftwareTier].(string))
+				if softwareTier != "" && pvmInstance.VirtualSerialNumber.SoftwareTier != softwareTier {
+					updateBody := &models.UpdateServerVirtualSerialNumber{
+						SoftwareTier: softwareTier,
+					}
+					_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
+					if err != nil {
+						return diag.FromErr(err)
+					}
+					_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
+					if err != nil {
+						return diag.FromErr(err)
+					}
+				}
+
 			}
 
 			if instanceRestart {
@@ -1104,9 +1121,11 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
-			if err != nil {
-				return diag.FromErr(err)
+			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_SoftwareTier) {
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 
 			if restartInstance {
@@ -2008,7 +2027,7 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 	return err
 }
 
-// isWaitForPIInstanceVSNAssigned will wait for VSN assigned, will also wait for correct values in updateBody if specified (specify nil to ignore updateBody checks)
+// isWaitForPIInstanceVSNAssignedOrUpdated will wait for VSN assigned, will also wait for correct values in updateBody if specified (specify nil to ignore updateBody checks)
 func isWaitForPIInstanceVSNAssignedOrUpdated(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (interface{}, error) {
 
 	log.Printf("Waiting until VSN assigned to %s or updated.", id)
@@ -2032,9 +2051,6 @@ func isPIInstanceVSNAssignedOrUpdatedRefreshFunc(client *instance.IBMPIInstanceC
 			return nil, "", err
 		}
 		if updateBody != nil && updateBody.SoftwareTier != "" && pvm.VirtualSerialNumber != nil && pvm.VirtualSerialNumber.SoftwareTier != updateBody.SoftwareTier {
-			return pvm, State_Updating, nil
-		}
-		if updateBody != nil && updateBody.Description != nil && pvm.VirtualSerialNumber != nil && (pvm.VirtualSerialNumber.Description == nil || *pvm.VirtualSerialNumber.Description != *updateBody.Description) {
 			return pvm, State_Updating, nil
 		}
 		if pvm.VirtualSerialNumber != nil && (strings.ToLower(*pvm.Status) == State_Shutoff || strings.ToLower(*pvm.Status) == State_Active) && pvm.Health.Status == OK {

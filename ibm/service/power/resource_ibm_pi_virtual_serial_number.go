@@ -327,9 +327,11 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
-			if err != nil {
-				return diag.FromErr(err)
+			if d.HasChange(Arg_SoftwareTier) {
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 
 			if restartInstance {
