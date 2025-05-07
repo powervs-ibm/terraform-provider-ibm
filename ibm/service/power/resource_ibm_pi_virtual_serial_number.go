@@ -155,6 +155,7 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 
 			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceIdArg, nil, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
+				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
@@ -265,6 +266,7 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 
 		_, err = isWaitForPIInstanceVSNRemoved(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutDelete))
 		if err != nil {
+			err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 			return diag.FromErr(err)
 		}
 
@@ -342,6 +344,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
 			}
@@ -394,6 +397,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 			_, err = isWaitForPIInstanceVSNRemoved(ctx, instanceClient, oldIdString, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
+				err = instanceRestartAfterVSNFailure(ctx, oldIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
@@ -427,6 +431,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, newIdString, nil, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
+				err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 
