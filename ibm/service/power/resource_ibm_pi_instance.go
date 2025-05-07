@@ -1070,6 +1070,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					return diag.FromErr(err)
 				}
 
+				// newly attached VSN may not match software tier defined by user in configuration, need to update to match
 				pvmInstance := pvm.(*models.PVMInstance)
 				softwareTier := models.SoftwareTier(newVSNMap[Attr_SoftwareTier].(string))
 				if softwareTier != "" && pvmInstance.VirtualSerialNumber.SoftwareTier != softwareTier {
@@ -1089,6 +1090,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				}
 			}
 		} else if d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_SoftwareTier) || d.HasChange(Arg_VirtualSerialNumber+".0."+Attr_Description) {
+			// below updates are split up since both VSN software tier and VSN description cannot be updated at the same time (mutually exclusive)
 			if d.HasChange(Arg_VirtualSerialNumber + ".0." + Attr_Description) {
 				newDescription := d.Get(Arg_VirtualSerialNumber + ".0." + Attr_Description).(string)
 				updateBody := &models.UpdateServerVirtualSerialNumber{
