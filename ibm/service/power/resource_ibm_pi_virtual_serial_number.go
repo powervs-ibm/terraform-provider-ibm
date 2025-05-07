@@ -278,6 +278,7 @@ func resourceIBMPIVirtualSerialNumberDelete(ctx context.Context, d *schema.Resou
 		}
 
 	} else {
+		// TODO: allow user to use pi_retain_virtual_serial_number to retain VSN instead of deleting it when not attached to PVM instance
 		serialNumber := d.Get(Arg_Serial).(string)
 		err = client.Delete(serialNumber)
 		if err != nil {
@@ -311,6 +312,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 		// if instance ID is defined, need to use correct endpoints for assigned vsns
 		if v, ok := d.GetOk(Arg_InstanceID); ok {
+			// Cannot update software tier and description at the same time, so two separate update calls must be used
 			pvmInstanceId := v.(string)
 			restartInstance := false
 			if d.HasChange(Arg_Description) {
@@ -435,6 +437,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
+			// cannot specify software tier when attaching new VSN, update to match software tier in configuration
 			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
 				softwareTier := v.(string)
 				updateBody := &models.UpdateServerVirtualSerialNumber{
