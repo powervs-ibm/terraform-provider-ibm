@@ -300,34 +300,46 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 	if (d.HasChange(Arg_Description) || d.HasChange(Arg_SoftwareTier)) && !d.HasChange(Arg_InstanceID) {
 		if _, ok := d.GetOk(Arg_InstanceID); !ok {
 			if _, ok := d.GetOk(Arg_SoftwareTier); ok {
+				// Set old software tier back into state incase it is not re-read on next apply
+				oldSoftwareTier, _ := d.GetChange(Arg_SoftwareTier)
+				d.Set(Arg_SoftwareTier, oldSoftwareTier)
 				return diag.Errorf("cannot set '%s' unless '%s' is specified", Arg_SoftwareTier, Arg_InstanceID)
 			}
 		}
 
+		// if instance ID is defined, need to use correct endpoints for assigned vsns
 		if v, ok := d.GetOk(Arg_InstanceID); ok {
 			pvmInstanceId := v.(string)
-			updateBody := &models.UpdateServerVirtualSerialNumber{}
+			restartInstance := false
 			if d.HasChange(Arg_Description) {
 				newDescription := d.Get(Arg_Description).(string)
-				updateBody.Description = &newDescription
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					Description: &newDescription,
+				}
+				_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
+				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
 			}
 
-			restartInstance := false
 			if d.HasChange(Arg_SoftwareTier) {
 				restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
-				newSoftwareTier := d.Get(Arg_SoftwareTier).(string)
-				updateBody.SoftwareTier = models.SoftwareTier(newSoftwareTier)
-			}
-			_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
-			if err != nil {
-				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
-				return diag.FromErr(err)
-			}
 
-			if d.HasChange(Arg_SoftwareTier) {
+				newSoftwareTier := models.SoftwareTier(d.Get(Arg_SoftwareTier).(string))
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					SoftwareTier: newSoftwareTier,
+				}
+
+				_, err = client.PVMInstanceUpdateVSN(pvmInstanceId, updateBody)
+				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
+
 				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
@@ -340,7 +352,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 					return diag.FromErr(err)
 				}
 			}
-
+			// else, use endpoints for unassigned vsns
 		} else if d.HasChange(Arg_Description) {
 			newDescription := d.Get(Arg_Description).(string)
 			updateBody := &models.UpdateVirtualSerialNumber{
@@ -356,6 +368,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 		}
 	}
 
+	// if instance ID is changed, detach from old lpar (if present) and re-attach to new lpar (if present)
 	if d.HasChange(Arg_InstanceID) {
 		oldId, newId := d.GetChange(Arg_InstanceID)
 		oldIdString, newIdString := oldId.(string), newId.(string)
