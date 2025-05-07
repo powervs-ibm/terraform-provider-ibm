@@ -50,8 +50,10 @@ ibm_pi_key provides the following [timeouts](https://www.terraform.io/docs/langu
 Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_description` - (Optional, String) Description of the ssh key.
 - `pi_key_name`  - (Required, String) User defined name for the SSH key.
 - `pi_ssh_key` - (Required, String) SSH RSA key.
+- `pi_visibility` - (Optional, String) Visibility of the ssh key. Valid values are: [\"account\", \"workspace\"]. Default is `account`.
 
 ## Attribute Reference
 
@@ -61,6 +63,7 @@ Review the argument references that you can specify for your resource.
 - `id` - (String) The unique identifier of the key. The ID is composed of `<pi_cloud_instance_id>/<pi_key_name>`.
 - `name` - (String) User defined name for the SSH key.
 - `ssh_key` - (String) SSH RSA key.
+- `primary_workspace` - (Boolean) Indicates if the current workspace owns the ssh key or not.
 
 ## Import
 
