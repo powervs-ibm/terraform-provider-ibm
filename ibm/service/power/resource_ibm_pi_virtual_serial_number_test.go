@@ -185,10 +185,10 @@ func testAccIBMPIVirtualSerialNumberWithInstanceConfig(description string) strin
 	return fmt.Sprintf(`
 		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
 			pi_cloud_instance_id            = "%[1]s"
-			pi_description   				= "%[3]s"
+			pi_description                  = "%[3]s"
 			pi_instance_id                  = "%[2]s"
 			pi_retain_virtual_serial_number = false
-			pi_serial 						= "auto-assign"
+			pi_serial                       = "auto-assign"
 		}
 	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, description)
 }
@@ -197,10 +197,10 @@ func testAccIBMPIVirtualSerialNumberSoftwareTier(softwareTier string) string {
 	return fmt.Sprintf(`
 		resource "ibm_pi_virtual_serial_number" "power_virtual_serial_number" {
 			pi_cloud_instance_id            = "%[1]s"
-			pi_description   				= "TF test description"
+			pi_description                  = "TF test description"
 			pi_instance_id                  = "%[2]s"
 			pi_retain_virtual_serial_number = false
-			pi_serial 						= "auto-assign"
+			pi_serial                       = "auto-assign"
 			pi_software_tier                = "%[3]s"
 		}
 	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, softwareTier)
