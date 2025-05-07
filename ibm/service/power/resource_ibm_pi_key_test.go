@@ -39,7 +39,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVE
 					resource.TestCheckResourceAttrSet(keyRes, "creation_date"),
 					resource.TestCheckResourceAttr(keyRes, "key", publicKey),
 					resource.TestCheckResourceAttr(keyRes, "name", name),
-					resource.TestCheckResourceAttr(keyRes, "name", name),
+					resource.TestCheckResourceAttr(keyRes, "pi_visibility", "account"),
 				),
 			},
 		},
