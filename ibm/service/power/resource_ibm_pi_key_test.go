@@ -35,7 +35,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVE
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIKeyExists(keyRes),
 					resource.TestCheckResourceAttr(keyRes, "pi_key_name", name),
-					resource.TestCheckResourceAttr(keyRes, "primary_workspace", "false"),
+					resource.TestCheckResourceAttr(keyRes, "primary_workspace", "true"),
 					resource.TestCheckResourceAttrSet(keyRes, "creation_date"),
 					resource.TestCheckResourceAttr(keyRes, "key", publicKey),
 					resource.TestCheckResourceAttr(keyRes, "name", name),
