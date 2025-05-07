@@ -777,38 +777,39 @@ func testAccCheckIBMPIStoppedInstanceConfigUpdate(name, instanceHealthStatus, pr
 func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
 	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	description := "VSN for TF test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
 		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05"),
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05", description),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 					resource.TestCheckResourceAttrSet(instanceRes, "pi_virtual_serial_number.0.serial"),
-					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", description),
 					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P05"),
 				),
 			},
 			{
-				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P10"),
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P10", description+" updated"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 					resource.TestCheckResourceAttrSet(instanceRes, "pi_virtual_serial_number.0.serial"),
-					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", description+" updated"),
 					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P10"),
 				),
 			},
 			{
-				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05"),
+				Config: testAccCheckIBMPIInstanceVirtualSerialNumber(name, power.OK, "s1022", "P05", description+" updated"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
 					resource.TestCheckResourceAttrSet(instanceRes, "pi_virtual_serial_number.0.serial"),
-					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", "VSN for TF test"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.description", description+" updated"),
 					resource.TestCheckResourceAttr(instanceRes, "pi_virtual_serial_number.0.software_tier", "P05"),
 				),
 			},
@@ -816,7 +817,7 @@ func TestAccIBMPIInstanceVirtualSerialNumber(t *testing.T) {
 	})
 }
 
-func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, systype string, softwareTier string) string {
+func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, systype string, softwareTier string, description string) string {
 	return fmt.Sprintf(`
 	  data "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
@@ -841,11 +842,11 @@ func testAccCheckIBMPIInstanceVirtualSerialNumber(name, instanceHealthStatus, sy
 		}
 		pi_virtual_serial_number {
 			serial        = "auto-assign"
-			description   = "VSN for TF test"
+			description   = "%[9]s"
 			software_tier = "%[8]s"
 		}
 	  }
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, systype, acc.PiStorageType, softwareTier)
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, systype, acc.PiStorageType, softwareTier, description)
 }
 
 func TestAccIBMPIInstanceDeploymentGRS(t *testing.T) {
