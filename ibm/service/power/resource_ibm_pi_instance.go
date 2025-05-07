@@ -1045,6 +1045,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 				_, err = isWaitForPIInstanceVSNRemoved(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 					return diag.FromErr(err)
 				}
 			}
@@ -1066,6 +1067,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 				pvm, err := isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, nil, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 					return diag.FromErr(err)
 				}
 
@@ -1077,10 +1079,12 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 					}
 					_, err = vsnClient.PVMInstanceUpdateVSN(instanceID, updateBody)
 					if err != nil {
+						err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 						return diag.FromErr(err)
 					}
 					_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
 					if err != nil {
+						err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 						return diag.FromErr(err)
 					}
 				}
@@ -1120,6 +1124,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				// Wait for new software tier to be reflected since it is an asynchronous operation
 				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, client, instanceID, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, instanceID, restartInstance, client, d, err)
 					return diag.FromErr(err)
 				}
 			}
