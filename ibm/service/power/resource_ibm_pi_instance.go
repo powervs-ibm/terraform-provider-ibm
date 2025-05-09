@@ -199,7 +199,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 						},
 						Attr_NetworkSecurityGroupIDs: {
 							Computed:    true,
-							Description: "Network security groups that the network interface is a member of. There is a limit of 1 network security group in the array. If not specified, default network security group is used.",
+							Description: "Network security groups that the network interface is a member of. There is a limit of 1 network security group in the array. If no network group security group id is specified, the default one is chosen. If [\"none\"] is specified, no network security group is chosen.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Optional:    true,
 							Type:        schema.TypeSet,
