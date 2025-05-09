@@ -160,11 +160,17 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 			}
 
 			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+				// Update software tier to match configuration
 				softwareTier := v.(string)
 				updateBody := &models.UpdateServerVirtualSerialNumber{
 					SoftwareTier: models.SoftwareTier(softwareTier),
 				}
 				_, err = client.PVMInstanceUpdateVSN(pvmInstanceIdArg, updateBody)
+				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceIdArg, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
