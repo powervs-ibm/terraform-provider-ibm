@@ -133,13 +133,15 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 		if oldPvmInstanceId != "" && pvmInstanceIdArg != oldPvmInstanceId {
 			return diag.Errorf("please detach virtual serial number from current pvm instance before specifying %s in creation", Arg_InstanceID)
 		}
-		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
-		restartInstance, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
-		if err != nil {
-			return diag.FromErr(err)
-		}
 
+		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
+		restartInstance := false
+		// if specified instance was not attached before
 		if oldPvmInstanceId == "" {
+			restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+			if err != nil {
+				return diag.FromErr(err)
+			}
 			serialNumber := d.Get(Arg_Serial).(string)
 			addBody := &models.AddServerVirtualSerialNumber{
 				Serial: &serialNumber,
@@ -153,52 +155,65 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceIdArg, nil, d.Timeout(schema.TimeoutUpdate))
+			_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, pvmInstanceIdArg, nil, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
-			}
-
-			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
-				// Update software tier to match configuration
-				softwareTier := v.(string)
-				updateBody := &models.UpdateServerVirtualSerialNumber{
-					SoftwareTier: models.SoftwareTier(softwareTier),
-				}
-				_, err = client.PVMInstanceUpdateVSN(pvmInstanceIdArg, updateBody)
-				if err != nil {
-					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
-					return diag.FromErr(err)
-				}
-				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceIdArg, updateBody, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
-					return diag.FromErr(err)
-				}
-			}
-
-			if restartInstance {
-				err = startLparAfterVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
-				if err != nil {
-					return diag.FromErr(err)
-				}
 			}
 		}
 
 		if vsnArg == AutoAssign {
 			vsns, err := client.GetAll(&pvmInstanceIdArg)
 			if err != nil {
+				err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
 			}
 			serialString = *vsns[0].Serial
-
 		} else {
 			serialString = vsnArg
 		}
-	}
 
-	id := cloudInstanceID + "/" + serialString
-	d.SetId(id)
+		id := cloudInstanceID + "/" + serialString
+		d.SetId(id)
+
+		if v, ok := d.GetOk(Arg_SoftwareTier); ok {
+			// Need to get current vsn for software tier
+			vsnObj, err := client.Get(serialString)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			softwareTierCurrent := vsnObj.SoftwareTier
+			softwareTier := models.SoftwareTier(v.(string))
+			if softwareTierCurrent != "" && softwareTierCurrent != softwareTier {
+				restartInstanceSoftwareTierUpdate, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				restartInstance = restartInstance || restartInstanceSoftwareTierUpdate
+				// Update software tier to match configuration
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					SoftwareTier: softwareTier,
+				}
+				_, err = client.PVMInstanceUpdateVSN(pvmInstanceIdArg, updateBody)
+				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, pvmInstanceIdArg, updateBody, d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
+					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceIdArg, restartInstance, instanceClient, d, err)
+					return diag.FromErr(err)
+				}
+			}
+		}
+
+		if restartInstance {
+			err = startLparAfterVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+	}
 
 	return resourceIBMPIVirtualSerialNumberRead(ctx, d, meta)
 }
@@ -334,10 +349,11 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 			}
 
 			if d.HasChange(Arg_SoftwareTier) {
-				restartInstance, err = stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
+				restartInstanceSoftwareTier, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceId, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					return diag.FromErr(err)
 				}
+				restartInstance = restartInstance || restartInstanceSoftwareTier
 
 				newSoftwareTier := models.SoftwareTier(d.Get(Arg_SoftwareTier).(string))
 				updateBody := &models.UpdateServerVirtualSerialNumber{
@@ -350,7 +366,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 					return diag.FromErr(err)
 				}
 
-				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, pvmInstanceId, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					err = instanceRestartAfterVSNFailure(ctx, pvmInstanceId, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
@@ -437,7 +453,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, newIdString, nil, d.Timeout(schema.TimeoutUpdate))
+			_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, nil, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
@@ -454,7 +470,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
 				}
-				_, err = isWaitForPIInstanceVSNAssignedOrUpdated(ctx, instanceClient, newIdString, updateBody, d.Timeout(schema.TimeoutUpdate))
+				_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, updateBody, d.Timeout(schema.TimeoutUpdate))
 				if err != nil {
 					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 					return diag.FromErr(err)
