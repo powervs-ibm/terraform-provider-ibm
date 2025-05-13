@@ -21,7 +21,6 @@ func ResourceIBMPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceIBMPIKeyCreate,
 		ReadContext:   resourceIBMPIKeyRead,
-		UpdateContext: resourceIBMPIKeyUpdate,
 		DeleteContext: resourceIBMPIKeyDelete,
 		Importer:      &schema.ResourceImporter{},
 
@@ -39,19 +38,34 @@ func ResourceIBMPIKey() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_Description: {
+				Description: "Description of the ssh key.",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 			Arg_KeyName: {
 				Description:  "User defined name for the SSH key.",
+				ForceNew:     true,
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_SSHKey: {
 				Description:  "SSH RSA key.",
+				ForceNew:     true,
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
+			Arg_Visibility: {
+				Default:      Account,
+				Description:  "Visibility of the ssh key. Valid values are: [\"account\", \"workspace\"].",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{Account, Workspace}, false),
+			},
 			// Attributes
 			Attr_CreationDate: {
 				Computed:    true,
@@ -68,6 +82,11 @@ func ResourceIBMPIKey() *schema.Resource {
 				Description: "SSH RSA key.",
 				Type:        schema.TypeString,
 			},
+			Attr_PrimaryWorkspace: {
+				Computed:    true,
+				Description: "Indicates if the current workspace owns the ssh key or not.",
+				Type:        schema.TypeBool,
+			},
 		},
 	}
 }
@@ -83,13 +102,21 @@ func resourceIBMPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta in
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	name := d.Get(Arg_KeyName).(string)
 	sshkey := d.Get(Arg_SSHKey).(string)
+	visibility := d.Get(Arg_Visibility).(string)
 
 	// create key
-	client := instance.NewIBMPIKeyClient(ctx, sess, cloudInstanceID)
-	body := &models.SSHKey{
-		Name:   &name,
-		SSHKey: &sshkey,
+	client := instance.NewIBMPISSHKeyClient(ctx, sess, cloudInstanceID)
+	body := &models.CreateWorkspaceSSHKey{
+		Name:       &name,
+		SSHKey:     &sshkey,
+		Visibility: &visibility,
 	}
+
+	if v, ok := d.GetOk(Arg_Description); ok {
+		description := v.(string)
+		body.Description = description
+	}
+
 	sshResponse, err := client.Create(body)
 	if err != nil {
 		log.Printf("[DEBUG]  err %s", err)
@@ -97,7 +124,7 @@ func resourceIBMPIKeyCreate(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	log.Printf("Printing the sshkey %+v", *sshResponse)
-	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, name))
+	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, *sshResponse.ID))
 	return resourceIBMPIKeyRead(ctx, d, meta)
 }
 
@@ -115,22 +142,19 @@ func resourceIBMPIKeyRead(ctx context.Context, d *schema.ResourceData, meta inte
 	}
 
 	// get key
-	sshkeyC := instance.NewIBMPIKeyClient(ctx, sess, cloudInstanceID)
+	sshkeyC := instance.NewIBMPISSHKeyClient(ctx, sess, cloudInstanceID)
 	sshkeydata, err := sshkeyC.Get(key)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// set attributes
+	d.Set(Arg_CloudInstanceID, cloudInstanceID)
 	d.Set(Attr_CreationDate, sshkeydata.CreationDate.String())
 	d.Set(Attr_Key, sshkeydata.SSHKey)
 	d.Set(Attr_Name, sshkeydata.Name)
+	d.Set(Attr_PrimaryWorkspace, sshkeydata.PrimaryWorkspace)
 
 	return nil
-}
-
-func resourceIBMPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	return resourceIBMPIKeyRead(ctx, d, meta)
 }
 
 func resourceIBMPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -147,7 +171,7 @@ func resourceIBMPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	// delete key
-	sshkeyC := instance.NewIBMPIKeyClient(ctx, sess, cloudInstanceID)
+	sshkeyC := instance.NewIBMPISSHKeyClient(ctx, sess, cloudInstanceID)
 	err = sshkeyC.Delete(key)
 	if err != nil {
 		return diag.FromErr(err)
