@@ -1132,7 +1132,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 
-		// set to true or false by stopLparForVSNChange in relevant code blocks
+		// set to true or false during vsn assign and software tier updates
 		if restartInstance {
 			err = startLparAfterVSNChange(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
