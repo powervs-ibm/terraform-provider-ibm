@@ -150,6 +150,7 @@ const (
 	Arg_VirtualCoresAssigned                 = "pi_virtual_cores_assigned"
 	Arg_VirtualOpticalDevice                 = "pi_virtual_optical_device"
 	Arg_VirtualSerialNumber                  = "pi_virtual_serial_number"
+	Arg_Visibility                           = "pi_visibility"
 	Arg_VolumeCloneName                      = "pi_volume_clone_name"
 	Arg_VolumeCloneTaskID                    = "pi_volume_clone_task_id"
 	Arg_VolumeGroupAction                    = "pi_volume_group_action"
@@ -513,6 +514,7 @@ const (
 	StockVTL = "stock-vtl"
 
 	// Allowed Values
+	Account                    = "account"
 	Affinity                   = "affinity"
 	All                        = "all"
 	Allow                      = "allow"
@@ -580,6 +582,7 @@ const (
 	Vlan                       = "vlan"
 	vSCSI                      = "vSCSI"
 	Warning                    = "WARNING"
+	Workspace                  = "workspace"
 
 	// Actions
 	Action_HardReboot        = "hard-reboot"
