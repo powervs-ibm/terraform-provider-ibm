@@ -19,7 +19,7 @@ func TestAccIBMPISoftwareTiersDataSourceBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPISoftwareTiersDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.software_tiers.test", "id"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_software_tiers.test", "id"),
 				),
 			},
 		},
