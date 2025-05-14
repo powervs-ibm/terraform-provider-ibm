@@ -459,7 +459,7 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 				return diag.FromErr(err)
 			}
 
-			_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, nil, d.Timeout(schema.TimeoutUpdate))
+			pvm, err := isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, nil, d.Timeout(schema.TimeoutUpdate))
 			if err != nil {
 				err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
 				return diag.FromErr(err)
@@ -467,19 +467,22 @@ func resourceIBMPIVirtualSerialNumberUpdate(ctx context.Context, d *schema.Resou
 
 			// cannot specify software tier when attaching new VSN, update to match software tier in configuration
 			if v, ok := d.GetOk(Arg_SoftwareTier); ok {
-				softwareTier := v.(string)
-				updateBody := &models.UpdateServerVirtualSerialNumber{
-					SoftwareTier: models.SoftwareTier(softwareTier),
-				}
-				_, err = client.PVMInstanceUpdateVSN(newIdString, updateBody)
-				if err != nil {
-					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
-					return diag.FromErr(err)
-				}
-				_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, updateBody, d.Timeout(schema.TimeoutUpdate))
-				if err != nil {
-					err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
-					return diag.FromErr(err)
+				pvmInstance := pvm.(*models.PVMInstance)
+				softwareTier := models.SoftwareTier(v.(string))
+				if softwareTier != pvmInstance.VirtualSerialNumber.SoftwareTier {
+					updateBody := &models.UpdateServerVirtualSerialNumber{
+						SoftwareTier: softwareTier,
+					}
+					_, err = client.PVMInstanceUpdateVSN(newIdString, updateBody)
+					if err != nil {
+						err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
+						return diag.FromErr(err)
+					}
+					_, err = isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx, instanceClient, newIdString, updateBody, d.Timeout(schema.TimeoutUpdate))
+					if err != nil {
+						err = instanceRestartAfterVSNFailure(ctx, newIdString, restartInstance, instanceClient, d, err)
+						return diag.FromErr(err)
+					}
 				}
 			}
 
