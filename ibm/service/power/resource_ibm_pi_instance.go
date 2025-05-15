@@ -2007,11 +2007,9 @@ func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSe
 func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
 	v := make([]map[string]interface{}, 1)
 	v[0] = map[string]interface{}{
-		Attr_Description: vsn.Description,
-		Attr_Serial:      vsn.Serial,
-	}
-	if vsn.SoftwareTier != "" {
-		v[0][Attr_SoftwareTier] = vsn.SoftwareTier
+		Attr_Description:  vsn.Description,
+		Attr_Serial:       vsn.Serial,
+		Attr_SoftwareTier: vsn.SoftwareTier,
 	}
 
 	return v
