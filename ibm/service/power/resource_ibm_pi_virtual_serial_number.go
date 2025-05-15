@@ -250,9 +250,7 @@ func resourceIBMPIVirtualSerialNumberRead(ctx context.Context, d *schema.Resourc
 	d.Set(Arg_Description, vsn.Description)
 	d.Set(Arg_InstanceID, vsn.PvmInstanceID)
 	d.Set(Arg_Serial, vsn.Serial)
-	if vsn.SoftwareTier != "" {
-		d.Set(Arg_SoftwareTier, vsn.SoftwareTier)
-	}
+	d.Set(Arg_SoftwareTier, vsn.SoftwareTier)
 
 	return nil
 }
