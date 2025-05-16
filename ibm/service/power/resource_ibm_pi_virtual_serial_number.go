@@ -40,6 +40,7 @@ func ResourceIBMPIVirtualSerialNumber() *schema.Resource {
 				Type:        schema.TypeString,
 			},
 			Arg_Description: {
+				Computed:    true,
 				Description: "Description of virtual serial number.",
 				Optional:    true,
 				Type:        schema.TypeString,
@@ -87,46 +88,47 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 		if err != nil {
 			return diag.FromErr(err)
 		}
+		description := ""
+		if v, ok := d.GetOk(Arg_Description); ok {
+			description = v.(string)
+		}
 		if vsn.PvmInstanceID != nil {
 			oldPvmInstanceId = *vsn.PvmInstanceID
-		}
-		if v, ok := d.GetOk(Arg_Description); ok {
-			description := v.(string)
-			if description != *vsn.Description {
-				if oldPvmInstanceId != "" {
-					updateBody := &models.UpdateServerVirtualSerialNumber{
-						Description: &description,
-					}
-					_, err := client.PVMInstanceUpdateVSN(oldPvmInstanceId, updateBody)
-					if err != nil {
-						return diag.FromErr(err)
-					}
-				} else {
-					updateBody := &models.UpdateVirtualSerialNumber{
-						Description: &description,
-					}
-					_, err := client.Update(vsnArg, updateBody)
-					if err != nil {
-						return diag.FromErr(err)
-					}
+			if v, ok := d.GetOk(Arg_InstanceID); ok && v.(string) == oldPvmInstanceId && description != "" && description != *vsn.Description {
+				updateBody := &models.UpdateServerVirtualSerialNumber{
+					Description: &description,
+				}
+				_, err := client.PVMInstanceUpdateVSN(oldPvmInstanceId, updateBody)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+			} else if v, ok := d.GetOk(Arg_InstanceID); !ok || (ok && v.(string) != oldPvmInstanceId) {
+				return diag.Errorf("please unassign virtual serial number %s from current pvm instance %s or specify \"%s\" for %s", *vsn.Serial, oldPvmInstanceId, oldPvmInstanceId, Arg_InstanceID)
+			}
+		} else {
+			// Update description if not attaching to a new VM
+			if _, ok := d.GetOk(Arg_InstanceID); !ok && description != "" && description != *vsn.Description {
+				updateBody := &models.UpdateVirtualSerialNumber{
+					Description: &description,
+				}
+				_, err := client.Update(vsnArg, updateBody)
+				if err != nil {
+					return diag.FromErr(err)
 				}
 			}
 		}
+
 		serialString = vsnArg
 	}
 
 	if pvmInstanceId, ok := d.GetOk(Arg_InstanceID); ok {
 		pvmInstanceIdArg := pvmInstanceId.(string)
-		if oldPvmInstanceId != "" && pvmInstanceIdArg != oldPvmInstanceId {
-			return diag.Errorf("please detach virtual serial number from current pvm instance before specifying %s in creation", Arg_InstanceID)
-		}
 		instanceClient := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
-		restartInstance, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
 		if oldPvmInstanceId == "" {
+			restartInstance, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
+			if err != nil {
+				return diag.FromErr(err)
+			}
 			serialNumber := d.Get(Arg_Serial).(string)
 			addBody := &models.AddServerVirtualSerialNumber{
 				Serial: &serialNumber,
