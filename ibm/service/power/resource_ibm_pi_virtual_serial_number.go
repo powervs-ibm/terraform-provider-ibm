@@ -186,7 +186,7 @@ func resourceIBMPIVirtualSerialNumberCreate(ctx context.Context, d *schema.Resou
 			}
 			softwareTierCurrent := vsnObj.SoftwareTier
 			softwareTier := models.SoftwareTier(v.(string))
-			if softwareTierCurrent != "" && softwareTierCurrent != softwareTier {
+			if softwareTierCurrent != softwareTier {
 				restartInstanceSoftwareTierUpdate, err := stopLparForVSNChange(ctx, instanceClient, pvmInstanceIdArg, d.Timeout(schema.TimeoutCreate))
 				if err != nil {
 					return diag.FromErr(err)
