@@ -244,6 +244,11 @@ func DataSourceIBMPIInstances() *schema.Resource {
 										Description: "Virtual serial number.",
 										Type:        schema.TypeString,
 									},
+									Attr_SoftwareTier: {
+										Computed:    true,
+										Description: "Software tier.",
+										Type:        schema.TypeString,
+									},
 								},
 							},
 							Type: schema.TypeList,
