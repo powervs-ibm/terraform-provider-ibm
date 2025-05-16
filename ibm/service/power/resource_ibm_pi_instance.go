@@ -2025,7 +2025,7 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 	if restartInstance {
 		startErr := startLparAfterVSNChange(ctx, instanceClient, instanceID, d.Timeout(schema.TimeoutDelete))
 		if startErr != nil {
-			err = fmt.Errorf("%w; %w", err, startErr)
+			err = fmt.Errorf("%w; %w, the pvm instance may still be shutoff", err, startErr)
 		}
 	}
 	return err
