@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	acc "github.com/IBM-Cloud/terraform-provider-ibm/ibm/acctest"
 
@@ -87,6 +88,46 @@ func TestAccIBMPIPlacementGroupBasic(t *testing.T) {
 	})
 }
 
+func TestAccIBMPIPlacementGroupUserTags(t *testing.T) {
+	pgRes := "ibm_pi_placement_group.power_placement_group"
+	name := fmt.Sprintf("tf-pi-placement-group-%d", acctest.RandIntRange(10, 100))
+	policy := "affinity"
+	userTagsString := `["test_tag","env:dev"]`
+	userTagsStringUpdated := `["test_tag","env:dev","ibm"]`
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIPlacementGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIPlacementGroupUserTagsConfig(name, policy, userTagsString),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIPlacementGroupExists(pgRes),
+					resource.TestCheckResourceAttr(pgRes, "pi_placement_group_name", name),
+					resource.TestCheckResourceAttrSet(pgRes, "placement_group_id"),
+					resource.TestCheckResourceAttr(pgRes, "crn", name),
+					resource.TestCheckResourceAttr(pgRes, "pi_user_tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr(pgRes, "pi_user_tags.*", "env:dev"),
+					resource.TestCheckTypeSetElemAttr(pgRes, "pi_user_tags.*", "test_tag"),
+				),
+			},
+			{
+				Config: testAccCheckIBMPIPlacementGroupUserTagsConfig(name, policy, userTagsStringUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIPlacementGroupExists(pgRes),
+					resource.TestCheckResourceAttr(pgRes, "pi_placement_group_name", name),
+					resource.TestCheckResourceAttrSet(pgRes, "placement_group_id"),
+					resource.TestCheckResourceAttr(pgRes, "crn", name),
+					resource.TestCheckResourceAttr(pgRes, "pi_user_tags.#", "3"),
+					resource.TestCheckTypeSetElemAttr(pgRes, "pi_user_tags.*", "env:dev"),
+					resource.TestCheckTypeSetElemAttr(pgRes, "pi_user_tags.*", "test_tag"),
+					resource.TestCheckTypeSetElemAttr(pgRes, "pi_user_tags.*", "ibm"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckIBMPIPlacementGroupDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -99,6 +140,8 @@ func testAccCheckIBMPIPlacementGroupDestroy(s *terraform.State) error {
 		parts, _ := flex.IdParts(rs.Primary.ID)
 		cloudinstanceid := parts[0]
 		placementGroupC := instance.NewIBMPIPlacementGroupClient(context.Background(), sess, cloudinstanceid)
+		// This sleep is here since placement group currently does not have a wait for delete and test fails, can be removed if that is implemented
+		time.Sleep(1 * time.Minute)
 		_, err = placementGroupC.Get(parts[1])
 		if err == nil {
 			return fmt.Errorf("PI placement group still exists: %s", rs.Primary.ID)
@@ -568,6 +611,7 @@ func testAccCheckIBMPIDeletePlacementGroup(name string, policy string) string {
 			pi_network {
 				network_id = "%[7]s"
 			}
+			pi_placement_group_id = ""
 		}
 
 		resource "ibm_pi_instance" "power_instance_in_pg" {
@@ -582,6 +626,7 @@ func testAccCheckIBMPIDeletePlacementGroup(name string, policy string) string {
 			pi_network {
 				network_id = "%[7]s"
 			}
+			pi_placement_group_id = ""
 		}
 
 		resource "ibm_pi_instance" "sap_power_instance" {
@@ -593,6 +638,7 @@ func testAccCheckIBMPIDeletePlacementGroup(name string, policy string) string {
 			pi_network {
 				network_id = "%[7]s"
 			}
+			pi_placement_group_id = "none"
 			depends_on = [ ibm_pi_instance.power_instance_in_pg ]
 		}
 
@@ -607,4 +653,14 @@ func testAccCheckIBMPIDeletePlacementGroup(name string, policy string) string {
 			pi_placement_group_name   = "%[2]s-2"
 			pi_placement_group_policy = "%[3]s"
 		}`, acc.Pi_cloud_instance_id, name, policy, acc.Pi_image, acc.Pi_sap_profile_id, acc.Pi_sap_image, acc.Pi_network_name)
+}
+
+func testAccCheckIBMPIPlacementGroupUserTagsConfig(name string, policy string, userTagsString string) string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_placement_group" "power_placement_group" {
+			pi_cloud_instance_id      = "%[1]s"
+			pi_placement_group_name   = "%[2]s"
+			pi_placement_group_policy = "%[3]s"
+			pi_user_tags              = %[4]s
+		}`, acc.Pi_cloud_instance_id, name, policy, userTagsString)
 }
