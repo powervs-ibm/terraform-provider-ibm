@@ -25,8 +25,9 @@ func ResourceIBMPIKey() *schema.Resource {
 		Importer:      &schema.ResourceImporter{},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -40,20 +41,17 @@ func ResourceIBMPIKey() *schema.Resource {
 			},
 			Arg_Description: {
 				Description: "Description of the ssh key.",
-				ForceNew:    true,
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
 			Arg_KeyName: {
 				Description:  "User defined name for the SSH key.",
-				ForceNew:     true,
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_SSHKey: {
 				Description:  "SSH RSA key.",
-				ForceNew:     true,
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
@@ -61,7 +59,6 @@ func ResourceIBMPIKey() *schema.Resource {
 			Arg_Visibility: {
 				Default:      Account,
 				Description:  "Visibility of the ssh key. Valid values are: [\"account\", \"workspace\"].",
-				ForceNew:     true,
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Account, Workspace}, false),
@@ -74,11 +71,13 @@ func ResourceIBMPIKey() *schema.Resource {
 			},
 			Attr_Name: {
 				Computed:    true,
+				Deprecated:  "This field is deprecated. Use pi_name instead.",
 				Description: "User defined name for the SSH key.",
 				Type:        schema.TypeString,
 			},
 			Attr_Key: {
 				Computed:    true,
+				Deprecated:  "This field is deprecated. Use pi_key instead.",
 				Description: "SSH RSA key.",
 				Type:        schema.TypeString,
 			},
@@ -148,13 +147,64 @@ func resourceIBMPIKeyRead(ctx context.Context, d *schema.ResourceData, meta inte
 		return diag.FromErr(err)
 	}
 
+	// Arguments
 	d.Set(Arg_CloudInstanceID, cloudInstanceID)
+	d.Set(Arg_Description, sshkeydata.Description)
+	d.Set(Arg_KeyName, sshkeydata.Name)
+	d.Set(Arg_SSHKey, sshkeydata.SSHKey)
+	d.Set(Arg_Visibility, sshkeydata.Visibility)
+
+	// Attributes
 	d.Set(Attr_CreationDate, sshkeydata.CreationDate.String())
 	d.Set(Attr_Key, sshkeydata.SSHKey)
 	d.Set(Attr_Name, sshkeydata.Name)
 	d.Set(Attr_PrimaryWorkspace, sshkeydata.PrimaryWorkspace)
 
 	return nil
+}
+
+func resourceIBMPIKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// session
+	sess, err := meta.(conns.ClientSession).IBMPISession()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// arguments
+	cloudInstanceID, key, err := splitID(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	client := instance.NewIBMPISSHKeyClient(ctx, sess, cloudInstanceID)
+	updateBody := &models.UpdateWorkspaceSSHKey{}
+
+	if d.HasChange(Arg_Description) {
+		newDescription := d.Get(Arg_Description).(string)
+		updateBody.Description = &newDescription
+	}
+
+	if d.HasChange(Arg_KeyName) {
+		newKeyName := d.Get(Arg_KeyName).(string)
+		updateBody.Name = &newKeyName
+	}
+
+	if d.HasChange(Arg_SSHKey) {
+		newSSHKey := d.Get(Arg_SSHKey).(string)
+		updateBody.SSHKey = &newSSHKey
+	}
+
+	if d.HasChange(Arg_Visibility) {
+		newVisibility := d.Get(Arg_Visibility).(string)
+		updateBody.Visibility = &newVisibility
+	}
+
+	_, err = client.Update(key, updateBody)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceIBMPIKeyRead(ctx, d, meta)
 }
 
 func resourceIBMPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
