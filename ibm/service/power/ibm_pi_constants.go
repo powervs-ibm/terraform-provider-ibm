@@ -450,6 +450,7 @@ const (
 	Attr_SPPPlacementGroupPolicy                     = "policy"
 	Attr_SPPPlacementGroups                          = "spp_placement_groups"
 	Attr_SSHKey                                      = "ssh_key"
+	Attr_SSHKeyID                                    = "ssh_key_id"
 	Attr_Start                                       = "start"
 	Attr_StartTime                                   = "start_time"
 	Attr_State                                       = "state"
