@@ -71,14 +71,19 @@ func ResourceIBMPIKey() *schema.Resource {
 			},
 			Attr_Name: {
 				Computed:    true,
-				Deprecated:  "This field is deprecated. Use pi_name instead.",
+				Deprecated:  "This field is deprecated and will be removed in a future release. Use pi_name instead.",
 				Description: "User defined name for the SSH key.",
 				Type:        schema.TypeString,
 			},
 			Attr_Key: {
 				Computed:    true,
-				Deprecated:  "This field is deprecated. Use pi_key instead.",
+				Deprecated:  "This field is deprecated and will be removed in a future release. Use pi_key instead.",
 				Description: "SSH RSA key.",
+				Type:        schema.TypeString,
+			},
+			Attr_SSHKeyID: {
+				Computed:    true,
+				Description: "Unique ID of SSH key.",
 				Type:        schema.TypeString,
 			},
 			Attr_PrimaryWorkspace: {
@@ -157,6 +162,7 @@ func resourceIBMPIKeyRead(ctx context.Context, d *schema.ResourceData, meta inte
 	// Attributes
 	d.Set(Attr_CreationDate, sshkeydata.CreationDate.String())
 	d.Set(Attr_Key, sshkeydata.SSHKey)
+	d.Set(Attr_SSHKeyID, sshkeydata.ID)
 	d.Set(Attr_Name, sshkeydata.Name)
 	d.Set(Attr_PrimaryWorkspace, sshkeydata.PrimaryWorkspace)
 
