@@ -21,6 +21,7 @@ func ResourceIBMPIKey() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceIBMPIKeyCreate,
 		ReadContext:   resourceIBMPIKeyRead,
+		UpdateContext: resourceIBMPIKeyUpdate,
 		DeleteContext: resourceIBMPIKeyDelete,
 		Importer:      &schema.ResourceImporter{},
 
