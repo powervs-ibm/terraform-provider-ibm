@@ -49,15 +49,13 @@ func ResourceIBMPINetwork() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_Advertise: {
-				Default:      Enable,
-				Description:  "Enable the network to be advertised. If not specified, the default is \"enable\".",
+				Description:  "Enable the network to be advertised.",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
 			},
 			Arg_ARPBroadcast: {
-				Default:      Disable,
-				Description:  "Enable ARP Broadcast. If not specified, the default is \"disable\".",
+				Description:  "Enable ARP Broadcast.",
 				Optional:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{Enable, Disable}, false),
@@ -266,12 +264,6 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		peerModel := networkMapToNetworkCreatePeer(d.Get(Arg_NetworkPeer + ".0").(map[string]interface{}))
 		body.Peer = peerModel
 	}
-	if v, ok := d.GetOk(Arg_Advertise); ok {
-		body.Advertise = flex.PtrToString(v.(string))
-	}
-	if v, ok := d.GetOk(Arg_ARPBroadcast); ok {
-		body.ArpBroadcast = flex.PtrToString(v.(string))
-	}
 
 	if networktype == DHCPVlan || networktype == Vlan {
 		var networkcidr string
@@ -300,10 +292,24 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 		body.IPAddressRanges = ipBodyRanges
 		body.Gateway = gateway
 		body.Cidr = networkcidr
+
+		if networktype == Vlan {
+			if v, ok := d.GetOk(Arg_Advertise); ok {
+				body.Advertise = flex.PtrToString(v.(string))
+			}
+			if v, ok := d.GetOk(Arg_ARPBroadcast); ok {
+				body.ArpBroadcast = flex.PtrToString(v.(string))
+			}
+		}
 	}
 
-	if _, ok := d.GetOk(Arg_Cidr); ok && networktype == PubVlan {
-		return diag.Errorf("%s cannot be set when %s is dhcp-vlan or vlan", Arg_Cidr, Arg_NetworkType)
+	if networktype == PubVlan {
+		_, ok1 := d.GetOk(Arg_Advertise)
+		_, ok2 := d.GetOk(Arg_ARPBroadcast)
+		_, ok3 := d.GetOk(Arg_Cidr)
+		if ok1 || ok2 || ok3 {
+			return diag.Errorf("%s, %s, and %s cannot be set when %s is pub-vlan", Arg_Advertise, Arg_ARPBroadcast, Arg_Cidr, Arg_NetworkType)
+		}
 	}
 
 	if !sess.IsOnPrem() {
