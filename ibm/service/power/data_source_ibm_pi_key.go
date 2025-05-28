@@ -43,6 +43,11 @@ func DataSourceIBMPIKey() *schema.Resource {
 				Description: "Description of the ssh key.",
 				Type:        schema.TypeString,
 			},
+			Attr_KeyName: {
+				Computed:    true,
+				Description: "Name of SSH key.",
+				Type:        schema.TypeString,
+			},
 			Attr_SSHKey: {
 				Computed:    true,
 				Description: "SSH RSA key.",
@@ -85,6 +90,7 @@ func dataSourceIBMPIKeyRead(ctx context.Context, d *schema.ResourceData, meta in
 	d.SetId(*sshkeydata.Name)
 	d.Set(Attr_CreationDate, sshkeydata.CreationDate.String())
 	d.Set(Attr_Description, sshkeydata.Description)
+	d.Set(Attr_KeyName, sshkeydata.Name)
 	d.Set(Attr_SSHKey, sshkeydata.SSHKey)
 	d.Set(Attr_SSHKeyID, sshkeydata.ID)
 	d.Set(Attr_PrimaryWorkspace, sshkeydata.PrimaryWorkspace)
