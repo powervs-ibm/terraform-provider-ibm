@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -425,7 +426,7 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 	}
 
 	if d.HasChanges(Arg_Advertise, Arg_ARPBroadcast, Arg_DNS, Arg_Gateway, Arg_IPAddressRange, Arg_NetworkName) {
-		networkC := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
+		client := instance.NewIBMPINetworkClient(ctx, sess, cloudInstanceID)
 		body := &models.NetworkUpdate{}
 
 		if d.HasChange(Arg_Advertise) {
@@ -458,7 +459,12 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 			body.Name = flex.PtrToString(d.Get(Arg_NetworkName).(string))
 		}
 
-		_, err = networkC.Update(networkID, body)
+		_, err = client.Update(networkID, body)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		_, err = isWaitForIBMPINetworkUpdated(ctx, client, *body, networkID, d.Timeout(schema.TimeoutDelete))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -552,6 +558,98 @@ func isIBMPINetworkRefreshDeleteFunc(client *instance.IBMPINetworkClient, id str
 			return network, State_NotFound, nil
 		}
 		return network, State_Found, nil
+	}
+}
+
+func isWaitForIBMPINetworkUpdated(ctx context.Context, client *instance.IBMPINetworkClient, updateBody models.NetworkUpdate, id string, timeout time.Duration) (interface{}, error) {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Retry},
+		Target:     []string{State_Available},
+		Refresh:    isIBMPINetworkRefreshUpdateFunc(client, updateBody, id),
+		Timeout:    timeout,
+		Delay:      10 * time.Second,
+		MinTimeout: 10 * time.Second,
+	}
+	return stateConf.WaitForStateContext(ctx)
+}
+
+func isIBMPINetworkRefreshUpdateFunc(client *instance.IBMPINetworkClient, updateBody models.NetworkUpdate, id string) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		network, err := client.Get(id)
+		if err != nil {
+			return nil, "", err
+		}
+
+		if updateBody.Advertise != "" {
+			if updateBody.Advertise != network.Advertise {
+				return network, State_Retry, nil
+			}
+		}
+
+		if updateBody.ArpBroadcast != "" {
+			if updateBody.ArpBroadcast != network.ArpBroadcast {
+				return network, State_Retry, nil
+			}
+		}
+
+		if len(updateBody.DNSServers) > 0 {
+			sort.Strings(updateBody.DNSServers)
+			sort.Strings(network.DNSServers)
+
+			if len(updateBody.DNSServers) != len(network.DNSServers) {
+				return network, State_Retry, nil
+			}
+
+			for index, dnsServer := range network.DNSServers {
+				if dnsServer != network.DNSServers[index] {
+					return network, State_Retry, nil
+				}
+			}
+		}
+
+		if updateBody.Gateway != nil {
+			if *updateBody.Gateway != network.Gateway {
+				return network, State_Retry, nil
+			}
+		}
+
+		/*
+		 * This comparison is a little tricky. The elements in the IPAddressRanges array may not come back
+		 * the same way they were set in the update body. In order to circumvent this, I'm going to grab
+		 * each IPAddressRange and combine it into one string put it in a list and sort it. This should
+		 * ensure a 1 to 1 comparison even if it is a little more work on the terraform side.
+		 */
+		if len(updateBody.IPAddressRanges) > 0 {
+			if len(updateBody.IPAddressRanges) != len(network.IPAddressRanges) {
+				return network, State_Retry, nil
+			}
+
+			updateBodyIPAddressRanges := make([]string, 0, len(updateBody.IPAddressRanges))
+			networkIPAddressRanges := make([]string, 0, len(updateBody.IPAddressRanges))
+
+			for index := range len(updateBody.IPAddressRanges) {
+				updateBodyIPAddressRanges = append(updateBodyIPAddressRanges,
+					*updateBody.IPAddressRanges[index].StartingIPAddress+"-"+*updateBody.IPAddressRanges[index].EndingIPAddress)
+				networkIPAddressRanges = append(networkIPAddressRanges,
+					*network.IPAddressRanges[index].StartingIPAddress+"-"+*network.IPAddressRanges[index].EndingIPAddress)
+			}
+
+			sort.Strings(updateBodyIPAddressRanges)
+			sort.Strings(networkIPAddressRanges)
+			for index := range len(updateBody.IPAddressRanges) {
+				if updateBodyIPAddressRanges[index] != networkIPAddressRanges[index] {
+					return network, State_Retry, nil
+				}
+			}
+		}
+
+		if updateBody.Name != nil {
+			if *updateBody.Name != *network.Name {
+				return network, State_Retry, nil
+			}
+		}
+
+		return network, State_Available, nil
 	}
 }
 
