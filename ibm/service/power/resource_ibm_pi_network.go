@@ -464,7 +464,7 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 			return diag.FromErr(err)
 		}
 
-		_, err = isWaitForIBMPINetworkUpdated(ctx, client, *body, networkID, d.Timeout(schema.TimeoutDelete))
+		_, err = isWaitForIBMPINetworkUpdated(ctx, client, *body, networkID, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return diag.FromErr(err)
 		}
