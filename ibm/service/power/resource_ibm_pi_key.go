@@ -58,7 +58,7 @@ func ResourceIBMPIKey() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_Visibility: {
-				Default:      Account,
+				Default:      Workspace,
 				Description:  "Visibility of the ssh key. Valid values are: [\"account\", \"workspace\"].",
 				Optional:     true,
 				Type:         schema.TypeString,
