@@ -13,12 +13,18 @@ import (
 	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIKey() *schema.Resource {
 	return &schema.Resource{
+		CustomizeDiff: customdiff.Sequence(
+			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
+				return customizeNameAndSSHKeyPIKeyDiff(diff)
+			},
+		),
 		CreateContext: resourceIBMPIKeyCreate,
 		ReadContext:   resourceIBMPIKeyRead,
 		UpdateContext: resourceIBMPIKeyUpdate,
@@ -234,5 +240,15 @@ func resourceIBMPIKeyDelete(ctx context.Context, d *schema.ResourceData, meta in
 		return diag.FromErr(err)
 	}
 	d.SetId("")
+	return nil
+}
+
+func customizeNameAndSSHKeyPIKeyDiff(diff *schema.ResourceDiff) error {
+	if diff.Id() != "" && diff.HasChange(Arg_KeyName) {
+		diff.SetNewComputed(Attr_Name)
+	}
+	if diff.Id() != "" && diff.HasChange(Arg_SSHKey) {
+		diff.SetNewComputed(Attr_Key)
+	}
 	return nil
 }
