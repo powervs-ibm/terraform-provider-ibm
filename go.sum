@@ -96,6 +96,14 @@ github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae2311
 github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae23113/go.mod h1:xUQL9SGAjoZFd4GNjrjjtEpjpkgU7RFXRyHesbKTjiY=
 github.com/IBM-Cloud/power-go-client v1.12.0 h1:tF9Mq5GLYHebpzQT6IYB89lIxEST1E9teuchjxSAaw0=
 github.com/IBM-Cloud/power-go-client v1.12.0/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta3 h1:RKALIphm131r9k2zQKAw1sT8IaWtYOdt0eYY53UFI8k=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta3/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta5 h1:Uw/AQZIleGTxbVdhPCiKXs75lDqIAIH+x6OB1xTNEEY=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta5/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta6 h1:CzcJAeYgcSSwzXEJj5Ia7l8bKqRBpLd2yEkNXSnl18c=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta6/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta7 h1:KkgNOIry5bRhfY3fYZrv7wIdh+0Y0JkjzfvOS6h7TX4=
+github.com/IBM-Cloud/power-go-client v1.13.0-beta7/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
 github.com/IBM-Cloud/softlayer-go v1.0.5-tf h1:koUAyF9b6X78lLLruGYPSOmrfY2YcGYKOj/Ug9nbKNw=
 github.com/IBM-Cloud/softlayer-go v1.0.5-tf/go.mod h1:6HepcfAXROz0Rf63krk5hPZyHT6qyx2MNvYyHof7ik4=
 github.com/IBM/appconfiguration-go-admin-sdk v0.4.4 h1:VQ+mVavoo3/xrBaVSyxE+B6Uef+m33RcbropwpTRBy4=
