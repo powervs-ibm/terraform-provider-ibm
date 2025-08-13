@@ -49,6 +49,11 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 				Optional:      true,
 				Type:          schema.TypeString,
 			},
+			Arg_TargetCRN: {
+				Description: "Target CRN of the secondary workspace where the auxiliary data resides; optional; if specified, the auxiliary volumes for the primary volumes getting added to the new volume group will be automatically onboarded into the secondary workspace and added to the corresponding auxiliary consistency group.",
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 			Arg_VolumeGroupName: {
 				ConflictsWith: []string{Arg_ConsistencyGroupName},
 				Description:   "Volume Group Name to create",
@@ -132,7 +137,9 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 	body := &models.VolumeGroupCreate{
 		Name: vgName,
 	}
-
+	if v, ok := d.GetOk(Arg_TargetCRN); ok {
+		body.TargetCRN = v.(string)
+	}
 	volids := flex.ExpandStringList((d.Get(Arg_VolumeIDs).(*schema.Set)).List())
 	body.VolumeIDs = volids
 
@@ -215,15 +222,22 @@ func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	body := &models.VolumeGroupUpdate{}
+	hasChange := false
 	if d.HasChanges(Arg_VolumeIDs) {
 		old, new := d.GetChange(Arg_VolumeIDs)
 		oldList := old.(*schema.Set)
 		newList := new.(*schema.Set)
-		body := &models.VolumeGroupUpdate{
-			AddVolumes:    flex.ExpandStringList(newList.Difference(oldList).List()),
-			RemoveVolumes: flex.ExpandStringList(oldList.Difference(newList).List()),
-		}
-		err := client.UpdateVolumeGroup(vgID, body)
+		body.AddVolumes = flex.ExpandStringList(newList.Difference(oldList).List())
+		body.RemoveVolumes = flex.ExpandStringList(oldList.Difference(newList).List())
+		hasChange = true
+	}
+	if d.HasChanges(Arg_TargetCRN) {
+		body.TargetCRN = d.Get(Arg_TargetCRN).(string)
+		hasChange = true
+	}
+	if hasChange {
+		err = client.UpdateVolumeGroup(vgID, body)
 		if err != nil {
 			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdateVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "update")
 			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
@@ -236,7 +250,6 @@ func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData,
 			return tfErr.GetDiag()
 		}
 	}
-
 	return resourceIBMPIVolumeGroupRead(ctx, d, meta)
 }
 func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -274,8 +287,12 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 			return tfErr.GetDiag()
 		}
 	}
-
-	err = client.DeleteVolumeGroup(vgID)
+	body := &models.VolumeGroupDelete{}
+	if v, ok := d.GetOk(Arg_TargetCRN); ok {
+		targetCRN := v.(string)
+		body.TargetCRN = &targetCRN
+	}
+	err = client.DeleteVolumeGroupWithBody(vgID, body)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeleteVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
