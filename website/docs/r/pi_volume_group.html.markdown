@@ -52,6 +52,7 @@ Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_consistency_group_name` - (Optional, String) The name of consistency group at storage controller level, required if `pi_volume_group_name` is not provided.
+- `pi_target_crn` - (Optional, String) Target CRN of the secondary workspace where the auxiliary data resides; if specified, the auxiliary volumes for the primary volumes getting added to the new volume group will be automatically onboarded into the secondary workspace and added to the corresponding auxiliary consistency group.
 - `pi_volume_group_name` - (Optional, String) The name of the volume group, required if `pi_consistency_group_name` is not provided.
 - `pi_volume_ids` - (Required, Set of String) List of volume IDs to add in volume group.
 
