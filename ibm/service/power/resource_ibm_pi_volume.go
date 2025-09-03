@@ -103,6 +103,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
+			Arg_TargetCRN: {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Target CRN for cross-workspace operations. Used during delete; not returned by read.",
+			},
 			Arg_UserTags: {
 				Computed:    true,
 				Description: "The user tags attached to this resource.",
@@ -512,11 +517,20 @@ func resourceIBMPIVolumeDelete(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	client := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
-	err = client.DeleteVolume(volumeID)
-	if err != nil {
-		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeleteVolume failed: %s", err.Error()), "ibm_pi_volume", "delete")
+
+	if v, ok := d.GetOk(Arg_TargetCRN); ok && v.(string) != "" {
+		t := v.(string)
+		body := &models.DeleteDataVolume{TargetCRN: &t}
+		if err := client.DeleteVolumeWithBody(volumeID, body); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		// legacy path
+		if err := client.DeleteVolume(volumeID); err != nil {
+			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeleteVolume failed: %s", err.Error()), "ibm_pi_volume", "delete")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
+		}
 	}
 	_, err = isWaitForIBMPIVolumeDeleted(ctx, client, volumeID, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
