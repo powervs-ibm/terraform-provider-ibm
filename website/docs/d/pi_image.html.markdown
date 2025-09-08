@@ -47,11 +47,15 @@ Review the argument references that you can specify for your data source.
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
 - `architecture` - (String) The CPU architecture that the image is designed for.
+- `container_format` - (String) The container format.
 - `crn` - (String) The CRN of this resource.
+- `disk_format` - (String) The disk format.
+- `endianness` - (String) The endianness order.
 - `hypervisor` - (String) Hypervisor type.
 - `id` - (String) The unique identifier of the image.
 - `image_type` - (String) The identifier of this image type.
 - `operating_system` - (String) The operating system that is installed with the image.
+- `shared` - (String) Indicates whether the image is shared.
 - `size` - (String) The size of the image in megabytes.
 - `source_checksum` - (String) Checksum of the image.
 - `state` - (String) The state for this image.
