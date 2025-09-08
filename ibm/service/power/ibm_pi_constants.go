@@ -235,6 +235,7 @@ const (
 	Attr_Count                               = "count"
 	Attr_CPUs                                = "cpus"
 	Attr_Created                             = "created"
+	Attr_CreatedAt                       = "created_at"
 	Attr_CreateTime                          = "create_time"
 	Attr_CreationDate                        = "creation_date"
 	Attr_CRN                                 = "crn"
