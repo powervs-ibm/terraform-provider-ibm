@@ -37,12 +37,27 @@ func DataSourceIBMPIImage() *schema.Resource {
 			// Attributes
 			Attr_Architecture: {
 				Computed:    true,
-				Description: "The CPU architecture that the image is designed for. ",
+				Description: "The CPU architecture that the image is designed for.",
 				Type:        schema.TypeString,
 			},
 			Attr_CRN: {
 				Computed:    true,
 				Description: "The CRN of this resource.",
+				Type:        schema.TypeString,
+			},
+			Attr_ContainerFormat: {
+				Computed:    true,
+				Description: "The container format.",
+				Type:        schema.TypeString,
+			},
+			Attr_DiskFormat: {
+				Computed:    true,
+				Description: "The disk format.",
+				Type:        schema.TypeString,
+			},
+			Attr_Endianness: {
+				Computed:    true,
+				Description: "The endianness order.",
 				Type:        schema.TypeString,
 			},
 			Attr_Hypervisor: {
@@ -59,6 +74,11 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Computed:    true,
 				Description: "The operating system that is installed with the image.",
 				Type:        schema.TypeString,
+			},
+			Attr_Shared: {
+				Computed:    true,
+				Description: "Indicates whether the image is shared.",
+				Type:        schema.TypeBool,
 			},
 			Attr_Size: {
 				Computed:    true,
@@ -116,6 +136,7 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 
 	d.SetId(*imagedata.ImageID)
 	d.Set(Attr_Architecture, imagedata.Specifications.Architecture)
+	d.Set(Attr_ContainerFormat, imagedata.Specifications.ContainerFormat)
 	if imagedata.Crn != "" {
 		d.Set(Attr_CRN, imagedata.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(imagedata.Crn), "", UserTagType)
@@ -124,9 +145,12 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 		d.Set(Attr_UserTags, tags)
 	}
+	d.Set(Attr_DiskFormat, imagedata.Specifications.DiskFormat)
+	d.Set(Attr_Endianness, imagedata.Specifications.Endianness)
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
 	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
+	d.Set(Attr_Shared, imagedata.Specifications.Shared)
 	d.Set(Attr_Size, imagedata.Size)
 	d.Set(Attr_SourceChecksum, imagedata.Specifications.SourceChecksum)
 	d.Set(Attr_State, imagedata.State)
