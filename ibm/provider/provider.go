@@ -807,6 +807,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_volume_snapshot":                        power.DataSourceIBMPIVolumeSnapshot(),
 			"ibm_pi_volume_snapshots":                       power.DataSourceIBMPIVolumeSnapshots(),
 			"ibm_pi_volume":                                 power.DataSourceIBMPIVolume(),
+			"ibm_pi_vpmem_volumes":                          power.DataSourceIBMPIVpmemVolumes(),
 			"ibm_pi_workspace":                              power.DatasourceIBMPIWorkspace(),
 			"ibm_pi_workspaces":                             power.DatasourceIBMPIWorkspaces(),
 
