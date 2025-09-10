@@ -62,3 +62,10 @@ In addition to all argument reference list, you can access the following attribu
 - `storage_pool` - (String) Storage pool where image resides.
 - `storage_type` - (String) The storage type for this image.
 - `user_tags` - (List) List of user tags attached to the resource.
+- `volumes` - (List) List of image volumes.
+
+  The `volumes` block supports:
+  - `bootable` - (Bool) Indicates if the volume is boot capable.
+  - `name` - (String) The volume name of the image.
+  - `size` - (Float) The volume size of the image.
+  - `volume_id` - (String) The volume size of the image.

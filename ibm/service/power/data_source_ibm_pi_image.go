@@ -112,6 +112,35 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
+			Attr_Volumes: {
+				Computed:    true,
+				Description: "List of image volumes.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Bootable: {
+							Computed:    true,
+							Description: "Indicates if the volume is boot capable.",
+							Type:        schema.TypeBool,
+						},
+						Attr_Name: {
+							Computed:    true,
+							Description: "The volume name of the image.",
+							Type:        schema.TypeString,
+						},
+						Attr_Size: {
+							Computed:    true,
+							Description: "The volume size of the image.",
+							Type:        schema.TypeFloat,
+						},
+						Attr_VolumeID: {
+							Computed:    true,
+							Description: "The volume ID of the image.",
+							Type:        schema.TypeString,
+						},
+					},
+				},
+				Type: schema.TypeList,
+			},
 		},
 	}
 }
@@ -156,6 +185,20 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_State, imagedata.State)
 	d.Set(Attr_StoragePool, imagedata.StoragePool)
 	d.Set(Attr_StorageType, imagedata.StorageType)
-
+	volumeMap := []map[string]any{}
+	if imagedata.Volumes != nil {
+		for _, n := range imagedata.Volumes {
+			if n != nil {
+				v := map[string]any{
+					Attr_Bootable: n.Bootable,
+					Attr_Name:     n.Name,
+					Attr_Size:     n.Size,
+					Attr_VolumeID: n.VolumeID,
+				}
+				volumeMap = append(volumeMap, v)
+			}
+		}
+	}
+	d.Set(Attr_Volumes, volumeMap)
 	return nil
 }
