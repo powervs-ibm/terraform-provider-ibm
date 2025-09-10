@@ -3,7 +3,7 @@ subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM : ibm_pi_vpmem_volumes"
 description: |-
-  Get information about pi_vpmem_volumes
+  Get information about vPMEM volumes
 ---
 
 # ibm_pi_vpmem_volumes
@@ -14,7 +14,7 @@ Retrieves information about vPMEM volumes in Power Systems Virtual Server cloud.
 
 ```terraform
 data "ibm_pi_vpmem_volumes" "vpmem_volumes" {
-    pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
+    pi_cloud_instance_id = "a1b2c3d4-e5f6-7g8h-9i0j-1k2l3m4n5o6p"
 }
 ```
 

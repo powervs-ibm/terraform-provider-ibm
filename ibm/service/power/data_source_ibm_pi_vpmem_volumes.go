@@ -76,7 +76,8 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							Type: schema.TypeList,
+							Set:  schema.HashString,
+							Type: schema.TypeSet,
 						},
 						Attr_VolumeID: {
 							Computed:    true,
