@@ -126,6 +126,7 @@ const (
 	Arg_Processors                           = "pi_processors"
 	Arg_ProcType                             = "pi_proc_type"
 	Arg_Protocol                             = "pi_protocol"
+	Arg_PVMInstanceID                        = "pi_pvm_instance_id"
 	Arg_Remote                               = "pi_remote"
 	Arg_Remove                               = "pi_remove"
 	Arg_Replicants                           = "pi_replicants"
@@ -190,6 +191,7 @@ const (
 	Arg_VolumeSize                           = "pi_volume_size"
 	Arg_VolumeSnapshotID                     = "pi_volume_snapshot_id"
 	Arg_VolumeType                           = "pi_volume_type"
+	Arg_VPMEMVolumeID                        = "pi_vpmem_volume_id"
 	Arg_VTL                                  = "vtl"
 
 	// Attributes
