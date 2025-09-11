@@ -51,6 +51,11 @@ func DataSourceIBMPIInstanceVpmemVolume() *schema.Resource {
 				Description: "The CRN for this resource.",
 				Type:        schema.TypeString,
 			},
+			Attr_ErrorCode: {
+				Computed:    true,
+				Description: "Error code for the vPMEM volume.",
+				Type:        schema.TypeString,
+			},
 			Attr_Href: {
 				Computed:    true,
 				Description: "Link to vPMEM volume resource.",
@@ -59,6 +64,16 @@ func DataSourceIBMPIInstanceVpmemVolume() *schema.Resource {
 			Attr_Name: {
 				Computed:    true,
 				Description: "Volume name.",
+				Type:        schema.TypeString,
+			},
+			Attr_PVMInstanceID: {
+				Computed:    true,
+				Description: "PVM Instance ID which the volume is attached to.",
+				Type:        schema.TypeString,
+			},
+			Attr_Reason: {
+				Computed:    true,
+				Description: "Reason for error.",
 				Type:        schema.TypeString,
 			},
 			Attr_Size: {
@@ -109,17 +124,19 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(*vpmemVolume.VolumeID)
-
 	d.Set(Attr_CreatedAt, vpmemVolume.CreatedAt)
 	d.Set(Attr_CRN, vpmemVolume.Crn)
+	d.Set(Attr_ErrorCode, vpmemVolume.ErrorCode)
 	d.Set(Attr_Href, vpmemVolume.Href)
 	d.Set(Attr_Name, vpmemVolume.Name)
+	d.Set(Attr_PVMInstanceID, vpmemVolume.PvmInstanceID)
+	d.Set(Attr_Reason, vpmemVolume.Reason)
 	d.Set(Attr_Size, vpmemVolume.Size)
 	d.Set(Attr_Status, vpmemVolume.Status)
-	d.Set(Attr_VolumeID, vpmemVolume.VolumeID)
 	if vpmemVolume.UserTags != nil {
 		d.Set(Attr_UserTags, vpmemVolume.UserTags)
 	}
+	d.Set(Attr_VolumeID, vpmemVolume.VolumeID)
 
 	return nil
 }
