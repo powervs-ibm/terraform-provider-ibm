@@ -8,20 +8,19 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 )
 
-func DataSourceIBMPIVpmemVolumes() *schema.Resource {
+func DataSourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceIBMPIVPMEMVolumesRead,
+		ReadContext: dataSourceIBMPIInstanceVpmemVolumesRead,
 
 		Schema: map[string]*schema.Schema{
 			// Arguments
@@ -30,6 +29,11 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 				Required:     true,
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
+			},
+			Arg_PVMInstanceID: {
+				Description: "PCloud PVM instance ID.",
+				Required:    true,
+				Type:        schema.TypeString,
 			},
 
 			// Attributes
@@ -78,6 +82,7 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 							Description: "Volume Size (GB).",
 							Type:        schema.TypeFloat,
 						},
+
 						Attr_Status: {
 							Computed:    true,
 							Description: "Status of the volume.",
@@ -89,8 +94,7 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							Set:  schema.HashString,
-							Type: schema.TypeSet,
+							Type: schema.TypeList,
 						},
 						Attr_VolumeID: {
 							Computed:    true,
@@ -105,19 +109,20 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 	}
 }
 
-func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
-		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "(Data) ibm_pi_vpmem_volumes", "read")
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "(Data) ibm_pi_instance_vpmem_volumes", "read")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	pvmInstanceID := d.Get(Arg_PVMInstanceID).(string)
 	client := instance.NewIBMPIVPMEMClient(ctx, sess, cloudInstanceID)
-	vpmemVolumes, err := client.GetAll()
+	vpmemVolumes, err := client.GetAllPvmVpmemVolumes(pvmInstanceID)
 	if err != nil {
-		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("GetAll failed: %s", err.Error()), "(Data) ibm_pi_vpmem_volumes", "read")
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("GetAllPvmVpmemVolumes failed: %s", err.Error()), "(Data) ibm_pi_instance_vpmem_volumes", "read")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
 	}
@@ -135,22 +140,4 @@ func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData
 	d.Set(Attr_Volumes, volumes)
 
 	return nil
-}
-
-func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference) map[string]interface{} {
-	vpemVol := make(map[string]interface{})
-	vpemVol[Attr_CreatedAt] = volume.CreatedAt
-	vpemVol[Attr_CRN] = volume.Crn
-	vpemVol[Attr_ErrorCode] = volume.ErrorCode
-	vpemVol[Attr_Href] = volume.Href
-	vpemVol[Attr_Name] = volume.Name
-	vpemVol[Attr_PVMInstanceID] = volume.PvmInstanceID
-	vpemVol[Attr_Reason] = volume.Reason
-	vpemVol[Attr_Size] = volume.Size
-	vpemVol[Attr_Status] = volume.Status
-	if volume.UserTags != nil {
-		vpemVol[Attr_UserTags] = volume.UserTags
-	}
-	vpemVol[Attr_VolumeID] = volume.VolumeID
-	return vpemVol
 }

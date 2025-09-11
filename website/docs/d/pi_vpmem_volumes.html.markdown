@@ -49,9 +49,11 @@ In addition to all argument reference list, you can access the following attribu
     Nested schema for `volumes`:
   - `created_at` - (String) Time when the volume was created.
   - `crn` - (String) The CRN for this resource.
+  - `error_code` - (String) Error code for the vPMEM volume.
   - `href` - (String) Link to vPMEM volume resource.
   - `name` - (String) Volume Name.
   - `pvm_instance_id` - (String) PVM Instance ID which the volume is attached to.
+  - `reason` - (String) Reason for error.
   - `size` - (Float) Volume Size (GB).
   - `status` - (String) Status of the volume.
   - `user_tags` - (List) List of user tags.

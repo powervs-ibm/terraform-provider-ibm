@@ -110,3 +110,4 @@ In addition to all argument reference list, you can access the following attribu
   - `serial` - (String) Virtual serial number.
   - `software_tier` - (String) Software tier of virtual serial number.
 - `volumes` - (List) List of volume IDs that are attached to the instance.
+- `vpmem_volume_ids` - (List) List of vPMEM volume IDs.
