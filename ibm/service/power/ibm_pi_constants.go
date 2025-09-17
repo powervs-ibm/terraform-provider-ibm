@@ -452,7 +452,7 @@ const (
 	Attr_ReplicationPoolMap                  = "replication_pool_map"
 	Attr_ReplicationSites                    = "replication_sites"
 	Attr_ReplicationStatus                   = "replication_status"
-	Attr_ReplicationTargetCRN                = "replication_target_crn"
+	Attr_ReplicationTargetCRN            = "replication_target_crn"
 	Attr_ReplicationType                     = "replication_type"
 	Attr_ReservedCore                        = "reserved_core"
 	Attr_ReservedCores                       = "reserved_cores"

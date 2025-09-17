@@ -65,6 +65,7 @@ In addition to all argument reference list, you can access the following attribu
 - `id` - (String) The unique identifier of the volume group. The ID is composed of `<pi_cloud_instance_id>/<volume_group_id>`.
 - `replication_sites` - (List) Indicates the replication sites of the volume group.
 - `replication_status` - (String) The replication status of volume group.
+- `replication_target_crn` - (String) CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.
 - `status_description_errors` - (Set) The status details of the volume group.
   
   Nested scheme for `status_description_errors`:
