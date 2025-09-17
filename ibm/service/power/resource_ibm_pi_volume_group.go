@@ -85,6 +85,11 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 				Description: "Volume Group Replication Status",
 				Type:        schema.TypeString,
 			},
+			Attr_ReplicationTargetCRN: {
+				Computed:    true,
+				Description: "CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.",
+				Type:        schema.TypeString,
+			},
 			Attr_StatusDescriptionErrors: {
 				Computed:    true,
 				Description: "The status details of the volume group.",
@@ -189,6 +194,7 @@ func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Set(Attr_VolumeGroupID, vg.ID)
 	d.Set(Attr_VolumeGroupStatus, vg.Status)
+	d.Set(Attr_ReplicationTargetCRN, vg.ReplicationTargetCRN)
 
 	return nil
 }
@@ -259,12 +265,7 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 			return diag.FromErr(err)
 		}
 	}
-	body := &models.VolumeGroupDelete{}
-	if v, ok := d.GetOk(Arg_TargetCRN); ok {
-		targetCRN := v.(string)
-		body.TargetCRN = &targetCRN
-	}
-	err = client.DeleteVolumeGroupWithBody(vgID, body)
+	err = client.DeleteVolumeGroup(vgID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
