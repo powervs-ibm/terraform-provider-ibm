@@ -33,74 +33,7 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 			},
 
 			// Attributes
-			Attr_Volumes: {
-				Computed:    true,
-				Description: "List of vPMEM volumes.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						Attr_CreatedAt: {
-							Computed:    true,
-							Description: "Time when the volume was created.",
-							Type:        schema.TypeString,
-						},
-						Attr_CRN: {
-							Computed:    true,
-							Description: "The CRN for this resource.",
-							Type:        schema.TypeString,
-						},
-						Attr_ErrorCode: {
-							Computed:    true,
-							Description: "Error code for the vPMEM volume.",
-							Type:        schema.TypeString,
-						},
-						Attr_Href: {
-							Computed:    true,
-							Description: "Link to vPMEM volume resource.",
-							Type:        schema.TypeString,
-						},
-						Attr_Name: {
-							Computed:    true,
-							Description: "Volume Name.",
-							Type:        schema.TypeString,
-						},
-						Attr_PVMInstanceID: {
-							Computed:    true,
-							Description: "PVM Instance ID which the volume is attached to.",
-							Type:        schema.TypeString,
-						},
-						Attr_Reason: {
-							Computed:    true,
-							Description: "Reason for error.",
-							Type:        schema.TypeString,
-						},
-						Attr_Size: {
-							Computed:    true,
-							Description: "Volume Size (GB).",
-							Type:        schema.TypeFloat,
-						},
-						Attr_Status: {
-							Computed:    true,
-							Description: "Status of the volume.",
-							Type:        schema.TypeString,
-						},
-						Attr_UserTags: {
-							Computed:    true,
-							Description: "List of user tags.",
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-							Set:  schema.HashString,
-							Type: schema.TypeSet,
-						},
-						Attr_VolumeID: {
-							Computed:    true,
-							Description: "Volume ID.",
-							Type:        schema.TypeString,
-						},
-					},
-				},
-				Type: schema.TypeList,
-			},
+			Attr_Volumes: vpmemVolumeSchema(),
 		},
 	}
 }
@@ -153,4 +86,75 @@ func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference) map[st
 	}
 	vpemVol[Attr_VolumeID] = volume.VolumeID
 	return vpemVol
+}
+
+func vpmemVolumeSchema() *schema.Schema {
+	return &schema.Schema{
+		Computed:    true,
+		Description: "List of vPMEM volumes.",
+		Type:        schema.TypeList,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				Attr_CreatedAt: {
+					Computed:    true,
+					Description: "Time when the volume was created.",
+					Type:        schema.TypeString,
+				},
+				Attr_CRN: {
+					Computed:    true,
+					Description: "The CRN for this resource.",
+					Type:        schema.TypeString,
+				},
+				Attr_ErrorCode: {
+					Computed:    true,
+					Description: "Error code for the vPMEM volume.",
+					Type:        schema.TypeString,
+				},
+				Attr_Href: {
+					Computed:    true,
+					Description: "Link to vPMEM volume resource.",
+					Type:        schema.TypeString,
+				},
+				Attr_Name: {
+					Computed:    true,
+					Description: "Volume Name.",
+					Type:        schema.TypeString,
+				},
+				Attr_PVMInstanceID: {
+					Computed:    true,
+					Description: "PVM Instance ID which the volume is attached to.",
+					Type:        schema.TypeString,
+				},
+				Attr_Reason: {
+					Computed:    true,
+					Description: "Reason for error.",
+					Type:        schema.TypeString,
+				},
+				Attr_Size: {
+					Computed:    true,
+					Description: "Volume Size (GB).",
+					Type:        schema.TypeFloat,
+				},
+				Attr_Status: {
+					Computed:    true,
+					Description: "Status of the volume.",
+					Type:        schema.TypeString,
+				},
+				Attr_UserTags: {
+					Computed:    true,
+					Description: "List of user tags.",
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Set:  schema.HashString,
+					Type: schema.TypeSet,
+				},
+				Attr_VolumeID: {
+					Computed:    true,
+					Description: "Volume ID.",
+					Type:        schema.TypeString,
+				},
+			},
+		},
+	}
 }

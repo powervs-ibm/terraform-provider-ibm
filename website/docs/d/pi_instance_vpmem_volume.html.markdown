@@ -48,7 +48,7 @@ You can specify the following arguments for this data source.
 
 After your data source is created, you can read values from the following attributes.
 
-- `id` - The unique identifier of the p_i_instance_vpmem_volume.
+- `id` - (String) The unique identifier of the p_i_instance_vpmem_volume.
 - `created_at` - (String) Time when the volume was created.
 - `crn` - (String) The CRN for this resource.
 - `error_code` - (String) Error code for the vPMEM volume.
