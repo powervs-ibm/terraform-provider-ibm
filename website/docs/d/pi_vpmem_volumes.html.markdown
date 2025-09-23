@@ -44,7 +44,7 @@ Review the argument references that you can specify for your data source.
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
-- `id` - The unique identifier of the vpmem_volumes.
+- `id` - (String) The unique identifier of the vpmem_volumes.
 - `volumes` - (List) List of vPMEM volumes.
     Nested schema for `volumes`:
   - `created_at` - (String) Time when the volume was created.
