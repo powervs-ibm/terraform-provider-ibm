@@ -1,7 +1,7 @@
 ---
 subcategory: "Power Systems"
 layout: "ibm"
-page_title: "IBM: pi_volume"
+page_title: "IBM: ibm_pi_volume"
 description: |-
   Manages a volume in the Power Virtual Server cloud.
 ---
@@ -16,8 +16,8 @@ The following example retrieves information about the `volume_1` volume that is 
 
 ```terraform
 data "ibm_pi_volume" "ds_volume" {
-  pi_volume_name       = "volume_1"
   pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
+  pi_volume_id         = "7f8e2a9d-3b4c-4e4f-8e8d-f7e7e1e23456"
 }
 ```
 
@@ -42,14 +42,15 @@ Example usage:
 Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- `pi_volume_name` - (Required, String) The name of the volume for which you want to retrieve detailed information.
+- `pi_volume_id` - (Optional, String) The volume ID.
+- `pi_volume_name` - (Deprecated, Optional, String) The name of the volume. Please use `pi_volume_id` instead.
 
 ## Attribute Reference
 
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
-- `auxiliary` - (Boolean) Indicates if the volume is auxiliary.
 - `auxiliary_volume_name` - (String) The auxiliary volume name.
+- `auxiliary` - (Boolean) Indicates if the volume is auxiliary.
 - `bootable` -  (Boolean) Indicates if the volume is boot capable.
 - `consistency_group_name` - (String) Consistency group name if volume is a part of volume group.
 - `creation_date` - (String) Date of volume creation.
@@ -72,5 +73,6 @@ In addition to all argument reference list, you can access the following attribu
 - `size` - (Integer) The size of the volume in GB.
 - `state` - (String) The state of the volume.
 - `user_tags` - (List) List of user tags attached to the resource.
+- `volume_name` - (String) The name of the volume.
 - `volume_pool` - (String) Volume pool, name of storage pool where the volume is located.
 - `wwn` - (String) The world wide name of the volume.
