@@ -550,6 +550,7 @@ const (
 	Attr_VolumeGroupStatus                   = "volume_group_status"
 	Attr_VolumeID                            = "volume_id"
 	Attr_VolumeIDs                           = "volume_ids"
+	Attr_VolumeName                          = "volume_name"
 	Attr_VolumePool                          = "volume_pool"
 	Attr_Volumes                             = "volumes"
 	Attr_VolumeSnapshots                     = "volume_snapshots"
