@@ -42,7 +42,7 @@ Example usage:
 Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- - `pi_network_id` - (Optional, String) The network ID.
+- `pi_network_id` - (Optional, String) The network ID.
 - `pi_network_name` - (Deprecated, Optional, String) The unique identifier or name of a network. Please use `pi_network_id` instead.
 
 ## Attribute Reference

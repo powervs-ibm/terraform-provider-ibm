@@ -88,8 +88,7 @@ func DataSourceIBMPINetwork() *schema.Resource {
 			},
 			Attr_Name: {
 				Computed:    true,
-				Deprecated:  "This field is deprecated, use pi_network_name instead.",
-				Description: "The unique identifier or name of a network.",
+				Description: "The name of the network.",
 				Type:        schema.TypeString,
 			},
 			Attr_NetworkAddressTranslation: {

@@ -55,6 +55,7 @@ In addition to all argument reference list, you can access the following attribu
 - `dns`- (Set) The DNS Servers for the network.
 - `gateway` - (String) The network gateway that is attached to your network.
 - `id` - (String) The ID of the network.
+- `name` - (String) The name of the network.
 - `mtu` - (Boolean) Maximum Transmission Unit option of the network.
 - `network_address_translation` - (Deprecated, List) Contains the network address translation details (for on-prem locations only).
 
