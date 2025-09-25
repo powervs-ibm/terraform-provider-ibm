@@ -8,7 +8,7 @@ description: |-
 
 # ibm_pi_volume
 
-Retrieves information about a persistent storage volume that is mounted to a Power Systems Virtual Server instance. For more information, about managin a volume, see [moving data to the cloud](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-moving-data-to-the-cloud).
+Retrieves information about a persistent storage volume that is mounted to a Power Systems Virtual Server instance. For more information, about managing a volume, see [moving data to the cloud](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-moving-data-to-the-cloud).
 
 ## Example Usage
 
