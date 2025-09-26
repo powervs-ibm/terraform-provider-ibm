@@ -3,12 +3,12 @@ subcategory: "Power Systems"
 layout: "ibm"
 page_title: "IBM: ibm_pi_volumes"
 description: |-
-  Manages a volume in the Power Virtual Server cloud.
+  Manages volumes in the Power Virtual Server cloud.
 ---
 
 # ibm_pi_volumes
 
-Retrieves information about all persistent storage volumes that in a Power Systems Virtual Server workspace. For more information, about managing a volume, see [moving data to the cloud](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-moving-data-to-the-cloud).
+Retrieves information about all persistent storage volumes that in a Power Systems Virtual Server workspace. For more information, about managing volumes, see [moving data to the cloud](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-moving-data-to-the-cloud).
 
 ## Example Usage
 
@@ -74,5 +74,6 @@ In addition to all argument reference list, you can access the following attribu
   - `state` - (String) The state of the volume.
   - `user_tags` - (List) List of user tags attached to the resource.
   - `volume_name` - (String) The name of the volume.
-  - `volume_pool` - (String) Volume pool, name of storage pool where the volume is located.
+  - `volume_pool` - (String) The name of storage pool where the volume is located.
+  - `volume_type` - (String) The name of storage template used to create the volume.
   - `wwn` - (String) The world wide name of the volume.

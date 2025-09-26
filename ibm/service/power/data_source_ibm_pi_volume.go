@@ -164,7 +164,7 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
-			Attr_VolumeName: {
+			Attr_Name: {
 				Computed:    true,
 				Description: "The name of the volume.",
 				Type:        schema.TypeString,
@@ -172,6 +172,11 @@ func DataSourceIBMPIVolume() *schema.Resource {
 			Attr_VolumePool: {
 				Computed:    true,
 				Description: "Volume pool, name of storage pool where the volume is located.",
+				Type:        schema.TypeString,
+			},
+			Attr_VolumeType: {
+				Computed:    true,
+				Description: "The name of storage template used to create the volume.",
 				Type:        schema.TypeString,
 			},
 			Attr_WWN: {
@@ -230,6 +235,7 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_LastUpdateDate, volumedata.LastUpdateDate.String())
 	d.Set(Attr_MasterVolumeName, volumedata.MasterVolumeName)
 	d.Set(Attr_MirroringState, volumedata.MirroringState)
+	d.Set(Attr_Name, volumedata.Name)
 	d.Set(Attr_OutOfBandDeleted, volumedata.OutOfBandDeleted)
 	d.Set(Attr_PrimaryRole, volumedata.PrimaryRole)
 	d.Set(Attr_ReplicationEnabled, volumedata.ReplicationEnabled)
@@ -241,8 +247,8 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_Shareable, volumedata.Shareable)
 	d.Set(Attr_Size, volumedata.Size)
 	d.Set(Attr_State, volumedata.State)
-	d.Set(Attr_VolumeName, volumedata.Name)
 	d.Set(Attr_VolumePool, volumedata.VolumePool)
+	d.Set(Attr_VolumeType, volumedata.VolumeType)
 	d.Set(Attr_WWN, volumedata.Wwn)
 
 	return nil

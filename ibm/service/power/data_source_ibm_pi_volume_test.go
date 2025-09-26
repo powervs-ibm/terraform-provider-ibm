@@ -57,6 +57,6 @@ func testAccCheckIBMPIVolumeDataSourceReplicationConfig() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_volume" "testacc_ds_volume" {
 			pi_cloud_instance_id = "%[1]s"
-			pi_volume_name       = "%[2]s"
+			pi_volume_id         = "%[2]s"
 		}`, acc.Pi_cloud_instance_id, acc.Pi_replication_volume_id)
 }

@@ -106,6 +106,11 @@ func DataSourceIBMPIVolumes() *schema.Resource {
 							Description: "Mirroring state for replication enabled volume.",
 							Type:        schema.TypeString,
 						},
+						Attr_Name: {
+							Computed:    true,
+							Description: "The name of the volume.",
+							Type:        schema.TypeString,
+						},
 						Attr_OutOfBandDeleted: {
 							Computed:    true,
 							Description: "Indicates if the volume does not exist on storage controller.",
@@ -159,14 +164,14 @@ func DataSourceIBMPIVolumes() *schema.Resource {
 							Set:         schema.HashString,
 							Type:        schema.TypeSet,
 						},
-						Attr_VolumeName: {
-							Computed:    true,
-							Description: "The name of the volume.",
-							Type:        schema.TypeString,
-						},
 						Attr_VolumePool: {
 							Computed:    true,
-							Description: "Volume pool, name of storage pool where the volume is located.",
+							Description: "The name of storage pool where the volume is located.",
+							Type:        schema.TypeString,
+						},
+						Attr_VolumeType: {
+							Computed:    true,
+							Description: "The name of storage template used to create the volume.",
 							Type:        schema.TypeString,
 						},
 						Attr_WWN: {
@@ -206,7 +211,6 @@ func dataSourceIBMPIVolumesRead(ctx context.Context, d *schema.ResourceData, met
 }
 
 func flattenVolumes(list []*models.VolumeReference, meta any) []map[string]any {
-	log.Printf("Calling the flattenVolumeGroups call with list %d", len(list))
 	result := make([]map[string]any, 0, len(list))
 	for _, i := range list {
 		volume := map[string]any{
@@ -222,6 +226,7 @@ func flattenVolumes(list []*models.VolumeReference, meta any) []map[string]any {
 			Attr_LastUpdateDate:       i.LastUpdateDate.String(),
 			Attr_MasterVolumeName:     i.MasterVolumeName,
 			Attr_MirroringState:       i.MirroringState,
+			Attr_Name:                 *i.Name,
 			Attr_OutOfBandDeleted:     i.OutOfBandDeleted,
 			Attr_PrimaryRole:          i.PrimaryRole,
 			Attr_ReplicationEnabled:   *i.ReplicationEnabled,
@@ -230,8 +235,8 @@ func flattenVolumes(list []*models.VolumeReference, meta any) []map[string]any {
 			Attr_Shareable:            *i.Shareable,
 			Attr_Size:                 *i.Size,
 			Attr_State:                *i.State,
-			Attr_VolumeName:           *i.Name,
 			Attr_VolumePool:           i.VolumePool,
+			Attr_VolumeType:           i.VolumeType,
 			Attr_WWN:                  *i.Wwn,
 		}
 		if i.FreezeTime != nil {
