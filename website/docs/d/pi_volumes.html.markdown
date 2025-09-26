@@ -63,6 +63,7 @@ In addition to all argument reference list, you can access the following attribu
   - `last_update_date` - (String) The date when the volume last updated.
   - `master_volume_name` - (String) The master volume name.
   - `mirroring_state` - (String) Mirroring state for replication enabled volume.
+  - `name` - (String) The name of the volume.
   - `out_of_band_deleted` - (Bool) Indicates if the volume does not exist on storage controller.
   - `primary_role` - (String) Indicates whether `master`/`auxiliary` volume is playing the primary role.
   - `replication_enabled` - (Boolean) Indicates if the volume should be replication enabled or not.
@@ -73,7 +74,6 @@ In addition to all argument reference list, you can access the following attribu
   - `size` - (Integer) The size of the volume in GB.
   - `state` - (String) The state of the volume.
   - `user_tags` - (List) List of user tags attached to the resource.
-  - `volume_name` - (String) The name of the volume.
   - `volume_pool` - (String) The name of storage pool where the volume is located.
   - `volume_type` - (String) The name of storage template used to create the volume.
   - `wwn` - (String) The world wide name of the volume.
