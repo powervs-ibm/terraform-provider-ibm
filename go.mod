@@ -29,7 +29,7 @@ require (
 	github.com/IBM/mqcloud-go-sdk v0.4.0
 	github.com/IBM/networking-go-sdk v0.51.12
 	github.com/IBM/platform-services-go-sdk v0.87.0
-	github.com/IBM/project-go-sdk v0.3.5
+	github.com/IBM/project-go-sdk v0.3.8
 	github.com/IBM/push-notifications-go-sdk v0.0.0-20210310100607-5790b96c47f5
 	github.com/IBM/sarama v1.45.0
 	github.com/IBM/scc-go-sdk/v5 v5.5.3
@@ -38,7 +38,7 @@ require (
 	github.com/IBM/secrets-manager-go-sdk/v2 v2.0.15
 	github.com/IBM/vmware-go-sdk v0.1.5
 	github.com/IBM/vpc-beta-go-sdk v0.8.0
-	github.com/IBM/vpc-go-sdk v0.72.0
+	github.com/IBM/vpc-go-sdk v0.73.0
 	github.com/ScaleFT/sshkeys v0.0.0-20200327173127-6142f742bca5
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v1.2.2
 	github.com/akamai/AkamaiOPEN-edgegrid-golang/v5 v5.0.0
