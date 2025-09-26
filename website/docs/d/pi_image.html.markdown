@@ -14,8 +14,8 @@ Import the details of an existing IBM Power Virtual Server Cloud image as a read
 
 ```terraform
 data "ibm_pi_image" "ds_image" {
-  pi_image_name        = "7200-03-03"
   pi_cloud_instance_id = "49fba6c9-23f8-40bc-9899-aca322ee7d5b"
+  pi_image_id          = "7f8e2a9d-3b4c-4e4f-8e8d-f7e7e1e23456"
 }
 ```
 
