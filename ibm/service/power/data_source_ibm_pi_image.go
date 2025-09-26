@@ -27,11 +27,22 @@ func DataSourceIBMPIImage() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_ImageID: {
+				AtLeastOneOf:  []string{Arg_ImageID, Arg_ImageName},
+				ConflictsWith: []string{Arg_ImageName},
+				Description:   "The image ID.",
+				Optional:      true,
+				Type:          schema.TypeString,
+				ValidateFunc:  validation.NoZeroValues,
+			},
 			Arg_ImageName: {
-				Description:  "The ID of the image.",
-				Required:     true,
-				Type:         schema.TypeString,
-				ValidateFunc: validation.NoZeroValues,
+				AtLeastOneOf:  []string{Arg_ImageID, Arg_ImageName},
+				ConflictsWith: []string{Arg_ImageID},
+				Deprecated:    "The pi_image_name field is deprecated. Please use pi_image_id instead",
+				Description:   "The name of the image.",
+				Optional:      true,
+				Type:          schema.TypeString,
+				ValidateFunc:  validation.NoZeroValues,
 			},
 
 			// Attributes
@@ -68,6 +79,11 @@ func DataSourceIBMPIImage() *schema.Resource {
 			Attr_ImageType: {
 				Computed:    true,
 				Description: "The identifier of this image type.",
+				Type:        schema.TypeString,
+			},
+			Attr_Name: {
+				Computed:    true,
+				Description: "The name of an image.",
 				Type:        schema.TypeString,
 			},
 			Attr_OperatingSystem: {
@@ -154,9 +170,15 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
+	var imageID string
+	if v, ok := d.GetOk(Arg_ImageID); ok {
+		imageID = v.(string)
+	} else if v, ok := d.GetOk(Arg_ImageName); ok {
+		imageID = v.(string)
+	}
 
 	imageC := instance.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
-	imagedata, err := imageC.Get(d.Get(Arg_ImageName).(string))
+	imagedata, err := imageC.Get(imageID)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("Get failed: %s", err.Error()), "(Data) ibm_pi_image", "read")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
@@ -178,6 +200,7 @@ func dataSourceIBMPIImagesRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_Endianness, imagedata.Specifications.Endianness)
 	d.Set(Attr_Hypervisor, imagedata.Specifications.HypervisorType)
 	d.Set(Attr_ImageType, imagedata.Specifications.ImageType)
+	d.Set(Attr_Name, imagedata.Name)
 	d.Set(Attr_OperatingSystem, imagedata.Specifications.OperatingSystem)
 	d.Set(Attr_Shared, imagedata.Specifications.Shared)
 	d.Set(Attr_Size, imagedata.Size)
