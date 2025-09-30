@@ -66,7 +66,7 @@ func dataSourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.Reso
 	volumes := []map[string]any{}
 	if vpmemVolumes.Volumes != nil {
 		for _, volume := range vpmemVolumes.Volumes {
-			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume)
+			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
 			volumes = append(volumes, vpemVol)
 		}
 	}

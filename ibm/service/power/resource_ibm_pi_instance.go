@@ -526,12 +526,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "PI instance status",
 				Type:        schema.TypeString,
 			},
-			Attr_VPMEMVolumeIDs: {
-				Computed:    true,
-				Description: "List of vPMEM volume IDs.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Type:        schema.TypeList,
-			},
+			Attr_VPMEMVolumes: vpmemVolumeSchema(),
 		},
 	}
 }
@@ -750,9 +745,14 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	d.Set(Arg_PreferredProcessorCompatibilityMode, powervmdata.PreferredProcessorCompatibilityMode)
 	d.Set(Attr_EffectiveProcessorCompatibilityMode, powervmdata.EffectiveProcessorCompatibilityMode)
-	if len(powervmdata.VpmemVolumeIDs) > 0 {
-		d.Set(Attr_VPMEMVolumeIDs, powervmdata.VpmemVolumeIDs)
+	vpemVolumes := []map[string]any{}
+	if len(powervmdata.VpmemVolumes) > 0 {
+		for _, volume := range powervmdata.VpmemVolumes {
+			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
+			vpemVolumes = append(vpemVolumes, vpemVol)
+		}
 	}
+	d.Set(Attr_VPMEMVolumes, vpemVolumes)
 
 	return nil
 }

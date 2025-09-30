@@ -125,7 +125,14 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 
 	d.SetId(*vpmemVolume.VolumeID)
 	d.Set(Attr_CreatedAt, vpmemVolume.CreatedAt)
-	d.Set(Attr_CRN, vpmemVolume.Crn)
+	if vpmemVolume.Crn != "" {
+		d.Set(Attr_CRN, vpmemVolume.Crn)
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(vpmemVolume.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of vpmem(%s) user_tags: %s", *vpmemVolume.VolumeID, err)
+		}
+		d.Set(Attr_UserTags, tags)
+	}
 	d.Set(Attr_ErrorCode, vpmemVolume.ErrorCode)
 	d.Set(Attr_Href, vpmemVolume.Href)
 	d.Set(Attr_Name, vpmemVolume.Name)
@@ -133,9 +140,6 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	d.Set(Attr_Reason, vpmemVolume.Reason)
 	d.Set(Attr_Size, vpmemVolume.Size)
 	d.Set(Attr_Status, vpmemVolume.Status)
-	if vpmemVolume.UserTags != nil {
-		d.Set(Attr_UserTags, vpmemVolume.UserTags)
-	}
 	d.Set(Attr_VolumeID, vpmemVolume.VolumeID)
 
 	return nil

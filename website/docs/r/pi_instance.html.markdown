@@ -178,7 +178,17 @@ In addition to all argument reference list, you can access the following attribu
 - `progress` - (Float) - Specifies the overall progress of the instance deployment process in percentage.
 - `shared_processor_pool_id` - (String)  The ID of the shared processor pool for the instance.
 - `status` - (String) The status of the instance.
-- `vpmem_volume_ids` - (List) List of vPMEM volume IDs.
+- `vpmem_volumes` - (List) List of vPMEM volumes.
+   Nested schema for `vpmem_volumes`:
+  - `created_at` - (String) Time when the volume was created.
+  - `crn` - (String) The CRN for this resource.
+  - `href` - (String) Link to vPMEM volume resource.
+  - `name` - (String) Volume Name.
+  - `pvm_instance_id` - (String) PVM Instance ID which the volume is attached to.
+  - `size` - (Float) Volume Size (GB).
+  - `status` - (String) Status of the volume.
+  - `user_tags` - (List) List of user tags.
+  - `volume_id` - (String) Volume ID.
 
 ## Import
 

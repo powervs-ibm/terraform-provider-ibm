@@ -44,7 +44,6 @@ Example usage:
 You can specify the following arguments for this data source.
 
 - `pi_cloud_instance_id` - (Required, Forces new resource, String) Cloud Instance ID of a PCloud Instance.
-- `pi_count` - (Optional, Forces new resource, Integer) Number of volumes to create.
 - `pi_pvm_instance_id` - (Required, Forces new resource, String) PCloud PVM Instance ID.
 - `pi_user_tags` - (Optional, Forces new resource, List) List of user tags.
 - `pi_volume` - (Required, Forces new resource, List)
