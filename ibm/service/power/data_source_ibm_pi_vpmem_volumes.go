@@ -61,7 +61,7 @@ func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData
 	volumes := []map[string]any{}
 	if vpmemVolumes.Volumes != nil {
 		for _, volume := range vpmemVolumes.Volumes {
-			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume)
+			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
 			volumes = append(volumes, vpemVol)
 		}
 	}
@@ -70,10 +70,17 @@ func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference) map[string]interface{} {
+func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta any) map[string]interface{} {
 	vpemVol := make(map[string]interface{})
 	vpemVol[Attr_CreatedAt] = volume.CreatedAt
-	vpemVol[Attr_CRN] = volume.Crn
+	if volume.Crn != "" {
+		vpemVol[Attr_CRN] = volume.Crn
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(volume.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of vpmem (%s) user_tags: %s", *volume.VolumeID, err)
+		}
+		vpemVol[Attr_UserTags] = tags
+	}
 	vpemVol[Attr_ErrorCode] = volume.ErrorCode
 	vpemVol[Attr_Href] = volume.Href
 	vpemVol[Attr_Name] = volume.Name

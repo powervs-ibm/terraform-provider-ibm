@@ -41,12 +41,6 @@ func ResourceIBMPIInstanceVpmenVolumes() *schema.Resource {
 				Required:    true,
 				Type:        schema.TypeString,
 			},
-			Arg_Count: {
-				Description: "Number of volumes to create.",
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeInt,
-			},
 			Arg_UserTags: {
 				Description: "List of user tags.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -96,14 +90,10 @@ func resourceIBMPIInstanceVpmenVolumesCreate(ctx context.Context, d *schema.Reso
 	pvmInstanceID := d.Get(Arg_PVMInstanceID).(string)
 	client := instance.NewIBMPIVPMEMClient(ctx, sess, cloudInstanceID)
 	var body = &models.VPMemVolumeAttach{}
-	if v, ok := d.GetOk(Arg_Count); ok {
-		count := v.(int64)
-		body.Count = &count
-	}
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
-	body.Volume = resourceIBMPIInstanceVpmenVolumesMapToVpMemVolumeCreate(d.Get(Arg_Volume + ".0").(map[string]any))
+	body.VpmemVolume = resourceIBMPIInstanceVpmenVolumesMapToVpMemVolumeCreate(d.Get(Arg_Volume + ".0").(map[string]any))
 	volumes, err := client.CreatePvmVpmemVolumes(pvmInstanceID, body)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("CreatePvmVpmemVolumes failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "create")
@@ -148,7 +138,7 @@ func resourceIBMPIInstanceVpmenVolumesRead(ctx context.Context, d *schema.Resour
 	volumes := []map[string]any{}
 	if vpmemVolumes.Volumes != nil {
 		for _, volume := range vpmemVolumes.Volumes {
-			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume)
+			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
 			volumes = append(volumes, vpemVol)
 		}
 	}
