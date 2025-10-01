@@ -36,7 +36,7 @@ Example usage:
 
 Review the argument references that you can specify for your data source.
 
-- `pi_cloud_instance_id` - (Optional, String) The GUID of the service instance associated with an account.
+- `pi_cloud_instance_id` - (Optional, Deprecated, String) The GUID of the service instance associated with an account. This field is deprecated and will be removed in a future release.
 
 ## Attribute Reference
 

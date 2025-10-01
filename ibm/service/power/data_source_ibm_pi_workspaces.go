@@ -23,6 +23,7 @@ func DatasourceIBMPIWorkspaces() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_CloudInstanceID: {
+				Deprecated:   "This field is deprecated and will be removed in a future release.",
 				Description:  "The GUID of the service instance associated with an account.",
 				Optional:     true,
 				Type:         schema.TypeString,
