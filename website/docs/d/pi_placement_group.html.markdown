@@ -41,7 +41,7 @@ Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_placement_group_id` - (Optional, String) The placement group ID.
-- `pi_placement_group_name` - (Deprecated, Optional, String) The name of the placement group. Please use `pi_placement_group_id` instead.
+- `pi_placement_group_name` - (Deprecated, Optional, String) The id of the placement group. Passing the name of the placement group could fail or fetch stale data. Please pass an id and use `pi_placement_group_id` instead.
 
 ## Attribute Reference
 
