@@ -43,7 +43,7 @@ Review the argument references that you can specify for your data source.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_volume_id` - (Optional, String) The volume ID.
-- `pi_volume_name` - (Deprecated, Optional, String) The name of the volume. Please use `pi_volume_id` instead.
+- `pi_volume_name` - (Deprecated, Optional, String) The id of the volume. Passing the name of the volume could fail or fetch stale data. Please pass an id and use `pi_volume_id` instead.
 
 ## Attribute Reference
 
