@@ -102,7 +102,7 @@ func resourceIBMPIInstanceVpmenVolumesCreate(ctx context.Context, d *schema.Reso
 	}
 	id := fmt.Sprintf("%s/%s", cloudInstanceID, pvmInstanceID)
 	for _, vol := range volumes.Volumes {
-		id += "/" + *vol.VolumeID
+		id += "/" + *vol.UUID
 	}
 
 	d.SetId(id)

@@ -56,5 +56,6 @@ In addition to all argument reference list, you can access the following attribu
   - `reason` - (String) Reason for error.
   - `size` - (Float) Volume Size (GB).
   - `status` - (String) Status of the volume.
+  - `updated_at` - (String) Time when the volume was updated.
   - `user_tags` - (List) List of user tags.
   - `volume_id` - (String) Volume ID.

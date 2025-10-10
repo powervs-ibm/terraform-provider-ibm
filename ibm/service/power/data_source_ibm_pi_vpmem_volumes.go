@@ -38,7 +38,7 @@ func DataSourceIBMPIVpmemVolumes() *schema.Resource {
 	}
 }
 
-func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "(Data) ibm_pi_vpmem_volumes", "read")
@@ -70,14 +70,14 @@ func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta any) map[string]interface{} {
-	vpemVol := make(map[string]interface{})
+func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta any) map[string]any {
+	vpemVol := make(map[string]any)
 	vpemVol[Attr_CreatedAt] = volume.CreatedAt
 	if volume.Crn != "" {
 		vpemVol[Attr_CRN] = volume.Crn
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(volume.Crn), "", UserTagType)
 		if err != nil {
-			log.Printf("Error on get of vpmem (%s) user_tags: %s", *volume.VolumeID, err)
+			log.Printf("Error on get of vpmem (%s) user_tags: %s", *volume.UUID, err)
 		}
 		vpemVol[Attr_UserTags] = tags
 	}
@@ -88,10 +88,8 @@ func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta a
 	vpemVol[Attr_Reason] = volume.Reason
 	vpemVol[Attr_Size] = volume.Size
 	vpemVol[Attr_Status] = volume.Status
-	if volume.UserTags != nil {
-		vpemVol[Attr_UserTags] = volume.UserTags
-	}
-	vpemVol[Attr_VolumeID] = volume.VolumeID
+	vpemVol[Attr_UpdatedAt] = volume.UpdatedAt
+	vpemVol[Attr_VolumeID] = volume.UUID
 	return vpemVol
 }
 
@@ -145,6 +143,11 @@ func vpmemVolumeSchema() *schema.Schema {
 				Attr_Status: {
 					Computed:    true,
 					Description: "Status of the volume.",
+					Type:        schema.TypeString,
+				},
+				Attr_UpdatedAt: {
+					Computed:    true,
+					Description: "Time when the volume was updated.",
 					Type:        schema.TypeString,
 				},
 				Attr_UserTags: {
