@@ -480,18 +480,9 @@ func resourceIBMPIVolumeDelete(ctx context.Context, d *schema.ResourceData, meta
 	}
 
 	client := instance.NewIBMPIVolumeClient(ctx, sess, cloudInstanceID)
-
-	if v, ok := d.GetOk(Arg_TargetCRN); ok && v.(string) != "" {
-		t := v.(string)
-		body := &models.DeleteDataVolume{TargetCRN: &t}
-		if err := client.DeleteVolumeWithBody(volumeID, body); err != nil {
-			return diag.FromErr(err)
-		}
-	} else {
-		// legacy path
-		if err := client.DeleteVolume(volumeID); err != nil {
-			return diag.FromErr(err)
-		}
+	err = client.DeleteVolume(volumeID)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 	_, err = isWaitForIBMPIVolumeDeleted(ctx, client, volumeID, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
