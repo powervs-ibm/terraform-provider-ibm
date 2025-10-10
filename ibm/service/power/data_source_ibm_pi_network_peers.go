@@ -155,8 +155,6 @@ func dataSourceIBMPINetworkPeersRead(ctx context.Context, d *schema.ResourceData
 
 func dataSourceIBMPINetworkPeersNetworkPeerToMap(np *models.NetworkPeer) map[string]interface{} {
 	npMap := make(map[string]interface{})
-<<<<<<< HEAD
-=======
 	npMap[Attr_CreationDate] = np.CreationDate
 	npMap[Attr_CustomerASN] = np.CustomerASN
 	npMap[Attr_CustomerCIDR] = np.CustomerCidr
@@ -181,7 +179,6 @@ func dataSourceIBMPINetworkPeersNetworkPeerToMap(np *models.NetworkPeer) map[str
 			importRouteFilters = append(importRouteFilters, importRouteFilter)
 		}
 	}
->>>>>>> origin/master
 	if np.ID != nil {
 		npMap[Attr_ID] = np.ID
 	}

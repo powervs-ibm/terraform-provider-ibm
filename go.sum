@@ -93,8 +93,8 @@ github.com/IBM-Cloud/bluemix-go v0.0.0-20251001005609-37dbcddbe871 h1:0NrvGUWBoG
 github.com/IBM-Cloud/bluemix-go v0.0.0-20251001005609-37dbcddbe871/go.mod h1:lU1/3aolIs4y062yTTokFEiIEssAZqqjdj/5qvkBeq8=
 github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae23113 h1:f2Erqfea1dKpaTFagTJM6W/wnD3JGq/Vn9URh8nuRwk=
 github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae23113/go.mod h1:xUQL9SGAjoZFd4GNjrjjtEpjpkgU7RFXRyHesbKTjiY=
-github.com/IBM-Cloud/power-go-client v1.13.0 h1:TqxPlkJe0VkNdV9hYOD5NRepxEFhhyKXWXfg22x2zhU=
-github.com/IBM-Cloud/power-go-client v1.13.0/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
+github.com/IBM-Cloud/power-go-client v1.14.0-beta6 h1:t5AkmNZ88e5KHpKOeJ5SFlgPcxEWalMo/ydiJmQvzAQ=
+github.com/IBM-Cloud/power-go-client v1.14.0-beta6/go.mod h1:SpTK1ttW8bfMNUVQS8qOEuWn2KOkzaCLyzfze8MG1JE=
 github.com/IBM-Cloud/softlayer-go v1.0.5-tf h1:koUAyF9b6X78lLLruGYPSOmrfY2YcGYKOj/Ug9nbKNw=
 github.com/IBM-Cloud/softlayer-go v1.0.5-tf/go.mod h1:6HepcfAXROz0Rf63krk5hPZyHT6qyx2MNvYyHof7ik4=
 github.com/IBM/appconfiguration-go-admin-sdk v0.5.1 h1:EAotl3yQ/u5u/uBryySJMm0COgsYhtNzQ1g2IChtlE0=
@@ -125,8 +125,6 @@ github.com/IBM/go-sdk-core/v5 v5.6.3/go.mod h1:tt/B9rxLkRtglE7pvqLuYikgCXaZFL3bt
 github.com/IBM/go-sdk-core/v5 v5.9.5/go.mod h1:YlOwV9LeuclmT/qi/LAK2AsobbAP42veV0j68/rlZsE=
 github.com/IBM/go-sdk-core/v5 v5.10.2/go.mod h1:WZPFasUzsKab/2mzt29xPcfruSk5js2ywAPwW4VJjdI=
 github.com/IBM/go-sdk-core/v5 v5.17.4/go.mod h1:KsAAI7eStAWwQa4F96MLy+whYSh39JzNjklZRbN/8ns=
-github.com/IBM/go-sdk-core/v5 v5.20.1 h1:dzeyifh1kfRLw8VfAIIS5okZYuqLTqplPZP/Kcsgdlo=
-github.com/IBM/go-sdk-core/v5 v5.20.1/go.mod h1:Q3BYO6iDA2zweQPDGbNTtqft5tDcEpm6RTuqMlPcvbw=
 github.com/IBM/go-sdk-core/v5 v5.21.0 h1:DUnYhvC4SoC8T84rx5omnhY3+xcQg/Whyoa3mDPIMkk=
 github.com/IBM/go-sdk-core/v5 v5.21.0/go.mod h1:Q3BYO6iDA2zweQPDGbNTtqft5tDcEpm6RTuqMlPcvbw=
 github.com/IBM/ibm-backup-recovery-sdk-go v1.0.3 h1:9TZHocmCfgmF8TGVrpP1kFyQbjcqLNW7+bM07lefpKQ=
