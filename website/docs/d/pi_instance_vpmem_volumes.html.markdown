@@ -56,5 +56,6 @@ After your data source is created, you can read values from the following attrib
   - `pvm_instance_id` - (String) PVM Instance ID which the volume is attached to.
   - `size` - (Float) Volume Size (GB).
   - `status` - (String) Status of the volume.
+  - `updated_at` - (String) Time when the volume was updated.
   - `user_tags` - (List) List of user tags.
   - `volume_id` - (String) Volume ID.

@@ -536,6 +536,7 @@ const (
 	Attr_TotalStandardStorageConsumed        = "total_standard_storage_consumed"
 	Attr_Type                                = "type"
 	Attr_Uncapped                            = "uncapped"
+	Attr_UpdatedAt                           = "updated_at"
 	Attr_UpdatedDate                         = "updated_date"
 	Attr_URL                                 = "url"
 	Attr_UsedCore                            = "used_core"
