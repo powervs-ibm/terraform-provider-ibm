@@ -58,13 +58,13 @@ After your data source is created, you can read values from the following attrib
 - `id` - (String) The unique identifier of the pi_instance_vpmem_volumes.
 - `volumes` - (List) List of vPMEM volumes.
    Nested schema for `volumes`:
-  - `created_at` - (String) Time when the volume was created.
+  - `creation_date` - (String) The date and time when the volume was created.
   - `crn` - (String) The CRN for this resource.
   - `href` - (String) Link to vPMEM volume resource.
   - `name` - (String) Volume Name.
   - `pvm_instance_id` - (String) PVM Instance ID which the volume is attached to.
   - `size` - (Float) Volume Size (GB).
-  - `updated_at` - (String) Time when the volume was updated.
+  - `updated_date` - (String) The date and time when the volume was updated.
   - `status` - (String) Status of the volume.
   - `user_tags` - (List) List of user tags.
   - `volume_id` - (String) Volume ID.

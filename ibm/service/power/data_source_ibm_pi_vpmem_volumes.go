@@ -72,7 +72,7 @@ func dataSourceIBMPIVPMEMVolumesRead(ctx context.Context, d *schema.ResourceData
 
 func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta any) map[string]any {
 	vpemVol := make(map[string]any)
-	vpemVol[Attr_CreatedAt] = volume.CreatedAt
+	vpemVol[Attr_CreationDate] = volume.CreationDate
 	if volume.Crn != "" {
 		vpemVol[Attr_CRN] = volume.Crn
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(volume.Crn), "", UserTagType)
@@ -88,7 +88,7 @@ func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta a
 	vpemVol[Attr_Reason] = volume.Reason
 	vpemVol[Attr_Size] = volume.Size
 	vpemVol[Attr_Status] = volume.Status
-	vpemVol[Attr_UpdatedAt] = volume.UpdatedAt
+	vpemVol[Attr_UpdatedDate] = volume.UpdatedDate
 	vpemVol[Attr_VolumeID] = volume.UUID
 	return vpemVol
 }
@@ -100,9 +100,9 @@ func vpmemVolumeSchema() *schema.Schema {
 		Type:        schema.TypeList,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				Attr_CreatedAt: {
+				Attr_CreationDate: {
 					Computed:    true,
-					Description: "Time when the volume was created.",
+					Description: "The date and time when the volume was created.",
 					Type:        schema.TypeString,
 				},
 				Attr_CRN: {
@@ -145,9 +145,9 @@ func vpmemVolumeSchema() *schema.Schema {
 					Description: "Status of the volume.",
 					Type:        schema.TypeString,
 				},
-				Attr_UpdatedAt: {
+				Attr_UpdatedDate: {
 					Computed:    true,
-					Description: "Time when the volume was updated.",
+					Description: "The date and time when the volume was updated.",
 					Type:        schema.TypeString,
 				},
 				Attr_UserTags: {

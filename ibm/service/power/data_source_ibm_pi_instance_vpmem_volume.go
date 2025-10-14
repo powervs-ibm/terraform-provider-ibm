@@ -41,9 +41,9 @@ func DataSourceIBMPIInstanceVpmemVolume() *schema.Resource {
 			},
 
 			// Attributes
-			Attr_CreatedAt: {
+			Attr_CreationDate: {
 				Computed:    true,
-				Description: "Time when the volume was created.",
+				Description: "The date and time when the volume was created.",
 				Type:        schema.TypeString,
 			},
 			Attr_CRN: {
@@ -86,9 +86,9 @@ func DataSourceIBMPIInstanceVpmemVolume() *schema.Resource {
 				Description: "Status of the volume.",
 				Type:        schema.TypeString,
 			},
-			Attr_UpdatedAt: {
+			Attr_UpdatedDate: {
 				Computed:    true,
-				Description: "Time when the volume was updated.",
+				Description: "The date and time when the volume was updated.",
 				Type:        schema.TypeString,
 			},
 			Attr_UserTags: {
@@ -129,7 +129,7 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(*vpmemVolume.UUID)
-	d.Set(Attr_CreatedAt, vpmemVolume.CreatedAt)
+	d.Set(Attr_CreationDate, vpmemVolume.CreationDate)
 	if vpmemVolume.Crn != "" {
 		d.Set(Attr_CRN, vpmemVolume.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(vpmemVolume.Crn), "", UserTagType)
@@ -145,7 +145,7 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	d.Set(Attr_Reason, vpmemVolume.Reason)
 	d.Set(Attr_Size, vpmemVolume.Size)
 	d.Set(Attr_Status, vpmemVolume.Status)
-	d.Set(Attr_UpdatedAt, vpmemVolume.UpdatedAt)
+	d.Set(Attr_UpdatedDate, vpmemVolume.UpdatedDate)
 	d.Set(Attr_VolumeID, vpmemVolume.UUID)
 
 	return nil

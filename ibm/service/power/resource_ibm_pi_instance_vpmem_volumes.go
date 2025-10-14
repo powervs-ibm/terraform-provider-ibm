@@ -93,7 +93,14 @@ func resourceIBMPIInstanceVpmenVolumesCreate(ctx context.Context, d *schema.Reso
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
-	body.VpmemVolume = resourceIBMPIInstanceVpmenVolumesMapToVpMemVolumeCreate(d.Get(Arg_Volume + ".0").(map[string]any))
+	var vpmemVolumes []*models.VPMemVolumeCreate
+	for _, v := range d.Get(Arg_Volume).([]interface{}) {
+		vol := v.(map[string]interface{})
+		vpmemVolume := resourceIBMPIInstanceVpmenVolumesMapToVpMemVolumeCreate(vol)
+		vpmemVolumes = append(vpmemVolumes, vpmemVolume)
+	}
+
+	body.VpmemVolumes = vpmemVolumes
 	volumes, err := client.CreatePvmVpmemVolumes(pvmInstanceID, body)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("CreatePvmVpmemVolumes failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "create")

@@ -47,7 +47,7 @@ In addition to all argument reference list, you can access the following attribu
 - `id` - (String) The unique identifier of the vpmem_volumes.
 - `volumes` - (List) List of vPMEM volumes.
     Nested schema for `volumes`:
-  - `created_at` - (String) Time when the volume was created.
+  - `creation_date` - (String) The date and time when the volume was created.
   - `crn` - (String) The CRN for this resource.
   - `error_code` - (String) Error code for the vPMEM volume.
   - `href` - (String) Link to vPMEM volume resource.
@@ -56,6 +56,6 @@ In addition to all argument reference list, you can access the following attribu
   - `reason` - (String) Reason for error.
   - `size` - (Float) Volume Size (GB).
   - `status` - (String) Status of the volume.
-  - `updated_at` - (String) Time when the volume was updated.
+  - `updated_date` - (String) The date and time when the volume was updated.
   - `user_tags` - (List) List of user tags.
   - `volume_id` - (String) Volume ID.

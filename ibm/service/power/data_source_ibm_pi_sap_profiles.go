@@ -93,6 +93,24 @@ func DataSourceIBMPISAPProfiles() *schema.Resource {
 							Description: "Type of profile.",
 							Type:        schema.TypeString,
 						},
+						Attr_VPMEMVolume: {
+							Computed:    true,
+							Description: "vpmem volume.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									Attr_MaxPercent: {
+										Description: "Maximum percent of memory to be assigned for carved out vPMEM volume.",
+										Optional:    true,
+										Type:        schema.TypeInt,
+									},
+									Attr_MinPercent: {
+										Description: "Minimum percent of memory to be assigned for carved out vPMEM volume.",
+										Optional:    true,
+										Type:        schema.TypeInt,
+									},
+								}},
+							Type: schema.TypeList,
+						},
 						Attr_WorkloadType: {
 							Computed:    true,
 							Description: "Workload Type.",
@@ -145,6 +163,9 @@ func dataSourceIBMPISAPProfilesRead(ctx context.Context, d *schema.ResourceData,
 			Attr_SupportedSystems:  sapProfile.SupportedSystems,
 			Attr_Type:              *sapProfile.Type,
 			Attr_WorkloadType:      sapProfile.WorkloadTypes,
+		}
+		if sapProfile.VpmemVolume != nil {
+			profile[Attr_VPMEMVolume] = sapVpmemVolumeToMap(sapProfile.VpmemVolume)
 		}
 		result = append(result, profile)
 	}
