@@ -753,6 +753,8 @@ func Provider() *schema.Provider {
 			"ibm_pi_instance_snapshot":                      power.DataSourceIBMPIInstanceSnapshot(),
 			"ibm_pi_instance_snapshots":                     power.DataSourceIBMPIInstanceSnapshots(),
 			"ibm_pi_instance_volumes":                       power.DataSourceIBMPIInstanceVolumes(),
+			"ibm_pi_instance_vpmem_volume":                  power.DataSourceIBMPIInstanceVpmemVolume(),
+			"ibm_pi_instance_vpmem_volumes":                 power.DataSourceIBMPIInstanceVpmemVolumes(),
 			"ibm_pi_instance":                               power.DataSourceIBMPIInstance(),
 			"ibm_pi_instances":                              power.DataSourceIBMPIInstances(),
 			"ibm_pi_key":                                    power.DataSourceIBMPIKey(),
@@ -807,6 +809,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_volume_snapshot":                        power.DataSourceIBMPIVolumeSnapshot(),
 			"ibm_pi_volume_snapshots":                       power.DataSourceIBMPIVolumeSnapshots(),
 			"ibm_pi_volume":                                 power.DataSourceIBMPIVolume(),
+			"ibm_pi_vpmem_volumes":                          power.DataSourceIBMPIVpmemVolumes(),
 			"ibm_pi_workspace":                              power.DatasourceIBMPIWorkspace(),
 			"ibm_pi_workspaces":                             power.DatasourceIBMPIWorkspaces(),
 
