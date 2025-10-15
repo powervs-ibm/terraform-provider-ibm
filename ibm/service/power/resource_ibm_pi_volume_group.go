@@ -49,6 +49,11 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 				Optional:      true,
 				Type:          schema.TypeString,
 			},
+			Arg_TargetCRN: {
+				Description: "Target CRN of the secondary workspace where the auxiliary data resides; optional; if specified, the auxiliary volumes for the primary volumes getting added to the new volume group will be automatically onboarded into the secondary workspace and added to the corresponding auxiliary consistency group.",
+				Optional:    true,
+				Type:        schema.TypeString,
+			},
 			Arg_VolumeGroupName: {
 				ConflictsWith: []string{Arg_ConsistencyGroupName},
 				Description:   "Volume Group Name to create",
@@ -78,6 +83,11 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 			Attr_ReplicationStatus: {
 				Computed:    true,
 				Description: "Volume Group Replication Status",
+				Type:        schema.TypeString,
+			},
+			Attr_ReplicationTargetCRN: {
+				Computed:    true,
+				Description: "CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.",
 				Type:        schema.TypeString,
 			},
 			Attr_StatusDescriptionErrors: {
@@ -119,10 +129,12 @@ func ResourceIBMPIVolumeGroup() *schema.Resource {
 	}
 }
 
-func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_volume_group", "create")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	vgName := d.Get(Arg_VolumeGroupName).(string)
@@ -130,7 +142,9 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 	body := &models.VolumeGroupCreate{
 		Name: vgName,
 	}
-
+	if v, ok := d.GetOk(Arg_TargetCRN); ok {
+		body.TargetCRN = v.(string)
+	}
 	volids := flex.ExpandStringList((d.Get(Arg_VolumeIDs).(*schema.Set)).List())
 	body.VolumeIDs = volids
 
@@ -141,35 +155,45 @@ func resourceIBMPIVolumeGroupCreate(ctx context.Context, d *schema.ResourceData,
 	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 	vg, err := client.CreateVolumeGroup(body)
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("CreateVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "create")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	d.SetId(fmt.Sprintf("%s/%s", cloudInstanceID, *vg.ID))
 
 	_, err = isWaitForIBMPIVolumeGroupAvailable(ctx, client, *vg.ID, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForIBMPIVolumeGroupAvailable failed: %s", err.Error()), "ibm_pi_volume_group", "create")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	return resourceIBMPIVolumeGroupRead(ctx, d, meta)
 }
 
-func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_volume_group", "read")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	cloudInstanceID, vgID, err := splitID(d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("splitID failed: %s", err.Error()), "ibm_pi_volume_group", "read")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
 
 	vg, err := client.GetDetails(vgID)
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("GetDetails failed: %s", err.Error()), "ibm_pi_volume_group", "read")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	d.Set(Arg_VolumeGroupName, vg.Name)
@@ -182,52 +206,71 @@ func resourceIBMPIVolumeGroupRead(ctx context.Context, d *schema.ResourceData, m
 	}
 	d.Set(Attr_VolumeGroupID, vg.ID)
 	d.Set(Attr_VolumeGroupStatus, vg.Status)
+	d.Set(Attr_ReplicationTargetCRN, vg.ReplicationTargetCRN)
 
 	return nil
 }
 
-func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIVolumeGroupUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_volume_group", "update")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	cloudInstanceID, vgID, err := splitID(d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("splitID failed: %s", err.Error()), "ibm_pi_volume_group", "update")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
+	body := &models.VolumeGroupUpdate{}
+	hasChange := false
 	if d.HasChanges(Arg_VolumeIDs) {
 		old, new := d.GetChange(Arg_VolumeIDs)
 		oldList := old.(*schema.Set)
 		newList := new.(*schema.Set)
-		body := &models.VolumeGroupUpdate{
-			AddVolumes:    flex.ExpandStringList(newList.Difference(oldList).List()),
-			RemoveVolumes: flex.ExpandStringList(oldList.Difference(newList).List()),
-		}
-		err := client.UpdateVolumeGroup(vgID, body)
+		body.AddVolumes = flex.ExpandStringList(newList.Difference(oldList).List())
+		body.RemoveVolumes = flex.ExpandStringList(oldList.Difference(newList).List())
+		hasChange = true
+	}
+	if d.HasChanges(Arg_TargetCRN) {
+		body.TargetCRN = d.Get(Arg_TargetCRN).(string)
+		hasChange = true
+	}
+	if hasChange {
+		err = client.UpdateVolumeGroup(vgID, body)
 		if err != nil {
-			return diag.FromErr(err)
+			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdateVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "update")
+			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+			return tfErr.GetDiag()
 		}
 		_, err = isWaitForIBMPIVolumeGroupAvailable(ctx, client, vgID, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return diag.FromErr(err)
+			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForIBMPIVolumeGroupAvailable failed: %s", err.Error()), "ibm_pi_volume_group", "update")
+			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+			return tfErr.GetDiag()
 		}
 	}
-
 	return resourceIBMPIVolumeGroupRead(ctx, d, meta)
 }
-func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	cloudInstanceID, vgID, err := splitID(d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("splitID failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	client := instance.NewIBMPIVolumeGroupClient(ctx, sess, cloudInstanceID)
@@ -239,27 +282,34 @@ func resourceIBMPIVolumeGroupDelete(ctx context.Context, d *schema.ResourceData,
 		}
 		err = client.UpdateVolumeGroup(vgID, body)
 		if err != nil {
-			return diag.FromErr(err)
+			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdateVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+			return tfErr.GetDiag()
 		}
 		_, err = isWaitForIBMPIVolumeGroupAvailable(ctx, client, vgID, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return diag.FromErr(err)
+			tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForIBMPIVolumeGroupAvailable failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+			return tfErr.GetDiag()
 		}
 	}
-
 	err = client.DeleteVolumeGroup(vgID)
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeleteVolumeGroup failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 	_, err = isWaitForIBMPIVolumeGroupDeleted(ctx, client, vgID, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
-		return diag.FromErr(err)
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForIBMPIVolumeGroupDeleted failed: %s", err.Error()), "ibm_pi_volume_group", "delete")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
 	}
 
 	d.SetId("")
 	return nil
 }
-func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeGroupAvailable(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for Volume Group (%s) to be available.", id)
 
 	stateConf := &retry.StateChangeConf{
@@ -289,7 +339,7 @@ func isIBMPIVolumeGroupRefreshFunc(client *instance.IBMPIVolumeGroupClient, id s
 	}
 }
 
-func isWaitForIBMPIVolumeGroupDeleted(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForIBMPIVolumeGroupDeleted(ctx context.Context, client *instance.IBMPIVolumeGroupClient, id string, timeout time.Duration) (any, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Deleting, State_Updating},
 		Target:     []string{State_Deleted},
