@@ -21,13 +21,12 @@ func TestAccIBMPIInstanceVpmemVolumeDataSourceBasic(t *testing.T) {
 				Config: testAccCheckIBMPIInstanceVpmemVolumeDataSourceConfigBasic(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "id"),
-					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "created_at"),
+					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "creation_date"),
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "crn"),
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "href"),
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "name"),
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "size"),
 					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "status"),
-					resource.TestCheckResourceAttrSet("data.ibm_pi_instance_vpmem_volume.instance_vpmem_volume_instance", "volume_id"),
 				),
 			},
 		},
@@ -37,9 +36,9 @@ func TestAccIBMPIInstanceVpmemVolumeDataSourceBasic(t *testing.T) {
 func testAccCheckIBMPIInstanceVpmemVolumeDataSourceConfigBasic() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_instance_vpmem_volume" "instance_vpmem_volume_instance" {
-			pi_cloud_instance_id = "%s"
-			pi_pvm_instance_id = "%s"
-			pi_vpmem_volume_id = "%s"
+			pi_cloud_instance_id = "%[1]s"
+			pi_pvm_instance_id   = "%[2]s"
+			pi_vpmem_volume_id   = "%[3]s"
 		}
-	`, acc.Pi_cloud_instance_id, acc.Pi_instance_name, acc.Pi_volume_id)
+	`, acc.Pi_cloud_instance_id, acc.Pi_instance_id, acc.Pi_volume_id)
 }

@@ -15,8 +15,8 @@ Retrieves information about a power virtual machine instance vPMEM volume.
 ```terraform
 data "ibm_pi_instance_vpmem_volume" "instance_vpmem_volume" {
     pi_cloud_instance_id = "098f6bcd-2f7e-470a-a1ab-664e61882371"
-    pi_pvm_instance_id = "11223344-5566-7788-99ab-cdef01234567"
-    pi_vpmem_volume_id = "a1b2c3d4-e5f6-7g8h-9i0j-1k2l3m4n5o6p"
+    pi_pvm_instance_id   = "11223344-5566-7788-99ab-cdef01234567"
+    pi_vpmem_volume_id   = "a1b2c3d4-e5f6-7g8h-9i0j-1k2l3m4n5o6p"
 }
 ```
 
@@ -48,7 +48,7 @@ You can specify the following arguments for this data source.
 
 After your data source is created, you can read values from the following attributes.
 
-- `id` - (String) The unique identifier of the p_i_instance_vpmem_volume.
+- `id` - (String) The unique identifier of the pvm instance vpmem volume.
 - `creation_date` - (String) The date and time when the volume was created.
 - `crn` - (String) The CRN for this resource.
 - `error_code` - (String) Error code for the vPMEM volume.
@@ -60,4 +60,3 @@ After your data source is created, you can read values from the following attrib
 - `status` - (String) Status of the volume.
 - `updated_date` - (String) The date and time when the volume was updated.
 - `user_tags` - (List) List of user tags.
-- `volume_id` - (String) Volume ID.

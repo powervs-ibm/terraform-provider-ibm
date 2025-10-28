@@ -2,7 +2,7 @@
 layout: "ibm"
 page_title: "IBM : ibm_pi_instance_vpmem_volumes"
 description: |-
-  Manages p_i_instance_vpmem_volumes.
+  Manages pi_instance_vpmem_volumes.
 subcategory: "Power Systems"
 ---
 

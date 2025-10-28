@@ -31,7 +31,7 @@ func TestAccIBMPIInstanceVpmemVolumesDataSourceBasic(t *testing.T) {
 func testAccCheckIBMPIInstanceVpmemVolumesDataSourceConfigBasic() string {
 	return fmt.Sprintf(`
 		data "ibm_pi_instance_vpmem_volumes" "instance_vpmem_volumes_instance" {
-			pi_cloud_instance_id = "%s"
-			pi_pvm_instance_id = "%s"
-		}`, acc.Pi_cloud_instance_id, acc.Pi_instance_name)
+			pi_cloud_instance_id = "%[1]s"
+			pi_pvm_instance_id   = "%[2]s"
+		}`, acc.Pi_cloud_instance_id, acc.Pi_instance_id)
 }

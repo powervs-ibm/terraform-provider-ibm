@@ -372,13 +372,13 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	if powervmdata.VirtualSerialNumber != nil {
 		d.Set(Attr_VirtualSerialNumber, flattenVirtualSerialNumberToList(powervmdata.VirtualSerialNumber))
 	}
-	vpemVolumes := []map[string]any{}
+	vpmemVolumes := []map[string]any{}
 	if len(powervmdata.VpmemVolumes) > 0 {
 		for _, volume := range powervmdata.VpmemVolumes {
-			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
-			vpemVolumes = append(vpemVolumes, vpemVol)
+			vpmemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
+			vpmemVolumes = append(vpmemVolumes, vpmemVol)
 		}
 	}
-	d.Set(Attr_VPMEMVolumes, vpemVolumes)
+	d.Set(Attr_VPMEMVolumes, vpmemVolumes)
 	return nil
 }

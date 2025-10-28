@@ -408,25 +408,24 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Type:             schema.TypeSet,
 			},
 			Arg_VPMEMVolumes: {
-				Description:      "List of one or more vPMEM volumes to attach to the instance.",
-				DiffSuppressFunc: flex.ApplyOnce,
+				Description: "List of one or more vPMEM volumes to attach to the instance.",
+				// DiffSuppressFunc: flex.ApplyOnce,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						Attr_Name: {
 							Description: "Volume base name.",
-							Computed:    true,
+							Required:    true,
 							Type:        schema.TypeString,
 						},
 						Attr_Size: {
 							Description: "Volume size (GB).",
-							Computed:    true,
+							Required:    true,
 							Type:        schema.TypeInt,
 						},
 					},
 				},
 				Optional: true,
-				Set:      schema.HashString,
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 			},
 			// Attributes
 			Attr_CRN: {
@@ -745,14 +744,14 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	d.Set(Arg_PreferredProcessorCompatibilityMode, powervmdata.PreferredProcessorCompatibilityMode)
 	d.Set(Attr_EffectiveProcessorCompatibilityMode, powervmdata.EffectiveProcessorCompatibilityMode)
-	vpemVolumes := []map[string]any{}
+	vpmemVolumes := []map[string]any{}
 	if len(powervmdata.VpmemVolumes) > 0 {
 		for _, volume := range powervmdata.VpmemVolumes {
-			vpemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
-			vpemVolumes = append(vpemVolumes, vpemVol)
+			vpmemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
+			vpmemVolumes = append(vpmemVolumes, vpmemVol)
 		}
 	}
-	d.Set(Attr_VPMEMVolumes, vpemVolumes)
+	d.Set(Attr_VPMEMVolumes, vpmemVolumes)
 
 	return nil
 }

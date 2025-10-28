@@ -1052,7 +1052,7 @@ func testAccCheckIBMPInstanceCompMode(name, instanceHealthStatus, proc, memory, 
 }
 func TestAccIBMPIInstanceVPMEM(t *testing.T) {
 	instanceRes := "ibm_pi_instance.power_instance"
-	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pvm-vpmem-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acc.TestAccPreCheck(t) },
 		Providers:    acc.TestAccProviders,
@@ -1063,7 +1063,7 @@ func TestAccIBMPIInstanceVPMEM(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
-					resource.TestCheckResourceAttr(instanceRes, "vpmem_volume_ids.#", "2"),
+					resource.TestCheckResourceAttr(instanceRes, "vpmem_volumes.#", "2"),
 				),
 			},
 		},
@@ -1097,18 +1097,18 @@ func testAccCheckIBMPIInstanceVPMEMConfig(name, instanceHealthStatus string) str
 		pi_processors         = "0.25"
 		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
 		pi_storage_type       = "%[6]s"
-		pi_sys_type           = "s922"
+		pi_sys_type           = "s1022"
 		pi_volume_ids         = [ibm_pi_volume.power_volume.volume_id]
 		pi_network {
 			network_id = data.ibm_pi_network.power_networks.id
 		}
 		pi_vpmem_volumes {
-			name = "%[2]s-vpmem-1"
+			name = "%[2]s-1"
 			size = 2
 		}
 		pi_vpmem_volumes {
-			name = "%[2]s-vpmem-2"
-			size = 2
+			name = "%[2]s-2"
+			size = 3
 		}
 	  }
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType)

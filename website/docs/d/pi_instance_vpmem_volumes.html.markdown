@@ -14,8 +14,8 @@ Retrieves information about a power virtual machine instance vPMEM volumes.
 
 ```terraform
 data "ibm_pi_instance_vpmem_volumes" "instance_vpmem_volumes" {
-    pi_cloud_instance_id = "cloud_instance_id"
-    pi_pvm_instance_id = "pvm_instance_id"
+    pi_cloud_instance_id = "098f6bcd-2f7e-470a-a1ab-664e61882371"
+    pi_pvm_instance_id   = "11223344-5566-7788-99ab-cdef01234567"
 }
 ```
 

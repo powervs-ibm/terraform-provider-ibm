@@ -118,10 +118,10 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	}
 	cloudInstanceID := d.Get(Arg_CloudInstanceID).(string)
 	pvmInstanceID := d.Get(Arg_PVMInstanceID).(string)
-	vpemVolumeID := d.Get(Arg_VPMEMVolumeID).(string)
+	vpmemVolumeID := d.Get(Arg_VPMEMVolumeID).(string)
 
 	client := instance.NewIBMPIVPMEMClient(ctx, sess, cloudInstanceID)
-	vpmemVolume, err := client.GetPvmVpmemVolume(pvmInstanceID, vpemVolumeID)
+	vpmemVolume, err := client.GetPvmVpmemVolume(pvmInstanceID, vpmemVolumeID)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("GetPvmVpmemVolume failed: %s", err.Error()), "(Data) ibm_pi_instance_vpmem_volume", "read")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
@@ -129,7 +129,7 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(*vpmemVolume.UUID)
-	d.Set(Attr_CreationDate, vpmemVolume.CreationDate)
+	d.Set(Attr_CreationDate, vpmemVolume.CreationDate.String())
 	if vpmemVolume.Crn != "" {
 		d.Set(Attr_CRN, vpmemVolume.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(vpmemVolume.Crn), "", UserTagType)
@@ -145,8 +145,7 @@ func dataSourceIBMPIInstanceVpmemVolumeRead(ctx context.Context, d *schema.Resou
 	d.Set(Attr_Reason, vpmemVolume.Reason)
 	d.Set(Attr_Size, vpmemVolume.Size)
 	d.Set(Attr_Status, vpmemVolume.Status)
-	d.Set(Attr_UpdatedDate, vpmemVolume.UpdatedDate)
-	d.Set(Attr_VolumeID, vpmemVolume.UUID)
+	d.Set(Attr_UpdatedDate, vpmemVolume.UpdatedDate.String())
 
 	return nil
 }
