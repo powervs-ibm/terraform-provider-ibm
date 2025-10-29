@@ -140,9 +140,12 @@ func dataSourceIBMPISAPProfileRead(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func sapVpmemVolumeToMap(vpmem *models.SAPProfileVpmemVolume) map[string]any {
-	vpmemVol := make(map[string]interface{})
-	vpmemVol[Attr_MaxPercent] = vpmem.MaxPercent
-	vpmemVol[Attr_MinPercent] = vpmem.MinPercent
+func sapVpmemVolumeToMap(vpmem *models.SAPProfileVpmemVolume) []map[string]any {
+	vpmemVol := make([]map[string]interface{}, 0)
+	vol := map[string]any{
+		Attr_MaxPercent: vpmem.MaxPercent,
+		Attr_MinPercent: vpmem.MinPercent,
+	}
+	vpmemVol = append(vpmemVol, vol)
 	return vpmemVol
 }
