@@ -237,6 +237,7 @@ var (
 	Pi_image_bucket_region            string
 	Pi_image_bucket_secret_key        string
 	Pi_image_id                       string
+	Pi_instance_id                    string
 	Pi_instance_name                  string
 	Pi_key_name                       string
 	Pi_network_address_group_id       string
@@ -1328,6 +1329,12 @@ func init() {
 	if Pi_instance_name == "" {
 		Pi_instance_name = "terraform-test-power"
 		fmt.Println("[INFO] Set the environment variable PI_PVM_INSTANCE_ID for testing Pi_instance_name resource else it is set to default value 'terraform-test-power'")
+	}
+	Pi_instance_id = os.Getenv("PI_INSTANCE_ID")
+	if Pi_instance_id == "" {
+		Pi_instance_id = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_PVM_INSTANCE_ID for testing Pi_pvm_instance_id  else it is set to default value 'terraform-test-power'")
+
 	}
 
 	Pi_dhcp_id = os.Getenv("PI_DHCP_ID")

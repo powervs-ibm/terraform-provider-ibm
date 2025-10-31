@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/power/models"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -76,6 +77,24 @@ func DataSourceIBMPISAPProfile() *schema.Resource {
 				Description: "Type of profile.",
 				Type:        schema.TypeString,
 			},
+			Attr_VPMEMVolume: {
+				Computed:    true,
+				Description: "vpmem volume",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_MaxPercent: {
+							Description: "Maximum percent of memory to be assigned for carved out vPMEM volume.",
+							Optional:    true,
+							Type:        schema.TypeInt,
+						},
+						Attr_MinPercent: {
+							Description: "Minimum percent of memory to be assigned for carved out vPMEM volumee.",
+							Optional:    true,
+							Type:        schema.TypeInt,
+						},
+					}},
+				Type: schema.TypeList,
+			},
 			Attr_WorkloadType: {
 				Computed:    true,
 				Description: "Workload Type.",
@@ -114,6 +133,19 @@ func dataSourceIBMPISAPProfileRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set(Attr_SupportedSystems, sapProfile.SupportedSystems)
 	d.Set(Attr_Type, *sapProfile.Type)
 	d.Set(Attr_WorkloadType, sapProfile.WorkloadTypes)
+	if sapProfile.VpmemVolume != nil {
+		d.Set(Attr_VPMEMVolume, sapVpmemVolumeToMap(sapProfile.VpmemVolume))
+	}
 
 	return nil
+}
+
+func sapVpmemVolumeToMap(vpmem *models.SAPProfileVpmemVolume) []map[string]any {
+	vpmemVol := make([]map[string]interface{}, 0)
+	vol := map[string]any{
+		Attr_MaxPercent: vpmem.MaxPercent,
+		Attr_MinPercent: vpmem.MinPercent,
+	}
+	vpmemVol = append(vpmemVol, vol)
+	return vpmemVol
 }
