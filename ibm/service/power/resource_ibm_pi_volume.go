@@ -102,11 +102,6 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Set:         schema.HashString,
 				Type:        schema.TypeSet,
 			},
-			Arg_TargetCRN: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Target CRN for cross-workspace operations. Used during delete; not returned by read.",
-			},
 			Arg_UserTags: {
 				Computed:    true,
 				Description: "The user tags attached to this resource.",
