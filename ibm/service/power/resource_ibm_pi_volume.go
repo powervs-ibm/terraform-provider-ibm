@@ -211,6 +211,11 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeList,
 			},
+			Attr_ReplicationTargetCRN: {
+				Computed:    true,
+				Description: "CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.",
+				Type:        schema.TypeString,
+			},
 			Attr_ReplicationType: {
 				Computed:    true,
 				Description: "The replication type of the volume 'metro' or 'global'.",
@@ -413,6 +418,7 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta a
 	d.Set(Attr_PrimaryRole, vol.PrimaryRole)
 	d.Set(Attr_ReplicationSites, vol.ReplicationSites)
 	d.Set(Attr_ReplicationStatus, vol.ReplicationStatus)
+	d.Set(Attr_ReplicationTargetCRN, vol.ReplicationTargetCRN)
 	d.Set(Attr_ReplicationType, vol.ReplicationType)
 	d.Set(Attr_VolumeStatus, vol.State)
 	d.Set(Attr_WWN, vol.Wwn)

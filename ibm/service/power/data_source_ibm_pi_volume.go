@@ -135,6 +135,11 @@ func DataSourceIBMPIVolume() *schema.Resource {
 				Description: "The replication status of the volume.",
 				Type:        schema.TypeString,
 			},
+			Attr_ReplicationTargetCRN: {
+				Computed:    true,
+				Description: "CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.",
+				Type:        schema.TypeString,
+			},
 			Attr_ReplicationType: {
 				Computed:    true,
 				Description: "The replication type of the volume, metro or global.",
@@ -237,6 +242,8 @@ func dataSourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Attr_OutOfBandDeleted, volumedata.OutOfBandDeleted)
 	d.Set(Attr_PrimaryRole, volumedata.PrimaryRole)
 	d.Set(Attr_ReplicationEnabled, volumedata.ReplicationEnabled)
+	d.Set(Attr_ReplicationTargetCRN, volumedata.ReplicationTargetCRN)
+	d.Set(Attr_ReplicationType, volumedata.ReplicationType)
 	if len(volumedata.ReplicationSites) > 0 {
 		d.Set(Attr_ReplicationSites, volumedata.ReplicationSites)
 	}
