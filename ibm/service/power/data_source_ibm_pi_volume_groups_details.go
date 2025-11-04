@@ -61,6 +61,11 @@ func DataSourceIBMPIVolumeGroupsDetails() *schema.Resource {
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Type:        schema.TypeList,
 						},
+						Attr_ReplicationTargetCRN: {
+							Computed:    true,
+							Description: "CRN of the replication target workspace; for a primary replicated volume this is the target workspace that owns the auxiliary data; for an auxiliary replicated volume this is the target workspace that owns the primary data.",
+							Type:        schema.TypeString,
+						},
 						Attr_Status: {
 							Computed:    true,
 							Description: "The status of the volume group.",
@@ -140,15 +145,16 @@ func flattenVolumeGroupsDetails(list []*models.VolumeGroupDetails) []map[string]
 	result := make([]map[string]interface{}, 0, len(list))
 	for _, i := range list {
 		l := map[string]interface{}{
-			Attr_Auxiliary:              i.Auxiliary,
-			Attr_ConsistencyGroupName:   i.ConsistencyGroupName,
-			Attr_ID:                     *i.ID,
-			Attr_ReplicationStatus:      i.ReplicationStatus,
-			Attr_Status:                 i.Status,
-			Attr_StoragePool:            i.StoragePool,
-			"status_description_errors": flattenVolumeGroupStatusDescription(i.StatusDescription.Errors),
-			Attr_VolumeGroupName:        i.Name,
-			Attr_VolumeIDs:              i.VolumeIDs,
+			Attr_Auxiliary:               i.Auxiliary,
+			Attr_ConsistencyGroupName:    i.ConsistencyGroupName,
+			Attr_ID:                      *i.ID,
+			Attr_ReplicationStatus:       i.ReplicationStatus,
+			Attr_ReplicationTargetCRN:    i.ReplicationTargetCRN,
+			Attr_Status:                  i.Status,
+			Attr_StoragePool:             i.StoragePool,
+			Attr_StatusDescriptionErrors: flattenVolumeGroupStatusDescription(i.StatusDescription.Errors),
+			Attr_VolumeGroupName:         i.Name,
+			Attr_VolumeIDs:               i.VolumeIDs,
 		}
 		if len(i.ReplicationSites) > 0 {
 			l[Attr_ReplicationSites] = i.ReplicationSites
