@@ -94,6 +94,7 @@ In addition to all argument reference list, you can access the following attribu
 - `preferred_processor_compatibility_mode` - (String) Preferred processor compatibility mode.
 - `processors` - (Float) The number of processors that are allocated to the instance.
 - `proctype` - (String) The procurement type of the instance. Supported values are `shared` and `dedicated`.
+- `sap_hana_affinity_sompliance_status` - (String) Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.
 - `server_name` - (String) The name of the instance.
 - `shared_processor_pool`- (String) The name of the shared processor pool for the instance.
 - `shared_processor_pool_id` - (String)  The ID of the shared processor pool for the instance.
