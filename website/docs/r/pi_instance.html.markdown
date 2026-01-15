@@ -113,6 +113,7 @@ Review the argument references that you can specify for your resource.
 - `pi_sap_profile_id` - (Optional, String) SAP Profile ID for the amount of cores and memory.
   - Required only when creating SAP instances.
 - `pi_sap_deployment_type` - (Optional, String) Custom SAP deployment type information (For Internal Use Only).
+- `pi_sap_hana_affinity_action` - (Optional, String) Defines the enforcement action when NUMA affinity for the PVM instance is not satisfied. Supported values are `fail`, `warn` and `none`.
 - `pi_shared_processor_pool` - (Optional, String) The shared processor pool for instance deployment. Conflicts with `pi_sap_profile_id`.
 - `pi_storage_pool` - (Optional, String) Storage Pool for server deployment; if provided then `pi_affinity_policy` will be ignored; Only valid when you deploy one of the IBM supplied stock images. Storage pool for a custom image (an imported image or an image that is created from a VM capture) defaults to the storage pool the image was created in.
 - `pi_storage_pool_affinity` - (Optional, Boolean) Indicates if all volumes attached to the server must reside in the same storage pool. The default value is `true`. To attach data volumes from a different storage pool (mixed storage) set to `false` and use `pi_volume_attach` resource. Once set to `false`, cannot be set back to `true` unless all volumes attached reside in the same storage type and pool.
@@ -176,6 +177,7 @@ In addition to all argument reference list, you can access the following attribu
   - `network_security_groups_href` - (List) Links to the network security groups that the network interface is a member of.
   - `type` - (String) The type of network.
 - `progress` - (Float) - Specifies the overall progress of the instance deployment process in percentage.
+- `sap_hana_affinity_sompliance_status` - (String) Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.
 - `shared_processor_pool_id` - (String)  The ID of the shared processor pool for the instance.
 - `status` - (String) The status of the instance.
 - `vpmem_volumes` - (List) List of vPMEM volumes.
