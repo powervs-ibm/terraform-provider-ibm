@@ -47,6 +47,11 @@ func DataSourceIBMPINetworkInterface() *schema.Resource {
 				Description: "The network interface's crn.",
 				Type:        schema.TypeString,
 			},
+			Attr_ExternalIP: {
+				Computed:    true,
+				Description: "The external ip address (for pub-vlan networks).",
+				Type:        schema.TypeString,
+			},
 			Attr_Instance: {
 				Computed:    true,
 				Description: "The attached instance to this network interface.",
@@ -132,7 +137,7 @@ func dataSourceIBMPINetworkInterfaceRead(ctx context.Context, d *schema.Resource
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
 	}
-
+	d.Set(Attr_ExternalIP, networkInterface.ExternalIP)
 	d.SetId(fmt.Sprintf("%s/%s", networkID, *networkInterface.ID))
 	d.Set(Attr_IPAddress, networkInterface.IPAddress)
 	d.Set(Attr_MacAddress, networkInterface.MacAddress)
@@ -146,6 +151,7 @@ func dataSourceIBMPINetworkInterfaceRead(ctx context.Context, d *schema.Resource
 		instance = append(instance, instanceMap)
 		d.Set(Attr_Instance, instance)
 	}
+
 	d.Set(Attr_Status, networkInterface.Status)
 	if networkInterface.Crn != nil {
 		d.Set(Attr_CRN, networkInterface.Crn)
