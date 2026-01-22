@@ -1196,14 +1196,32 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 
 	}
 	if d.HasChange(Arg_SapHANAAffinityAction) {
+		status := d.Get(Attr_Status).(string)
+		if strings.ToLower(status) != State_Shutoff {
+			err := stopLparForResourceChange(ctx, client, instanceID, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
 		sapHANAAffinityAction := d.Get(Arg_SapHANAAffinityAction).(string)
 		body := &models.PVMInstanceUpdate{
 			SapHANAAffinityAction: &sapHANAAffinityAction,
 		}
-		// TODO: need more info on the state of the vm during update
+
 		_, err = client.Update(instanceID, body)
 		if err != nil {
 			return diag.Errorf("failed to update the lpar with the change for sap hana affinity action: %v", err)
+		}
+
+		_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err := startLparAfterResourceChange(ctx, client, instanceID, d)
+		if err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
