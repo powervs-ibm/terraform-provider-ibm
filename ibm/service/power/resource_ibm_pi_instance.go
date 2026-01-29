@@ -762,7 +762,8 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 	d.Set(Attr_VPMEMVolumes, vpmemVolumes)
-
+	d.Set(Arg_SapHANAAffinityAction, powervmdata.SapHANAAffinityAction)
+	d.Set(Attr_SapHANAAffinityComplianceStatus, powervmdata.SapHANAAffinityComplianceStatus)
 	return nil
 }
 
