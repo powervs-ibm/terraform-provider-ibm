@@ -177,7 +177,7 @@ In addition to all argument reference list, you can access the following attribu
   - `network_security_groups_href` - (List) Links to the network security groups that the network interface is a member of.
   - `type` - (String) The type of network.
 - `progress` - (Float) - Specifies the overall progress of the instance deployment process in percentage.
-- `sap_hana_affinity_sompliance_status` - (String) Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.
+- `sap_hana_affinity_compliance_status` - (String) Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.
 - `shared_processor_pool_id` - (String)  The ID of the shared processor pool for the instance.
 - `status` - (String) The status of the instance.
 - `vpmem_volumes` - (List) List of vPMEM volumes.

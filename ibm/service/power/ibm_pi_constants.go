@@ -474,7 +474,7 @@ const (
 	Attr_Routes                              = "routes"
 	Attr_Rules                               = "rules"
 	Attr_SapHANAAffinityAction               = "sap_hana_affinity_action"
-	Attr_SapHANAAffinityComplianceStatus     = "sap_hana_affinity_sompliance_status"
+	Attr_SapHANAAffinityComplianceStatus     = "sap_hana_affinity_compliance_status"
 	Attr_SAPS                                = "saps"
 	Attr_Secondaries                         = "secondaries"
 	Attr_Serial                              = "serial"
