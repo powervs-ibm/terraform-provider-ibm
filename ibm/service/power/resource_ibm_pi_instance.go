@@ -369,6 +369,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeInt,
 			},
+			Arg_IBMiPHAFSMCount: {
+				Description: "Number of IBM i PHA Full System Manager (FSM) managed servers. Set to 0 to disable the FSM license.",
+				Optional:    true,
+				Type:        schema.TypeInt,
+			},
 			Arg_VirtualOpticalDevice: {
 				Description:  "Virtual Machine's Cloud Initialization Virtual Optical Device",
 				Optional:     true,
@@ -730,6 +735,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		d.Set(Arg_IBMiCSS, powervmdata.SoftwareLicenses.IbmiCSS)
 		d.Set(Arg_IBMiPHA, powervmdata.SoftwareLicenses.IbmiPHA)
 		d.Set(Arg_IBMiPHAFSM, powervmdata.SoftwareLicenses.IbmiPHAFSM)
+		d.Set(Arg_IBMiPHAFSMCount, powervmdata.SoftwareLicenses.IbmiPHAFSMCount)
 		d.Set(Attr_IBMiRDS, powervmdata.SoftwareLicenses.IbmiRDS)
 		if *powervmdata.SoftwareLicenses.IbmiRDS {
 			d.Set(Arg_IBMiRDSUsers, powervmdata.SoftwareLicenses.IbmiRDSUsers)
@@ -1031,7 +1037,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	// === LICENSE UPDATE (includes new FSM) ===
-	if d.HasChanges(Arg_IBMiCSS, Arg_IBMiPHA, Arg_IBMiPHAFSM, Arg_IBMiRDSUsers) {
+	if d.HasChanges(Arg_IBMiCSS, Arg_IBMiPHA, Arg_IBMiPHAFSM, Arg_IBMiPHAFSMCount, Arg_IBMiRDSUsers) {
 		status := d.Get(Attr_Status).(string)
 		if strings.ToLower(status) == State_Active {
 			log.Printf("the lpar is in the Active state, continuing with update")
@@ -1045,7 +1051,26 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		sl := &models.SoftwareLicenses{}
 		sl.IbmiCSS = flex.PtrToBool(d.Get(Arg_IBMiCSS).(bool))
 		sl.IbmiPHA = flex.PtrToBool(d.Get(Arg_IBMiPHA).(bool))
-		sl.IbmiPHAFSM = flex.PtrToBool(d.Get(Arg_IBMiPHAFSM).(bool))
+
+		// FSM: count -> boolean + count; fallback to boolean with default count = 1 when true
+		if v, ok := d.GetOk(Arg_IBMiPHAFSMCount); ok {
+			count := v.(int)
+			if count < 0 {
+				return diag.Errorf("%s must be >= 0", Arg_IBMiPHAFSMCount)
+			}
+			sl.IbmiPHAFSM = flex.PtrToBool(count > 0)
+			sl.IbmiPHAFSMCount = int64(count)
+		} else {
+			enabled := d.Get(Arg_IBMiPHAFSM).(bool)
+			sl.IbmiPHAFSM = flex.PtrToBool(enabled)
+			if enabled {
+				sl.IbmiPHAFSMCount = 1
+			} else {
+				sl.IbmiPHAFSMCount = 0
+			}
+		}
+
+		// RDS: true/x or false/0
 		ibmrdsUsers := d.Get(Arg_IBMiRDSUsers).(int)
 		if ibmrdsUsers < 0 {
 			return diag.Errorf("request with  IBM i Rational Dev Studio property requires IBM i Rational Dev Studio number of users")
@@ -1447,6 +1472,11 @@ func isPIInstanceSoftwareLicensesRefreshFunc(client *instance.IBMPIInstanceClien
 			if *softwareLicenses.IbmiPHAFSM != *pvm.SoftwareLicenses.IbmiPHAFSM {
 				return pvm, State_InProgress, nil
 			}
+		}
+
+		// FSM count: always compare (server sets 0 when disabled)
+		if softwareLicenses.IbmiPHAFSMCount != pvm.SoftwareLicenses.IbmiPHAFSMCount {
+			return pvm, State_InProgress, nil
 		}
 
 		if softwareLicenses.IbmiRDS != nil {
@@ -1997,8 +2027,22 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		if ibmiPHA, ok := d.GetOk(Arg_IBMiPHA); ok {
 			sl.IbmiPHA = flex.PtrToBool(ibmiPHA.(bool))
 		}
-		if ibmiPHAFSM, ok := d.GetOk(Arg_IBMiPHAFSM); ok {
-			sl.IbmiPHAFSM = flex.PtrToBool(ibmiPHAFSM.(bool))
+		// FSM: Prefer count; fall back to boolean with default count = 1 when true
+		if v, ok := d.GetOk(Arg_IBMiPHAFSMCount); ok {
+			count := v.(int)
+			if count < 0 {
+				return nil, fmt.Errorf("%s must be >= 0", Arg_IBMiPHAFSMCount)
+			}
+			sl.IbmiPHAFSM = flex.PtrToBool(count > 0)
+			sl.IbmiPHAFSMCount = int64(count)
+		} else if v, ok := d.GetOk(Arg_IBMiPHAFSM); ok {
+			enabled := v.(bool)
+			sl.IbmiPHAFSM = flex.PtrToBool(enabled)
+			if enabled {
+				sl.IbmiPHAFSMCount = 1
+			} else {
+				sl.IbmiPHAFSMCount = 0
+			}
 		}
 		if ibmrdsUsers, ok := d.GetOk(Arg_IBMiRDSUsers); ok {
 			if ibmrdsUsers.(int) < 0 {
