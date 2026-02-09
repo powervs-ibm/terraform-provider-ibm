@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
@@ -129,7 +130,7 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:        schema.TypeBool,
 			},
 			Arg_VolumeSize: {
-				Description:  "The size of the volume in GB.",
+				Description:  "The size of the volume in GiB.",
 				Required:     true,
 				Type:         schema.TypeFloat,
 				ValidateFunc: validation.NoZeroValues,
@@ -373,6 +374,11 @@ func resourceIBMPIVolumeRead(ctx context.Context, d *schema.ResourceData, meta a
 
 	vol, err := client.Get(volumeID)
 	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), NotFound) {
+			log.Printf("[WARNING] volume resource was not found or removed outside of terraform\n")
+			d.SetId("")
+			return nil
+		}
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("Get failed: %s", err.Error()), "ibm_pi_volume", "read")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
