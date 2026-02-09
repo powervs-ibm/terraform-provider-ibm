@@ -1113,6 +1113,60 @@ func testAccCheckIBMPIInstanceVPMEMConfig(name, instanceHealthStatus string) str
 	  }
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType)
 }
+
+func TestAccIBMPISAPHannaAffinityAction(t *testing.T) {
+	instanceRes := "ibm_pi_instance.sap"
+	name := fmt.Sprintf("tf-pi-sap-%d", acctest.RandIntRange(10, 100))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIBMPISAPHannaAffinityActionConfig(name, power.Fail),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttr(instanceRes, "pi_sap_profile_id", acc.Pi_sap_profile_id),
+					resource.TestCheckResourceAttr(instanceRes, "pi_sap_hana_affinity_action", power.Fail),
+					resource.TestCheckResourceAttrSet(instanceRes, "sap_hana_affinity_compliance_status"),
+				),
+			},
+			{
+				Config: testAccIBMPISAPHannaAffinityActionConfig(name, power.None),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttr(instanceRes, "pi_sap_hana_affinity_action", power.None),
+					resource.TestCheckResourceAttr(instanceRes, "sap_hana_affinity_compliance_status", ""),
+				),
+			},
+		},
+	})
+}
+
+func testAccIBMPISAPHannaAffinityActionConfig(name, sapHannaAffinityAction string) string {
+	return fmt.Sprintf(`
+
+	data "ibm_pi_network" "power_networks" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_network_id        = "%[5]s"
+	}
+	resource "ibm_pi_instance" "sap" {
+		pi_cloud_instance_id  		= "%[1]s"
+		pi_health_status			= "OK"
+		pi_image_id           		= "%[4]s"
+		pi_instance_name      		= "%[2]s"
+		pi_sap_profile_id       	= "%[3]s"
+		pi_sap_hana_affinity_action = "%[6]s"
+		pi_storage_type			    = "tier1"
+		pi_network {
+			network_id = data.ibm_pi_network.power_networks.id
+		}
+	}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_sap_profile_id, acc.Pi_sap_image, acc.Pi_network_id, sapHannaAffinityAction)
+}
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {

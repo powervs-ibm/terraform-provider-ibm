@@ -187,6 +187,16 @@ func DataSourceIBMPIInstances() *schema.Resource {
 							Description: "The unique identifier of the instance.",
 							Type:        schema.TypeString,
 						},
+						Attr_SapHANAAffinityAction: {
+							Computed:    true,
+							Description: "Defines the enforcement action when NUMA affinity for the PVM instance is not satisfied.",
+							Type:        schema.TypeString,
+						},
+						Attr_SapHANAAffinityComplianceStatus: {
+							Computed:    true,
+							Description: "Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.",
+							Type:        schema.TypeString,
+						},
 						Attr_ServerName: {
 							Computed:    true,
 							Description: "The name of the instance.",
@@ -319,6 +329,8 @@ func flattenPvmInstances(list []*models.PVMInstanceReference, meta any) []map[st
 			Attr_Processors:                          *i.Processors,
 			Attr_ProcType:                            *i.ProcType,
 			Attr_PVMInstanceID:                       *i.PvmInstanceID,
+			Attr_SapHANAAffinityAction:               i.SapHANAAffinityAction,
+			Attr_SapHANAAffinityComplianceStatus:     i.SapHANAAffinityComplianceStatus,
 			Attr_ServerName:                          i.ServerName,
 			Attr_SharedProcessorPool:                 i.SharedProcessorPool,
 			Attr_SharedProcessorPoolID:               i.SharedProcessorPoolID,
