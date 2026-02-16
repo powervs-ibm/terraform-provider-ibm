@@ -466,7 +466,6 @@ func ResourceIBMPIInstance() *schema.Resource {
 			Attr_IBMiRDS: {
 				Computed:    true,
 				Description: "IBM i Rational Dev Studio",
-				Required:    false,
 				Type:        schema.TypeBool,
 			},
 			Attr_InstanceID: {
