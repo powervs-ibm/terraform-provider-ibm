@@ -58,6 +58,7 @@ const (
 	Arg_DNS                                  = "pi_dns"
 	Arg_DnsServer                            = "pi_dns_server"
 	Arg_Enabled                              = "pi_enabled"
+	Arg_EnableDHCP                           = "pi_enable_dhcp"
 	Arg_EndingIPAddress                      = "pi_ending_ip_address"
 	Arg_FamilyFilter                         = "pi_family_filter"
 	Arg_Gateway                              = "pi_gateway"

@@ -69,6 +69,11 @@ func DataSourceIBMPINetwork() *schema.Resource {
 				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
+			Attr_DhcpManaged: {
+				Computed:    true,
+				Description: "Indicates if the network DHCP Managed.",
+				Type:        schema.TypeBool,
+			},
 			Attr_DNS: {
 				Computed:    true,
 				Description: "The DNS Servers for the network.",
@@ -174,6 +179,7 @@ func dataSourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, met
 	d.SetId(*networkdata.NetworkID)
 	d.Set(Attr_Advertise, networkdata.Advertise)
 	d.Set(Attr_ARPBroadcast, networkdata.ArpBroadcast)
+	d.Set(Attr_DhcpManaged, networkdata.DhcpManaged)
 	if networkdata.IPAddressMetrics.Available != nil {
 		d.Set(Attr_AvailableIPCount, networkdata.IPAddressMetrics.Available)
 	}
