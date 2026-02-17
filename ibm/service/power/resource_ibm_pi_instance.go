@@ -306,6 +306,12 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeString,
 			},
+			Arg_SapHANAAffinityAction: {
+				Description:  "Defines the enforcement action when NUMA affinity for the PVM instance is not satisfied.",
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{Fail, Warn, None}),
+			},
 			Arg_SharedProcessorPool: {
 				ConflictsWith: []string{Arg_SAPProfileID},
 				Description:   "Shared Processor Pool the instance is deployed on",
@@ -513,6 +519,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Computed:    true,
 				Description: "Progress of the operation",
 				Type:        schema.TypeFloat,
+			},
+			Attr_SapHANAAffinityComplianceStatus: {
+				Computed:    true,
+				Description: "Indicates whether the SAP HANA PVM instance is adhering to the specified NUMA affinity requirement.",
+				Type:        schema.TypeString,
 			},
 			Attr_SharedProcessorPoolID: {
 				Computed:    true,
@@ -751,7 +762,8 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 	d.Set(Attr_VPMEMVolumes, vpmemVolumes)
-
+	d.Set(Arg_SapHANAAffinityAction, powervmdata.SapHANAAffinityAction)
+	d.Set(Attr_SapHANAAffinityComplianceStatus, powervmdata.SapHANAAffinityComplianceStatus)
 	return nil
 }
 
@@ -1183,6 +1195,35 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 
+	}
+	if d.HasChange(Arg_SapHANAAffinityAction) {
+		status := d.Get(Attr_Status).(string)
+		if strings.ToLower(status) != State_Shutoff {
+			err := stopLparForResourceChange(ctx, client, instanceID, d)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+
+		sapHANAAffinityAction := d.Get(Arg_SapHANAAffinityAction).(string)
+		body := &models.PVMInstanceUpdate{
+			SapHANAAffinityAction: &sapHANAAffinityAction,
+		}
+
+		_, err = client.Update(instanceID, body)
+		if err != nil {
+			return diag.Errorf("failed to update the lpar with the change for sap hana affinity action: %v", err)
+		}
+
+		_, err = isWaitForPIInstanceStopped(ctx, client, instanceID, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err := startLparAfterResourceChange(ctx, client, instanceID, d)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return resourceIBMPIInstanceRead(ctx, d, meta)
@@ -1798,6 +1839,9 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if vpmemVolumes, ok := d.GetOk(Arg_VPMEMVolumes); ok {
 		body.VpmemVolumes = expandPVMVPMEMVolumes(vpmemVolumes.([]any))
 	}
+	if sapHANAAffinityAction, ok := d.GetOk(Arg_SapHANAAffinityAction); ok {
+		body.SapHANAAffinityAction = flex.PtrToString(sapHANAAffinityAction.(string))
+	}
 	pvmList, err := sapClient.Create(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to provision: %v", err)
@@ -2021,6 +2065,10 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 
 	if vpmemVolumes, ok := d.GetOk(Arg_VPMEMVolumes); ok {
 		body.VpmemVolumes = expandPVMVPMEMVolumes(vpmemVolumes.([]any))
+	}
+
+	if sapHANAAffinityAction, ok := d.GetOk(Arg_SapHANAAffinityAction); ok {
+		body.SapHANAAffinityAction = flex.PtrToString(sapHANAAffinityAction.(string))
 	}
 	pvmList, err := client.Create(body)
 
