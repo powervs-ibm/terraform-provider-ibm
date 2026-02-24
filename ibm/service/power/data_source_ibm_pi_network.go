@@ -69,16 +69,16 @@ func DataSourceIBMPINetwork() *schema.Resource {
 				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
-			Attr_DhcpManaged: {
-				Computed:    true,
-				Description: "Indicates if the network DHCP Managed.",
-				Type:        schema.TypeBool,
-			},
 			Attr_DNS: {
 				Computed:    true,
 				Description: "The DNS Servers for the network.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeSet,
+			},
+			Attr_EnableDHCP: {
+				Computed:    true,
+				Description: "DHCP Enabled Network.",
+				Type:        schema.TypeBool,
 			},
 			Attr_Gateway: {
 				Computed:    true,
@@ -179,7 +179,7 @@ func dataSourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, met
 	d.SetId(*networkdata.NetworkID)
 	d.Set(Attr_Advertise, networkdata.Advertise)
 	d.Set(Attr_ARPBroadcast, networkdata.ArpBroadcast)
-	d.Set(Attr_DhcpManaged, networkdata.DhcpManaged)
+	d.Set(Attr_EnableDHCP, networkdata.EnableDHCP)
 	if networkdata.IPAddressMetrics.Available != nil {
 		d.Set(Attr_AvailableIPCount, networkdata.IPAddressMetrics.Available)
 	}

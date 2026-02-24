@@ -87,7 +87,6 @@ Review the argument references that you can specify for your resource.
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
 - `crn` - (String) The CRN of this resource.
-- `dhcp_managed` - (Boolean) Indicates if the network DHCP Managed.
 - `id` - (String) The unique identifier of the network. The ID is composed of `<pi_cloud_instance_id>/<network_id>`.
 - `network_address_translation` - (Deprecated, List) Contains the network address translation details (for on-prem locations only).
 

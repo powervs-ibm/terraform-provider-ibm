@@ -288,6 +288,7 @@ const (
 	Attr_DNS                                 = "dns"
 	Attr_EffectiveProcessorCompatibilityMode = "effective_processor_compatibility_mode"
 	Attr_Enabled                             = "enabled"
+	Attr_EnableDHCP                          = "enable_dhcp"
 	Attr_Endianness                          = "endianness"
 	Attr_Error                               = "error"
 	Attr_ErrorCode                           = "error_code"
