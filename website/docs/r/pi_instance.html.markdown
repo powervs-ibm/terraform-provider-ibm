@@ -100,6 +100,7 @@ Review the argument references that you can specify for your resource.
 - `pi_key_pair_name` - (Optional, String) The name of the SSH key that you want to use to access your Power Systems Virtual Server instance. The SSH key must be uploaded to IBM Cloud.
 - `pi_license_repository_capacity` - (Optional, Integer) The VTL license repository capacity TiB value. Only use with VTL instances. `pi_memory >= 16 + (2 * pi_license_repository_capacity)`.
 - `pi_memory` - (Optional, Float) The amount of memory that you want to assign to your instance in GiB.
+  - Required when not creating SAP instances. Conflicts with `pi_sap_profile_id`.
 - `pi_metadata_service` - (Optional, List) The metadata service configuration for the instance. Max items: 1.
 
   Nested scheme for `pi_metadata_service`:
