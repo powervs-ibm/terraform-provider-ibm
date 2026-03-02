@@ -191,6 +191,11 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
+			Attr_EnableDHCP: {
+				Computed:    true,
+				Description: "DHCP Enabled Network.",
+				Type:        schema.TypeBool,
+			},
 			Attr_NetworkAddressTranslation: {
 				Computed:    true,
 				Deprecated:  "This field is deprecated",
@@ -395,7 +400,7 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	d.Set(Arg_NetworkMTU, networkdata.Mtu)
 	d.Set(Arg_NetworkName, networkdata.Name)
 	d.Set(Arg_NetworkType, networkdata.Type)
-	d.Set(Arg_EnableDHCP, networkdata.EnableDHCP)
+	d.Set(Attr_EnableDHCP, networkdata.EnableDHCP)
 	d.Set(Attr_NetworkID, networkdata.NetworkID)
 	networkAddressTranslation := []map[string]interface{}{}
 	if networkdata.NetworkAddressTranslation != nil {
