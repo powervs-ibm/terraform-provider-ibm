@@ -1273,22 +1273,29 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		body := &models.PVMInstanceUpdate{}
 		body.MetadataService = expandUpdateMetadataService(d.Get(Arg_MetadataService))
 		if body.MetadataService != nil {
+			stopRequired := false
 			if !body.MetadataService.Force {
-				status := d.Get(Attr_Status).(string)
-				if strings.ToLower(status) != State_Shutoff {
-					err := stopLparForResourceChange(ctx, client, instanceID, d)
+				instance, err := client.Get(instanceID)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				if !strings.EqualFold(*instance.Status, State_Shutoff) {
+					err = stopLparForResourceChange(ctx, client, instanceID, d)
 					if err != nil {
 						return diag.FromErr(err)
 					}
+					stopRequired = true
 				}
 			}
 			_, err = client.Update(instanceID, body)
 			if err != nil {
 				return diag.Errorf("failed to update the lpar with the change for metadata service: %v", err)
 			}
-			err := startLparAfterResourceChange(ctx, client, instanceID, d)
-			if err != nil {
-				return diag.FromErr(err)
+			if stopRequired {
+				err = startLparAfterResourceChange(ctx, client, instanceID, d)
+				if err != nil {
+					return diag.FromErr(err)
+				}
 			}
 		}
 	}
