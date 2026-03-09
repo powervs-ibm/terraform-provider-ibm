@@ -67,6 +67,7 @@ var (
 	FloatingIpID                    string
 	HpcsInstanceID                  string
 	HpcsInstanceName                string
+	IAMAccessGroupId                string
 	IAMAccountId                    string
 	IAMServiceId                    string
 	IAMTrustedProfileID             string
@@ -269,6 +270,8 @@ var (
 	Pi_route_id                       string
 	Pi_sap_image                      string
 	Pi_sap_profile_id                 string
+	Pi_secondary_workspace_id_1       string
+	Pi_secondary_workspace_id_2       string
 	Pi_shared_processor_pool_id       string
 	Pi_snapshot_id                    string
 	Pi_spp_placement_group_id         string
@@ -537,6 +540,11 @@ func init() {
 	IAMUser = os.Getenv("IBM_IAMUSER")
 	if IAMUser == "" {
 		fmt.Println("[WARN] Set the environment variable IBM_IAMUSER for testing ibm_iam_user_policy resource Some tests for that resource will fail if this is not set correctly")
+	}
+
+	IAMAccessGroupId = os.Getenv("IBM_IAM_ACCESS_GROUP_ID")
+	if IAMAccessGroupId == "" {
+		fmt.Println("[WARN] Set the environment variable IBM_IAM_ACCESS_GROUP_ID for testing ibm_iam_user_invite resource Some tests for that resource will fail if this is not set correctly")
 	}
 
 	IAMAccountId = os.Getenv("IBM_IAMACCOUNTID")
@@ -1513,6 +1521,16 @@ func init() {
 	if Pi_host_group_id == "" {
 		Pi_host_group_id = ""
 		fmt.Println("[WARN] Set the environment variable PI_HOST_GROUP_ID for testing ibm_pi_host resource else it is set to default value ''")
+	}
+	Pi_secondary_workspace_id_1 = os.Getenv("PI_SECONDARY_WORKSPACE_ID_1")
+	if Pi_secondary_workspace_id_1 == "" {
+		Pi_secondary_workspace_id_1 = ""
+		fmt.Println("[WARN] Set the environment variable PI_SECONDARY_WORKSPACE_ID_1 for testing ibm_pi_host_group update else it is set to default value ''")
+	}
+	Pi_secondary_workspace_id_2 = os.Getenv("PI_SECONDARY_WORKSPACE_ID_2")
+	if Pi_secondary_workspace_id_2 == "" {
+		Pi_secondary_workspace_id_2 = ""
+		fmt.Println("[WARN] Set the environment variable PI_SECONDARY_WORKSPACE_ID_2 for testing ibm_pi_host_group update else it is set to default value ''")
 	}
 	Pi_host_id = os.Getenv("PI_HOST_ID")
 	if Pi_host_id == "" {
