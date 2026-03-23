@@ -37,6 +37,11 @@ func DataSourceIBMPIInstances() *schema.Resource {
 				Description: "List of power virtual server instances for the respective cloud instance.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_AllowRemoteRestart: {
+							Computed:    true,
+							Description: "Indicates if the server allows server to be restarted from remote.",
+							Type:        schema.TypeBool,
+						},
 						Attr_CRN: {
 							Computed:    true,
 							Description: "The CRN of this resource.",
@@ -302,6 +307,7 @@ func flattenPvmInstances(list []*models.PVMInstanceReference, meta any) []map[st
 	result := make([]map[string]any, 0, len(list))
 	for _, i := range list {
 		l := map[string]any{
+			Attr_AllowRemoteRestart:                  i.AllowRemoteRestart,
 			Attr_DedicatedHostID:                     i.DedicatedHostID,
 			Attr_EffectiveProcessorCompatibilityMode: i.EffectiveProcessorCompatibilityMode,
 			Attr_LicenseRepositoryCapacity:           i.LicenseRepositoryCapacity,
