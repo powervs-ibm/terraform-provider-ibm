@@ -42,3 +42,35 @@ func testAccCheckIBMPIImageExportConfig() string {
 		}
 	`, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region, acc.Pi_image)
 }
+
+func TestAccIBMPIImageExportEndpoint(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIImageExportEndpointConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("ibm_pi_image_export.power_image_export_endpoint", "id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckIBMPIImageExportEndpointConfig() string {
+	return fmt.Sprintf(`
+		data "ibm_pi_image" "power_image_ep" {
+			pi_image_id          = "%[5]s"
+			pi_cloud_instance_id = "%[1]s"
+		}
+		resource "ibm_pi_image_export" "power_image_export_endpoint" {
+			pi_image_id               = data.ibm_pi_image.power_image_ep.id
+			pi_cloud_instance_id      = "%[1]s"
+			pi_image_bucket_name      = "%[2]s"
+			pi_image_access_key       = "%[3]s"
+			pi_image_secret_key       = "%[4]s"
+			pi_endpoint               = "%[6]s"
+		}
+	`, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image, acc.Pi_endpoint)
+}

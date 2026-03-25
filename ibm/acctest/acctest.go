@@ -252,6 +252,7 @@ var (
 	Pi_image_bucket_access_key        string
 	Pi_image_bucket_file_name         string
 	Pi_image_bucket_name              string
+	Pi_endpoint                       string
 	Pi_image_bucket_region            string
 	Pi_image_bucket_secret_key        string
 	Pi_image_id                       string
@@ -1255,6 +1256,11 @@ func init() {
 	if Pi_image_bucket_region == "" {
 		Pi_image_bucket_region = "us-east"
 		fmt.Println("[INFO] Set the environment variable PI_IMAGE_BUCKET_REGION for testing ibm_pi_image resource else it is set to default value 'us-east'")
+	}
+
+	Pi_endpoint = os.Getenv("PI_ENDPOINT")
+	if Pi_endpoint == "" {
+		fmt.Println("[INFO] Set the environment variable PI_ENDPOINT for testing ibm_pi_image and ibm_pi_image_export resources with S3-compatible endpoints")
 	}
 
 	Pi_image_id = os.Getenv("PI_IMAGE_ID")
