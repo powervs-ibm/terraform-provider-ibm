@@ -69,6 +69,15 @@ Review the argument references that you can specify for your resource.
 - `pi_anti_affinity_volumes`- (Optional, String) List of volumes to base storage anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_instances` is not provided.
 - `pi_boot_volume_replication_enabled` - (Optional, Boolean) Indicates if the boot volume should be replication enabled or not.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_default_trusted_profile` - (Optional, List) default IAM trusted profile to use for this virtual server instance. Max items: 1.
+
+  Nested scheme for `pi_default_trusted_profile`:
+  - `autolink` - (Optional, Boolean) If set to true, the system will create a link to the specified trusted profile during server creation. Regardless of whether a link is created by the system or manually using the IAM Identity service, it will be automatically deleted when the server is deleted.
+  - `target` - (Required, List) Either the ID or the CRN of the target. Max items: 1.
+
+    Nested scheme for `target`:
+    - `crn` - (Optional, String) The CRN for the trusted profile. Conflicts with `id`.
+    - `id` - (Optional, String) Unique identifier for the trusted profile. Conflicts with `crn`.
 - `pi_deployment_target` - (Optional, List) The deployment of a dedicated host. Max items: 1.
   
   Nested scheme for `pi_deployment_target` :
@@ -92,6 +101,11 @@ Review the argument references that you can specify for your resource.
 - `pi_license_repository_capacity` - (Optional, Integer) The VTL license repository capacity TiB value. Only use with VTL instances. `pi_memory >= 16 + (2 * pi_license_repository_capacity)`.
 - `pi_memory` - (Optional, Float) The amount of memory that you want to assign to your instance in GiB.
   - Required when not creating SAP instances. Conflicts with `pi_sap_profile_id`.
+- `pi_metadata_service` - (Optional, List) The metadata service configuration for the instance. Max items: 1.
+
+  Nested scheme for `pi_metadata_service`:
+  - `enabled` - (Required, Boolean) Indicates whether the metadata service endpoint will be available to the virtual server.
+  - `force` - (Optional, Boolena). When true, the MDS update is forced to proceed while the VM is running. Default value is `false`.
 - `pi_network` - (Required, List of Map) List of one or more networks to attach to the instance.
 
   The `pi_network` block supports:
