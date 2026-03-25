@@ -38,6 +38,13 @@ func ResourceIBMPIImageExport() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_Endpoint: {
+				ConflictsWith: []string{Arg_ImageBucketRegion},
+				Description:   "S3 compatible endpoint URL; required if pi_image_bucket_region not provided",
+				ForceNew:      true,
+				Optional:      true,
+				Type:          schema.TypeString,
+			},
 			Arg_ImageAccessKey: {
 				Description:  "Cloud Object Storage access key; required for buckets with private access",
 				ForceNew:     true,
@@ -54,11 +61,11 @@ func ResourceIBMPIImageExport() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			Arg_ImageBucketRegion: {
-				Description:  "Cloud Object Storage region",
-				ForceNew:     true,
-				Required:     true,
-				Type:         schema.TypeString,
-				ValidateFunc: validation.NoZeroValues,
+				ConflictsWith: []string{Arg_Endpoint},
+				Description:   "Cloud Object Storage region; required if pi_endpoint not provided",
+				ForceNew:      true,
+				Optional:      true,
+				Type:          schema.TypeString,
 			},
 			Arg_ImageID: {
 				Description:      "Instance image id",
@@ -93,20 +100,35 @@ func resourceIBMPIImageExportCreate(ctx context.Context, d *schema.ResourceData,
 	accessKey := d.Get(Arg_ImageAccessKey).(string)
 
 	client := instance.NewIBMPIImageClient(ctx, sess, cloudInstanceID)
-
+	_, hasRegion := d.GetOk(Arg_ImageBucketRegion)
+	_, hasEndpoint := d.GetOk(Arg_Endpoint)
+	if !hasRegion && !hasEndpoint {
+		return diag.Errorf("one of pi_image_bucket_region or pi_endpoint must be provided")
+	}
 	// image export
 	var body = &models.ExportImage{
 		BucketName: &bucketName,
 		AccessKey:  &accessKey,
-		Region:     d.Get(Arg_ImageBucketRegion).(string),
 		SecretKey:  d.Get(Arg_ImageSecretKey).(string),
+	}
+	if hasRegion {
+		body.Region = d.Get(Arg_ImageBucketRegion).(string)
+	}
+	if hasEndpoint {
+		body.Endpoint = d.Get(Arg_Endpoint).(string)
+	}
+
+	// Use region or endpoint as the location identifier in the resource ID
+	locationID := d.Get(Arg_ImageBucketRegion).(string)
+	if locationID == "" {
+		locationID = d.Get(Arg_Endpoint).(string)
 	}
 
 	imageResponse, err := client.ExportImage(imageid, body)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(fmt.Sprintf("%s/%s/%s", imageid, bucketName, d.Get(Arg_ImageBucketRegion).(string)))
+	d.SetId(fmt.Sprintf("%s/%s/%s", imageid, bucketName, locationID))
 
 	jobClient := instance.NewIBMPIJobClient(ctx, sess, cloudInstanceID)
 	_, err = waitForIBMPIJobCompleted(ctx, jobClient, *imageResponse.ID, d.Timeout(schema.TimeoutCreate))
