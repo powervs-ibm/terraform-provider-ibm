@@ -35,7 +35,7 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		CustomizeDiff: customdiff.Sequence(
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
 				return flex.ResourcePowerUserTagsCustomizeDiff(diff)
 			},
 		),
@@ -90,7 +90,7 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 	}
 }
 
-func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "create")
@@ -106,8 +106,8 @@ func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.Reso
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
 	var vpmemVolumes []*models.VPMemVolumeCreate
-	for _, v := range d.Get(Arg_VPMEMVolumes).([]interface{}) {
-		vol := v.(map[string]interface{})
+	for _, v := range d.Get(Arg_VPMEMVolumes).([]any) {
+		vol := v.(map[string]any)
 		vpmemVolume := resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(vol)
 		vpmemVolumes = append(vpmemVolumes, vpmemVolume)
 	}
@@ -134,7 +134,7 @@ func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.Reso
 	return resourceIBMPIInstanceVpmemVolumesRead(ctx, d, meta)
 }
 
-func resourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "read")
@@ -171,7 +171,7 @@ func resourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.Resour
 	return nil
 }
 
-func resourceIBMPIInstanceVpmemVolumesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceVpmemVolumesDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "delete")
@@ -206,7 +206,7 @@ func resourceIBMPIInstanceVpmemVolumesDelete(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(modelMap map[string]interface{}) *models.VPMemVolumeCreate {
+func resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(modelMap map[string]any) *models.VPMemVolumeCreate {
 	model := &models.VPMemVolumeCreate{}
 	model.Name = core.StringPtr(modelMap[Attr_Name].(string))
 	model.Size = core.Int64Ptr(int64(modelMap[Attr_Size].(int)))
@@ -225,8 +225,9 @@ func isWaitForVpmemAvailable(ctx context.Context, client *instance.IBMPIVPMEMCli
 
 	return stateConf.WaitForStateContext(ctx)
 }
+
 func isVpmemRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID, volID string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		vpmemVol, err := client.GetPvmVpmemVolume(instanceID, volID)
 		if err != nil {
@@ -243,6 +244,7 @@ func isVpmemRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID, volID str
 		return vpmemVol, State_Configuring, nil
 	}
 }
+
 func isWaitForVpmemDeleted(ctx context.Context, client *instance.IBMPIVPMEMClient, instanceID, volID string, timeout time.Duration) (any, error) {
 
 	stateConf := &retry.StateChangeConf{
