@@ -91,6 +91,34 @@ func testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name, instanceHealthStatus
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus, acc.PiStorageType, action)
 }
 
+func TestAccIBMPIInstancevpmemVolumesUpdate(t *testing.T) {
+	name := fmt.Sprintf("tf-pvm-vpmem-%d", acctest.RandIntRange(10, 100))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstancevpmemVolumesDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name, power.OK, power.Action_Stop),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "volumes.#", "1"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "pi_vpmem_volumes.name", name+"-1"),
+				),
+			},
+			{
+				Config: testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name+"-2", power.OK, power.Action_Stop),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "volumes.#", "1"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "pi_vpmem_volumes.name", name+"-2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckIBMPIInstancevpmemVolumesExists(n string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
