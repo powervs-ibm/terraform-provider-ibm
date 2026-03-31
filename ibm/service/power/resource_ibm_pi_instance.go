@@ -335,7 +335,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description:  "Storage Connectivity Group for server deployment",
 				Optional:     true,
 				Type:         schema.TypeString,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{vSCSI, MaxVolumeSupport}),
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{MaxVolumeSupport}),
 			},
 			Arg_SysType: {
 				Computed:    true,
