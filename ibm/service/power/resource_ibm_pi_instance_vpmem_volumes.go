@@ -7,36 +7,83 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/IBM-Cloud/power-go-client/clients/instance"
+	"github.com/IBM-Cloud/power-go-client/power/models"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
+	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/IBM-Cloud/power-go-client/clients/instance"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
-	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
-	"github.com/IBM/go-sdk-core/v5/core"
-
-	"github.com/IBM-Cloud/power-go-client/power/models"
 )
 
 func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceIBMPIInstanceVpmemVolumesCreate,
 		ReadContext:   resourceIBMPIInstanceVpmemVolumesRead,
+		UpdateContext: resourceIBMPIInstanceVpmemVolumesUpdate,
 		DeleteContext: resourceIBMPIInstanceVpmemVolumesDelete,
 		Importer:      &schema.ResourceImporter{},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
 		},
 		CustomizeDiff: customdiff.Sequence(
 			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				return flex.ResourcePowerUserTagsCustomizeDiff(diff)
+			},
+
+			// When volumes are renamed, propagate only the name change into the
+			// computed Attr_Volumes so Terraform shows a precise diff (old→new)
+			// rather than marking every volume as (known after apply).
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
+				if !diff.HasChange(Arg_VPMEMVolumes) {
+					return nil
+				}
+				old, new := diff.GetChange(Arg_VPMEMVolumes)
+
+				// Build size->name maps for old and new to detect renames.
+				oldBySize := make(map[int]string)
+				for _, v := range old.(*schema.Set).List() {
+					vol := v.(map[string]any)
+					oldBySize[vol[Attr_Size].(int)] = vol[Attr_Name].(string)
+				}
+				renameMap := make(map[string]string) // old name -> new name
+				for _, v := range new.(*schema.Set).List() {
+					vol := v.(map[string]any)
+					size := vol[Attr_Size].(int)
+					newName := vol[Attr_Name].(string)
+					if oldName, ok := oldBySize[size]; ok && oldName != newName {
+						renameMap[oldName] = newName
+					}
+				}
+				if len(renameMap) == 0 {
+					return nil
+				}
+
+				// Apply renames to the current Attr_Volumes state.
+				currentSet := diff.Get(Attr_Volumes).(*schema.Set)
+				updated := make([]map[string]any, 0, currentSet.Len())
+				for _, elem := range currentSet.List() {
+					vol := elem.(map[string]any)
+					entry := make(map[string]any, len(vol))
+					maps.Copy(entry, vol)
+					if name, ok := vol[Attr_Name].(string); ok {
+						if newName, ok := renameMap[name]; ok {
+							entry[Attr_Name] = newName
+						}
+					}
+					updated = append(updated, entry)
+				}
+				return diff.SetNew(Attr_Volumes, updated)
 			},
 		),
 		Schema: map[string]*schema.Schema{
@@ -77,11 +124,10 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 						},
 					},
 				},
-				ForceNew: true,
 				MaxItems: 4,
 				MinItems: 1,
 				Required: true,
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 			},
 
 			// Attributes
@@ -105,8 +151,13 @@ func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.Reso
 	if tags, ok := d.GetOk(Arg_UserTags); ok {
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
+
+	var vpmemList []any
+	if v, ok := d.GetOk(Arg_VPMEMVolumes); ok {
+		vpmemList = v.(*schema.Set).List()
+	}
 	var vpmemVolumes []*models.VPMemVolumeCreate
-	for _, v := range d.Get(Arg_VPMEMVolumes).([]interface{}) {
+	for _, v := range vpmemList {
 		vol := v.(map[string]interface{})
 		vpmemVolume := resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(vol)
 		vpmemVolumes = append(vpmemVolumes, vpmemVolume)
@@ -162,13 +213,83 @@ func resourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.Resour
 	volumes := []map[string]any{}
 	if vpmemVolumes.Volumes != nil {
 		for _, volume := range vpmemVolumes.Volumes {
-			vpmemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
-			volumes = append(volumes, vpmemVol)
+			volumes = append(volumes, dataSourceIBMPIVPMEMVolumeToMap(volume, meta))
 		}
 	}
-	d.Set(Attr_Volumes, volumes)
+	if err := d.Set(Attr_Volumes, volumes); err != nil {
+		log.Printf("[WARN] ibm_pi_instance_vpmem_volumes read: d.Set(%s) failed: %s", Attr_Volumes, err)
+	}
 
 	return nil
+}
+
+func resourceIBMPIInstanceVpmemVolumesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	sess, err := meta.(conns.ClientSession).IBMPISession()
+	if err != nil {
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("IBMPISession failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
+	}
+
+	parts, err := flex.SepIdParts(d.Id(), "/")
+	if err != nil {
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("SepIdParts failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
+	}
+	client := instance.NewIBMPIVPMEMClient(ctx, sess, parts[0])
+
+	if d.HasChange(Arg_VPMEMVolumes) {
+		// Build nameToID from prior Attr_Volumes state.
+		volumeList, _ := d.GetChange(Attr_Volumes)
+		nameToID := make(map[string]string)
+		for _, v := range volumeList.(*schema.Set).List() {
+			vol := v.(map[string]any)
+			nameToID[vol[Attr_Name].(string)] = vol[Attr_VolumeID].(string)
+		}
+
+		old, new := d.GetChange(Arg_VPMEMVolumes)
+		// TypeSet ordering is hash-based so index comparison is unreliable.
+		// detect renames via set-difference matched by size.
+		oldBySize := make(map[int]string) // size -> old name
+		for _, v := range old.(*schema.Set).List() {
+			vol := v.(map[string]any)
+			oldBySize[vol[Attr_Size].(int)] = vol[Attr_Name].(string)
+		}
+
+		var newNames []string
+		for _, v := range new.(*schema.Set).List() {
+			vol := v.(map[string]any)
+			newName := vol[Attr_Name].(string)
+			size := vol[Attr_Size].(int)
+			oldName, ok := oldBySize[size]
+			if !ok || oldName == newName {
+				continue
+			}
+			volID := nameToID[oldName]
+			if volID == "" {
+				continue
+			}
+			if err := client.UpdatePvmVpmemVolume(parts[1], volID, &models.VPMemVolumeUpdate{
+				Name: flex.PtrToString(newName),
+			}); err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdatePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			newNames = append(newNames, newName)
+		}
+
+		if len(newNames) > 0 {
+			if _, err := isWaitForVpmemUpdated(ctx, client, parts[1], newNames, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemUpdated failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+		}
+	}
+
+	return resourceIBMPIInstanceVpmemVolumesRead(ctx, d, meta)
 }
 
 func resourceIBMPIInstanceVpmemVolumesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -225,9 +346,9 @@ func isWaitForVpmemAvailable(ctx context.Context, client *instance.IBMPIVPMEMCli
 
 	return stateConf.WaitForStateContext(ctx)
 }
+
 func isVpmemRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID, volID string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		vpmemVol, err := client.GetPvmVpmemVolume(instanceID, volID)
 		if err != nil {
 			return nil, "", flex.FmtErrorf("[ERROR] error getting vpmem %s", err)
@@ -243,8 +364,8 @@ func isVpmemRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID, volID str
 		return vpmemVol, State_Configuring, nil
 	}
 }
-func isWaitForVpmemDeleted(ctx context.Context, client *instance.IBMPIVPMEMClient, instanceID, volID string, timeout time.Duration) (any, error) {
 
+func isWaitForVpmemDeleted(ctx context.Context, client *instance.IBMPIVPMEMClient, instanceID, volID string, timeout time.Duration) (any, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{State_Retry, State_Deleting},
 		Target:     []string{State_NotFound},
@@ -264,5 +385,43 @@ func isVpmemDeleteRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID, vol
 			return vpmemVol, State_NotFound, nil
 		}
 		return vpmemVol, State_Deleting, nil
+	}
+}
+
+func isWaitForVpmemUpdated(ctx context.Context, client *instance.IBMPIVPMEMClient, instanceID string, newNames []string, timeout time.Duration) (*models.VPMemVolumes, error) {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{State_Updating},
+		Target:     []string{State_Completed},
+		Refresh:    isVpmemUpdateRefreshFunc(client, instanceID, newNames),
+		Delay:      Timeout_Delay,
+		MinTimeout: Retry_Delay,
+		Timeout:    timeout,
+	}
+
+	result, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	vols, _ := result.(*models.VPMemVolumes)
+	return vols, nil
+}
+
+func isVpmemUpdateRefreshFunc(client *instance.IBMPIVPMEMClient, instanceID string, newNames []string) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		vpmemVolumes, err := client.GetAllPvmVpmemVolumes(instanceID)
+		if err != nil {
+			return nil, "", flex.FmtErrorf("[ERROR] error getting vpmem volumes: %s", err)
+		}
+
+		numFound := 0
+		for _, vpmemVolume := range vpmemVolumes.Volumes {
+			if slices.Contains(newNames, *vpmemVolume.Name) {
+				numFound++
+			}
+		}
+		if numFound == len(newNames) {
+			return vpmemVolumes, State_Completed, nil
+		}
+		return vpmemVolumes, State_Updating, nil
 	}
 }
