@@ -266,8 +266,8 @@ func resourceIBMPIInstanceVpmemVolumesUpdate(ctx context.Context, d *schema.Reso
 
 	if d.HasChange(Arg_VPMEMVolumes) {
 		old, new := d.GetChange(Arg_VPMEMVolumes)
-		oldList := old.([]interface{})
-		newList := new.([]interface{})
+		oldList := old.([]any)
+		newList := new.([]any)
 
 		// TypeList preserves index order: old[i] and new[i] are the same volume.
 		var updatedNames []string
