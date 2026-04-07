@@ -44,24 +44,23 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 			// When volumes are renamed, propagate only the name change into the
 			// computed Attr_Volumes so Terraform shows a precise diff (old→new)
 			// rather than marking every volume as (known after apply).
-			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
+			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				if !diff.HasChange(Arg_VPMEMVolumes) {
 					return nil
 				}
 				old, new := diff.GetChange(Arg_VPMEMVolumes)
+				oldList := old.([]any)
+				newList := new.([]any)
 
-				// Build size->name maps for old and new to detect renames.
-				oldBySize := make(map[int]string)
-				for _, v := range old.(*schema.Set).List() {
-					vol := v.(map[string]any)
-					oldBySize[vol[Attr_Size].(int)] = vol[Attr_Name].(string)
-				}
+				// TypeList preserves index order, so old[i] always corresponds to new[i].
 				renameMap := make(map[string]string) // old name -> new name
-				for _, v := range new.(*schema.Set).List() {
-					vol := v.(map[string]any)
-					size := vol[Attr_Size].(int)
-					newName := vol[Attr_Name].(string)
-					if oldName, ok := oldBySize[size]; ok && oldName != newName {
+				for i, v := range newList {
+					if i >= len(oldList) {
+						break
+					}
+					oldName := oldList[i].(map[string]any)[Attr_Name].(string)
+					newName := v.(map[string]any)[Attr_Name].(string)
+					if oldName != newName {
 						renameMap[oldName] = newName
 					}
 				}
@@ -74,14 +73,14 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 				updated := make([]map[string]any, 0, currentSet.Len())
 				for _, elem := range currentSet.List() {
 					vol := elem.(map[string]any)
-					entry := make(map[string]any, len(vol))
-					maps.Copy(entry, vol)
+					vpmem := make(map[string]any, len(vol))
+					maps.Copy(vpmem, vol)
 					if name, ok := vol[Attr_Name].(string); ok {
 						if newName, ok := renameMap[name]; ok {
-							entry[Attr_Name] = newName
+							vpmem[Attr_Name] = newName
 						}
 					}
-					updated = append(updated, entry)
+					updated = append(updated, vpmem)
 				}
 				return diff.SetNew(Attr_Volumes, updated)
 			},
@@ -122,12 +121,17 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 							Required:    true,
 							Type:        schema.TypeInt,
 						},
+						Attr_VolumeID: {
+							Computed:    true,
+							Description: "Volume ID.",
+							Type:        schema.TypeString,
+						},
 					},
 				},
 				MaxItems: 4,
 				MinItems: 1,
 				Required: true,
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 			},
 
 			// Attributes
@@ -154,11 +158,11 @@ func resourceIBMPIInstanceVpmemVolumesCreate(ctx context.Context, d *schema.Reso
 
 	var vpmemList []any
 	if v, ok := d.GetOk(Arg_VPMEMVolumes); ok {
-		vpmemList = v.(*schema.Set).List()
+		vpmemList = v.([]any)
 	}
 	var vpmemVolumes []*models.VPMemVolumeCreate
 	for _, v := range vpmemList {
-		vol := v.(map[string]interface{})
+		vol := v.(map[string]any)
 		vpmemVolume := resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(vol)
 		vpmemVolumes = append(vpmemVolumes, vpmemVolume)
 	}
@@ -210,15 +214,36 @@ func resourceIBMPIInstanceVpmemVolumesRead(ctx context.Context, d *schema.Resour
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 		return tfErr.GetDiag()
 	}
+	volIDMap := make(map[string]string)
+	if vpmemVolumes.Volumes != nil {
+		for _, vol := range vpmemVolumes.Volumes {
+			if vol.Name != nil && vol.UUID != nil {
+				volIDMap[*vol.Name] = *vol.UUID
+			}
+		}
+	}
+	vpmemList := d.Get(Arg_VPMEMVolumes).([]any)
+	updatedVpmem := make([]map[string]any, 0, len(vpmemList))
+	for _, v := range vpmemList {
+		vol := v.(map[string]any)
+		vpmem := map[string]any{
+			Attr_Name: vol[Attr_Name],
+			Attr_Size: vol[Attr_Size],
+		}
+		if id, ok := volIDMap[vol[Attr_Name].(string)]; ok {
+			vpmem[Attr_VolumeID] = id
+		}
+		updatedVpmem = append(updatedVpmem, vpmem)
+	}
+	d.Set(Arg_VPMEMVolumes, updatedVpmem)
+
 	volumes := []map[string]any{}
 	if vpmemVolumes.Volumes != nil {
 		for _, volume := range vpmemVolumes.Volumes {
 			volumes = append(volumes, dataSourceIBMPIVPMEMVolumeToMap(volume, meta))
 		}
 	}
-	if err := d.Set(Attr_Volumes, volumes); err != nil {
-		log.Printf("[WARN] ibm_pi_instance_vpmem_volumes read: d.Set(%s) failed: %s", Attr_Volumes, err)
-	}
+	d.Set(Attr_Volumes, volumes)
 
 	return nil
 }
@@ -240,48 +265,43 @@ func resourceIBMPIInstanceVpmemVolumesUpdate(ctx context.Context, d *schema.Reso
 	client := instance.NewIBMPIVPMEMClient(ctx, sess, parts[0])
 
 	if d.HasChange(Arg_VPMEMVolumes) {
-		// Build nameToID from prior Attr_Volumes state.
-		volumeList, _ := d.GetChange(Attr_Volumes)
-		nameToID := make(map[string]string)
-		for _, v := range volumeList.(*schema.Set).List() {
-			vol := v.(map[string]any)
-			nameToID[vol[Attr_Name].(string)] = vol[Attr_VolumeID].(string)
-		}
-
 		old, new := d.GetChange(Arg_VPMEMVolumes)
-		// TypeSet ordering is hash-based so index comparison is unreliable.
-		// detect renames via set-difference matched by size.
-		oldBySize := make(map[int]string) // size -> old name
-		for _, v := range old.(*schema.Set).List() {
-			vol := v.(map[string]any)
-			oldBySize[vol[Attr_Size].(int)] = vol[Attr_Name].(string)
-		}
+		oldList := old.([]interface{})
+		newList := new.([]interface{})
 
-		var newNames []string
-		for _, v := range new.(*schema.Set).List() {
-			vol := v.(map[string]any)
-			newName := vol[Attr_Name].(string)
-			size := vol[Attr_Size].(int)
-			oldName, ok := oldBySize[size]
-			if !ok || oldName == newName {
+		// TypeList preserves index order: old[i] and new[i] are the same volume.
+		var updatedNames []string
+		for i, v := range newList {
+			newVol := v.(map[string]any)
+			oldVol := oldList[i].(map[string]any)
+			newName := newVol[Attr_Name].(string)
+			oldName := oldVol[Attr_Name].(string)
+			oldSize := oldVol[Attr_Size].(int)
+			newSize := newVol[Attr_Size].(int)
+			volID := oldVol[Attr_VolumeID].(string)
+
+			if oldSize != newSize {
+				opErr := flex.FmtErrorf("%s cannot be updated", Attr_Size)
+				tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			if newName == oldName || volID == "" {
 				continue
 			}
-			volID := nameToID[oldName]
-			if volID == "" {
-				continue
-			}
-			if err := client.UpdatePvmVpmemVolume(parts[1], volID, &models.VPMemVolumeUpdate{
+			err := client.UpdatePvmVpmemVolume(parts[1], volID, &models.VPMemVolumeUpdate{
 				Name: flex.PtrToString(newName),
-			}); err != nil {
+			})
+			if err != nil {
 				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdatePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
 				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 				return tfErr.GetDiag()
 			}
-			newNames = append(newNames, newName)
+			updatedNames = append(updatedNames, newName)
 		}
 
-		if len(newNames) > 0 {
-			if _, err := isWaitForVpmemUpdated(ctx, client, parts[1], newNames, d.Timeout(schema.TimeoutUpdate)); err != nil {
+		if len(updatedNames) > 0 {
+			if _, err := isWaitForVpmemUpdated(ctx, client, parts[1], updatedNames, d.Timeout(schema.TimeoutUpdate)); err != nil {
 				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemUpdated failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
 				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 				return tfErr.GetDiag()
