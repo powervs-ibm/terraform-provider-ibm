@@ -32,8 +32,8 @@ func TestAccIBMPIInstancevpmemVolumesBasic(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name, power.OK, power.Action_Stop),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance"),
-					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "volumes.#", "1"),
+					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes", "volumes.#", "1"),
 				),
 			},
 		},
@@ -102,17 +102,17 @@ func TestAccIBMPIInstancevpmemVolumesUpdate(t *testing.T) {
 			{
 				Config: testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name, power.OK, power.Action_Stop),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance"),
-					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "volumes.#", "1"),
-					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "pi_vpmem_volumes.name", name+"-1"),
+					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes", "volumes.#", "1"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes", "pi_vpmem_volumes.name", name+"-1"),
 				),
 			},
 			{
 				Config: testAccCheckIBMPIInstancevpmemVolumesConfigBasic(name+"-2", power.OK, power.Action_Stop),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance"),
-					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "volumes.#", "1"),
-					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes_instance", "pi_vpmem_volumes.name", name+"-2"),
+					testAccCheckIBMPIInstancevpmemVolumesExists("ibm_pi_instance_vpmem_volumes.vpmem_volumes"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes", "volumes.#", "1"),
+					resource.TestCheckResourceAttr("ibm_pi_instance_vpmem_volumes.vpmem_volumes", "pi_vpmem_volumes.name", name+"-2"),
 				),
 			},
 		},
