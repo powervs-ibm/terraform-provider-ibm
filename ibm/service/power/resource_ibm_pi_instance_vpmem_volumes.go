@@ -51,32 +51,33 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 				oldList := old.([]any)
 				newList := new.([]any)
 
-				if len(oldList) != 0 && len(oldList) != len(newList) {
-					opErr := flex.FmtErrorf("Number of vPMEM cannot be changed after resource is created. Please recreate resource to change that number ")
-					tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
-					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
-					return opErr
+				// if adding then set volumes.
+				if len(newList) > len(oldList) {
+					return diff.SetNewComputed(Attr_Volumes)
 				}
-
+				// This when removing. I try to figure out how to only have that volume remove.
+				// All I have is a place change on apply.
+				if len(newList) < len(oldList) {
+					newNameSet := make(map[string]bool)
+					for _, v := range newList {
+						newNameSet[v.(map[string]any)[Attr_Name].(string)] = true
+					}
+					oldVolumes, _ := diff.GetChange(Attr_Volumes)
+					oldSet := oldVolumes.(*schema.Set)
+					filtered := make([]map[string]any, 0, len(newList))
+					for _, elem := range oldSet.List() {
+						vol := elem.(map[string]any)
+						if name, ok := vol[Attr_Name].(string); ok && newNameSet[name] {
+							filtered = append(filtered, vol)
+						}
+					}
+					return diff.SetNew(Attr_Volumes, filtered)
+				}
 				// TypeList preserves index order, so old[i] always corresponds to new[i].
 				renameMap := make(map[string]string) // old name -> new name
 				for i, v := range newList {
-					if i >= len(oldList) {
-						break
-					}
-					newVol := v.(map[string]any)
-					oldVol := oldList[i].(map[string]any)
-					newName := newVol[Attr_Name].(string)
-					oldName := oldVol[Attr_Name].(string)
-					oldSize := oldVol[Attr_Size].(int)
-					newSize := newVol[Attr_Size].(int)
-
-					if oldSize != newSize {
-						opErr := flex.FmtErrorf("%s cannot be updated", Attr_Size)
-						tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
-						log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
-						return opErr
-					}
+					oldName := oldList[i].(map[string]any)[Attr_Name].(string)
+					newName := v.(map[string]any)[Attr_Name].(string)
 					if oldName != newName {
 						renameMap[oldName] = newName
 					}
@@ -287,49 +288,148 @@ func resourceIBMPIInstanceVpmemVolumesUpdate(ctx context.Context, d *schema.Reso
 		oldList := old.([]any)
 		newList := new.([]any)
 
-		if len(oldList) != 0 && len(oldList) != len(newList) {
-			opErr := flex.FmtErrorf("Number of vPMEM cannot be changed after resource is created. Please recreate resource to change that number ")
-			tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
-			log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
-			return tfErr.GetDiag()
+		// Build lookup tables from old state.
+		oldNameToID := make(map[string]string) // name -> volume_id
+		oldNameToSize := make(map[string]int)  // name -> size
+		oldIDToSize := make(map[string]int)    // volume_id -> size
+		for _, v := range oldList {
+			vol := v.(map[string]any)
+			name := vol[Attr_Name].(string)
+			id := vol[Attr_VolumeID].(string)
+			size := vol[Attr_Size].(int)
+			oldNameToID[name] = id
+			oldNameToSize[name] = size
+			if id != "" {
+				oldIDToSize[id] = size
+			}
 		}
 
-		// TypeList preserves index order: old[i] and new[i] are the same volume.
+		newNameSet := make(map[string]bool)
+		for _, v := range newList {
+			newNameSet[v.(map[string]any)[Attr_Name].(string)] = true
+		}
+
+		// Volumes whose name is not in the new config are candidates for deletion or rename.
+		// Build the set keyed by volume_id.
+		toDelete := make(map[string]bool)
+		for oldName, oldID := range oldNameToID {
+			if !newNameSet[oldName] && oldID != "" {
+				toDelete[oldID] = true
+			}
+		}
+
+		// Process each new entry.
 		var updatedNames []string
+		var toCreate []map[string]any
 		for i, v := range newList {
 			newVol := v.(map[string]any)
-			oldVol := oldList[i].(map[string]any)
 			newName := newVol[Attr_Name].(string)
-			oldName := oldVol[Attr_Name].(string)
-			oldSize := oldVol[Attr_Size].(int)
 			newSize := newVol[Attr_Size].(int)
-			volID := oldVol[Attr_VolumeID].(string)
 
-			if oldSize != newSize {
-				opErr := flex.FmtErrorf("%s cannot be updated", Attr_Size)
-				tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
-				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
-				return tfErr.GetDiag()
-			}
-			if newName == oldName || volID == "" {
+			if oldSize, kept := oldNameToSize[newName]; kept {
+				// Existing volume — only size changes are rejected.
+				if oldSize != newSize {
+					opErr := flex.FmtErrorf("%s cannot be updated", Attr_Size)
+					tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
 				continue
 			}
-			var vpmemVolumeUpdate models.VPMemVolumeUpdate
-			vpmemVolumeUpdate.Name = &newName
-			err := client.UpdatePvmVpmemVolume(parts[1], volID, &vpmemVolumeUpdate)
-			if err != nil {
-				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdatePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
-				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
-				return tfErr.GetDiag()
+
+			// New name: either a rename or a brand-new volume.
+			// Use the index-based volume_id as the primary rename
+			// if the volume that was at this index is being deleted and has the same size,
+			// it is being renamed to newName.
+			var renameID string
+			if i < len(oldList) {
+				idAtIndex := oldList[i].(map[string]any)[Attr_VolumeID].(string)
+				if toDelete[idAtIndex] && oldIDToSize[idAtIndex] == newSize {
+					renameID = idAtIndex
+					delete(toDelete, idAtIndex)
+				}
 			}
-			updatedNames = append(updatedNames, newName)
+			// Fall back to size-based matching among remaining deletion candidates
+			// handles removal-from-middle where index pointed to the wrong volume.
+			if renameID == "" {
+				for delID := range toDelete {
+					if oldIDToSize[delID] == newSize {
+						renameID = delID
+						delete(toDelete, delID)
+						break
+					}
+				}
+			}
+
+			if renameID != "" {
+				err := client.UpdatePvmVpmemVolume(parts[1], renameID, &models.VPMemVolumeUpdate{
+					Name: flex.PtrToString(newName),
+				})
+				if err != nil {
+					tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdatePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
+				updatedNames = append(updatedNames, newName)
+			} else {
+				toCreate = append(toCreate, newVol)
+			}
 		}
 
+		// Wait for all renames to propagate.
 		if len(updatedNames) > 0 {
 			if _, err := isWaitForVpmemUpdated(ctx, client, parts[1], updatedNames, d.Timeout(schema.TimeoutUpdate)); err != nil {
 				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemUpdated failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
 				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
 				return tfErr.GetDiag()
+			}
+		}
+
+		// Delete volumes that were removed and not matched to a rename.
+		deletedIDs := make(map[string]bool)
+		for volID := range toDelete {
+			err := client.DeletePvmVpmemVolume(parts[1], volID)
+			if err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeletePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			if _, err := isWaitForVpmemDeleted(ctx, client, parts[1], volID, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemDeleted failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			deletedIDs[volID] = true
+		}
+		if len(deletedIDs) > 0 {
+			newParts := parts[:2]
+			for _, p := range parts[2:] {
+				if !deletedIDs[p] {
+					newParts = append(newParts, p)
+				}
+			}
+			d.SetId(strings.Join(newParts, "/"))
+		}
+
+		// Create brand-new volumes.
+		for _, newVol := range toCreate {
+			created, err := client.CreatePvmVpmemVolumes(parts[1], &models.VPMemVolumeAttach{
+				VpmemVolumes: []*models.VPMemVolumeCreate{
+					resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(newVol),
+				},
+			})
+			if err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("CreatePvmVpmemVolumes failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			for _, vol := range created.Volumes {
+				if _, err = isWaitForVpmemAvailable(ctx, client, parts[1], *vol.UUID, d.Timeout(schema.TimeoutUpdate)); err != nil {
+					tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemAvailable failed: %s", err.Error()), "ibm_pi_instance_vpmem_volumes", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
+				d.SetId(d.Id() + "/" + *vol.UUID)
 			}
 		}
 	}
