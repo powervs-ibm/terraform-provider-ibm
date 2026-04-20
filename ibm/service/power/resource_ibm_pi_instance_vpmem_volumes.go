@@ -40,6 +40,7 @@ func ResourceIBMPIInstanceVpmemVolumes() *schema.Resource {
 			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
 				return flex.ResourcePowerUserTagsCustomizeDiff(diff)
 			},
+
 			// When volumes are renamed, propagate only the name change into the
 			// computed Attr_Volumes so Terraform shows a precise diff (old→new)
 			// rather than marking every volume as (known after apply).
@@ -401,6 +402,8 @@ func resourceIBMPIInstanceVpmemVolumesUpdate(ctx context.Context, d *schema.Reso
 			}
 			deletedIDs[volID] = true
 		}
+		// This block fixes the ID of the resource which should be the
+		// vpmem volume UUIDs stapled together
 		if len(deletedIDs) > 0 {
 			newParts := parts[:2]
 			for _, p := range parts[2:] {
