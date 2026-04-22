@@ -1190,13 +1190,17 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 		}
 
 	}
-	// TODO: Update with state if need be
+
 	if d.HasChange(Arg_AllowRemoteRestart) {
 		allowRemoteRestart := d.Get(Arg_AllowRemoteRestart).(bool)
 		body := &models.PVMInstanceUpdate{
 			AllowRemoteRestart: &allowRemoteRestart,
 		}
 		_, err = client.Update(instanceID, body)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		_, err = isWaitForPIInstanceAllowRemoteRestart(ctx, client, instanceID, allowRemoteRestart, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -2186,5 +2190,28 @@ func isPIInstanceVSNRemovedRefreshFunc(client *instance.IBMPIInstanceClient, id 
 		}
 
 		return pvm, State_Removing, nil
+	}
+}
+func isWaitForPIInstanceAllowRemoteRestart(ctx context.Context, client *instance.IBMPIInstanceClient, id string, arr bool, timeout time.Duration) (any, error) {
+	stateConf := &retry.StateChangeConf{
+		Delay:      Timeout_Delay,
+		MinTimeout: Timeout_Active,
+		Pending:    []string{State_InProgress},
+		Refresh:    isPIInstanceAllowRemoteRestart(client, id, arr),
+		Target:     []string{State_Available},
+		Timeout:    timeout,
+	}
+	return stateConf.WaitForStateContext(ctx)
+}
+func isPIInstanceAllowRemoteRestart(client *instance.IBMPIInstanceClient, id string, arr bool) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		pvm, err := client.Get(id)
+		if err != nil {
+			return nil, "", err
+		}
+		if arr != *pvm.AllowRemoteRestart {
+			return pvm, State_InProgress, nil
+		}
+		return pvm, State_Available, nil
 	}
 }
