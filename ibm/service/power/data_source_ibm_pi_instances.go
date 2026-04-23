@@ -307,7 +307,6 @@ func flattenPvmInstances(list []*models.PVMInstanceReference, meta any) []map[st
 	result := make([]map[string]any, 0, len(list))
 	for _, i := range list {
 		l := map[string]any{
-			Attr_AllowRemoteRestart:                  i.AllowRemoteRestart,
 			Attr_DedicatedHostID:                     i.DedicatedHostID,
 			Attr_EffectiveProcessorCompatibilityMode: i.EffectiveProcessorCompatibilityMode,
 			Attr_LicenseRepositoryCapacity:           i.LicenseRepositoryCapacity,
@@ -331,9 +330,11 @@ func flattenPvmInstances(list []*models.PVMInstanceReference, meta any) []map[st
 			Attr_Status:                              *i.Status,
 			Attr_StorageConnection:                   i.StorageConnection,
 			Attr_StoragePool:                         i.StoragePool,
-			Attr_StoragePoolAffinity:                 i.StoragePoolAffinity,
 			Attr_StorageType:                         i.StorageType,
 			Attr_VirtualCoresAssigned:                i.VirtualCores.Assigned,
+		}
+		if i.AllowRemoteRestart != nil {
+			l[Attr_AllowRemoteRestart] = i.AllowRemoteRestart
 		}
 
 		if i.Crn != "" {
@@ -351,6 +352,10 @@ func flattenPvmInstances(list []*models.PVMInstanceReference, meta any) []map[st
 
 		if i.Fault != nil {
 			l[Attr_Fault] = flattenPvmInstanceFault(i.Fault)
+		}
+
+		if i.StoragePoolAffinity != nil {
+			l[Attr_StoragePoolAffinity] = i.StoragePoolAffinity
 		}
 
 		if i.VirtualSerialNumber != nil {

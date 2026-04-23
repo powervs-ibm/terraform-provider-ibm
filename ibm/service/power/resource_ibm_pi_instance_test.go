@@ -1145,14 +1145,14 @@ func testAccIBMPIInstanceAllowRemoteRestart(name string, allowRemoteRestart bool
 	return fmt.Sprintf(`
 	data "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
-		pi_image_name        = "%[3]s"
+		pi_image_id        = "%[3]s"
 	}
 	data "ibm_pi_network" "power_networks" {
 		pi_cloud_instance_id = "%[1]s"
 		pi_network_id        = "%[5]s"
 	}
 	resource "ibm_pi_instance" "instance" {
-		pi_allow_remote_restart  = %[4]t
+		pi_allow_remote_restart  = "%[4]t"
 		pi_cloud_instance_id     = "%[1]s"
 		pi_image_id              = data.ibm_pi_image.power_image.id
 		pi_instance_name         = "%[2]s"
@@ -1164,7 +1164,7 @@ func testAccIBMPIInstanceAllowRemoteRestart(name string, allowRemoteRestart bool
 			network_id = data.ibm_pi_network.power_networks.pi_network_id
 		}
 	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, allowRemoteRestart, acc.Pi_network_id)
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image_id, allowRemoteRestart, acc.Pi_network_id)
 }
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
