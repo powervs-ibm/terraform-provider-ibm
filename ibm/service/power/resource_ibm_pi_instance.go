@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"maps"
 	"strings"
 	"time"
 
@@ -39,8 +40,71 @@ func ResourceIBMPIInstance() *schema.Resource {
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 		CustomizeDiff: customdiff.Sequence(
-			func(_ context.Context, diff *schema.ResourceDiff, v interface{}) error {
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
 				return flex.ResourcePowerUserTagsCustomizeDiff(diff)
+			},
+
+			// When volumes are renamed, propagate only the name change into the
+			// computed Attr_Volumes so Terraform shows a precise diff (old→new)
+			// rather than marking every volume as (known after apply).
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
+				if !diff.HasChange(Arg_VPMEMVolumes) {
+					return nil
+				}
+				old, new := diff.GetChange(Arg_VPMEMVolumes)
+				oldList := old.([]any)
+				newList := new.([]any)
+
+				// if adding then set volumes.
+				if len(newList) > len(oldList) {
+					return diff.SetNewComputed(Attr_Volumes)
+				}
+				// This when removing. I try to figure out how to only have that volume remove.
+				// All I have is a place change on apply.
+				if len(newList) < len(oldList) {
+					newNameSet := make(map[string]bool)
+					for _, v := range newList {
+						newNameSet[v.(map[string]any)[Attr_Name].(string)] = true
+					}
+					oldVolumes, _ := diff.GetChange(Attr_Volumes)
+					oldSet := oldVolumes.(*schema.Set)
+					filtered := make([]map[string]any, 0, len(newList))
+					for _, elem := range oldSet.List() {
+						vol := elem.(map[string]any)
+						if name, ok := vol[Attr_Name].(string); ok && newNameSet[name] {
+							filtered = append(filtered, vol)
+						}
+					}
+					return diff.SetNew(Attr_Volumes, filtered)
+				}
+				// TypeList preserves index order, so old[i] always corresponds to new[i].
+				renameMap := make(map[string]string) // old name -> new name
+				for i, v := range newList {
+					oldName := oldList[i].(map[string]any)[Attr_Name].(string)
+					newName := v.(map[string]any)[Attr_Name].(string)
+					if oldName != newName {
+						renameMap[oldName] = newName
+					}
+				}
+				if len(renameMap) == 0 {
+					return nil
+				}
+
+				// Apply renames to the current Attr_Volumes state.
+				currentSet := diff.Get(Attr_Volumes).(*schema.Set)
+				updated := make([]map[string]any, 0, currentSet.Len())
+				for _, elem := range currentSet.List() {
+					vol := elem.(map[string]any)
+					vpmem := make(map[string]any, len(vol))
+					maps.Copy(vpmem, vol)
+					if name, ok := vol[Attr_Name].(string); ok {
+						if newName, ok := renameMap[name]; ok {
+							vpmem[Attr_Name] = newName
+						}
+					}
+					updated = append(updated, vpmem)
+				}
+				return diff.SetNew(Attr_Volumes, updated)
 			},
 		),
 
@@ -421,6 +485,11 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Required:    true,
 							Type:        schema.TypeInt,
 						},
+						Attr_VolumeID: {
+							Computed:    true,
+							Description: "Volume ID.",
+							Type:        schema.TypeString,
+						},
 					},
 				},
 				Optional: true,
@@ -529,7 +598,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 	}
 }
 
-func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	log.Printf("Now in the PowerVMCreate")
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
@@ -625,7 +694,7 @@ func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 	return resourceIBMPIInstanceRead(ctx, d, meta)
 }
 
-func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -673,11 +742,11 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	d.Set(Arg_SharedProcessorPool, powervmdata.SharedProcessorPool)
 	d.Set(Attr_SharedProcessorPoolID, powervmdata.SharedProcessorPoolID)
 
-	networksMap := []map[string]interface{}{}
+	networksMap := []map[string]any{}
 	if powervmdata.Networks != nil {
 		for _, n := range powervmdata.Networks {
 			if n != nil {
-				v := map[string]interface{}{
+				v := map[string]any{
 					Attr_ExternalIP:         n.ExternalIP,
 					Attr_IPAddress:          n.IPAddress,
 					Attr_MacAddress:         n.MacAddress,
@@ -743,19 +812,53 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	d.Set(Arg_PreferredProcessorCompatibilityMode, powervmdata.PreferredProcessorCompatibilityMode)
 	d.Set(Attr_EffectiveProcessorCompatibilityMode, powervmdata.EffectiveProcessorCompatibilityMode)
-	vpmemVolumes := []map[string]any{}
+
+	vpmemVolumeClient := instance.NewIBMPIVPMEMClient(ctx, sess, cloudInstanceID)
+	vpmemVolumes, err := vpmemVolumeClient.GetAllPvmVpmemVolumes(instanceID)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), NotFound) {
+			d.SetId("")
+			return nil
+		}
+		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("GetAllPvmVpmemVolumes failed: %s", err.Error()), "ibm_pi_instance", "read")
+		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+		return tfErr.GetDiag()
+	}
+	volIDMap := make(map[string]string)
+	if vpmemVolumes.Volumes != nil {
+		for _, vol := range vpmemVolumes.Volumes {
+			if vol.Name != nil && vol.UUID != nil {
+				volIDMap[*vol.Name] = *vol.UUID
+			}
+		}
+	}
+	vpmemList := d.Get(Arg_VPMEMVolumes).([]any)
+	updatedVpmem := make([]map[string]any, 0, len(vpmemList))
+	for _, v := range vpmemList {
+		vol := v.(map[string]any)
+		vpmem := map[string]any{
+			Attr_Name: vol[Attr_Name],
+			Attr_Size: vol[Attr_Size],
+		}
+		if id, ok := volIDMap[vol[Attr_Name].(string)]; ok {
+			vpmem[Attr_VolumeID] = id
+		}
+		updatedVpmem = append(updatedVpmem, vpmem)
+	}
+
+	vpmemVolumesAttributes := []map[string]any{}
 	if len(powervmdata.VpmemVolumes) > 0 {
 		for _, volume := range powervmdata.VpmemVolumes {
 			vpmemVol := dataSourceIBMPIVPMEMVolumeToMap(volume, meta)
-			vpmemVolumes = append(vpmemVolumes, vpmemVol)
+			vpmemVolumesAttributes = append(vpmemVolumesAttributes, vpmemVol)
 		}
 	}
-	d.Set(Attr_VPMEMVolumes, vpmemVolumes)
+	d.Set(Attr_VPMEMVolumes, vpmemVolumesAttributes)
 
 	return nil
 }
 
-func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	name := d.Get(Arg_InstanceName).(string)
 	mem := d.Get(Arg_Memory).(float64)
 	procs := d.Get(Arg_Processors).(float64)
@@ -966,6 +1069,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			return diag.FromErr(err)
 		}
 	}
+
 	if d.HasChange(Arg_StoragePoolAffinity) {
 		storagePoolAffinity := d.Get(Arg_StoragePoolAffinity).(bool)
 		body := &models.PVMInstanceUpdate{
@@ -1022,6 +1126,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 		}
 	}
+
 	if d.HasChanges(Arg_IBMiCSS, Arg_IBMiPHA, Arg_IBMiRDSUsers) {
 		status := d.Get(Attr_Status).(string)
 		if strings.ToLower(status) == State_Active {
@@ -1053,6 +1158,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			return diag.FromErr(err)
 		}
 	}
+
 	if d.HasChange(Arg_UserTags) {
 		if crn, ok := d.GetOk(Attr_CRN); ok {
 			oldList, newList := d.GetChange(Arg_UserTags)
@@ -1074,7 +1180,7 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 			}
 
 			oldVSN, newVSN := d.GetChange(Arg_VirtualSerialNumber)
-			if len(oldVSN.([]interface{})) > 0 {
+			if len(oldVSN.([]any)) > 0 {
 				retainVSN := d.Get(Arg_RetainVirtualSerialNumber).(bool)
 				deleteBody := &models.DeleteServerVirtualSerialNumber{
 					RetainVSN: retainVSN,
@@ -1092,8 +1198,8 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				}
 			}
 
-			if len(newVSN.([]interface{})) > 0 {
-				newVSNMap := newVSN.([]interface{})[0].(map[string]interface{})
+			if len(newVSN.([]any)) > 0 {
+				newVSNMap := newVSN.([]any)[0].(map[string]any)
 				description := newVSNMap[Attr_Description].(string)
 				serial := newVSNMap[Attr_Serial].(string)
 				addBody := &models.AddServerVirtualSerialNumber{
@@ -1182,13 +1288,155 @@ func resourceIBMPIInstanceUpdate(ctx context.Context, d *schema.ResourceData, me
 				return diag.FromErr(err)
 			}
 		}
+	}
 
+	vpmemVolumeClient := instance.NewIBMPIVPMEMClient(ctx, sess, cloudInstanceID)
+	if d.HasChange(Arg_VPMEMVolumes) {
+		old, new := d.GetChange(Arg_VPMEMVolumes)
+		oldList := old.([]any)
+		newList := new.([]any)
+
+		// Build lookup tables from old state.
+		oldNameToID := make(map[string]string) // name -> volume_id
+		oldNameToSize := make(map[string]int)  // name -> size
+		oldIDToSize := make(map[string]int)    // volume_id -> size
+		for _, v := range oldList {
+			vol := v.(map[string]any)
+			name := vol[Attr_Name].(string)
+			id := vol[Attr_VolumeID].(string)
+			size := vol[Attr_Size].(int)
+			oldNameToID[name] = id
+			oldNameToSize[name] = size
+			if id != "" {
+				oldIDToSize[id] = size
+			}
+		}
+
+		newNameSet := make(map[string]bool)
+		for _, v := range newList {
+			newNameSet[v.(map[string]any)[Attr_Name].(string)] = true
+		}
+
+		// Volumes whose name is not in the new config are candidates for deletion or rename.
+		// Build the set keyed by volume_id.
+		toDelete := make(map[string]bool)
+		for oldName, oldID := range oldNameToID {
+			if !newNameSet[oldName] && oldID != "" {
+				toDelete[oldID] = true
+			}
+		}
+
+		// Process each new entry.
+		var updatedNames []string
+		var toCreate []map[string]any
+		for i, v := range newList {
+			newVol := v.(map[string]any)
+			newName := newVol[Attr_Name].(string)
+			newSize := newVol[Attr_Size].(int)
+
+			if oldSize, kept := oldNameToSize[newName]; kept {
+				// Existing volume — only size changes are rejected.
+				if oldSize != newSize {
+					opErr := flex.FmtErrorf("%s cannot be updated", Attr_Size)
+					tfErr := flex.TerraformErrorf(opErr, fmt.Sprintf("operation failed: %s", opErr.Error()), "ibm_pi_instance", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
+				continue
+			}
+
+			// New name: either a rename or a brand-new volume.
+			// Use the index-based volume_id as the primary rename
+			// if the volume that was at this index is being deleted and has the same size,
+			// it is being renamed to newName.
+			var renameID string
+			if i < len(oldList) {
+				idAtIndex := oldList[i].(map[string]any)[Attr_VolumeID].(string)
+				if toDelete[idAtIndex] && oldIDToSize[idAtIndex] == newSize {
+					renameID = idAtIndex
+					delete(toDelete, idAtIndex)
+				}
+			}
+			// Fall back to size-based matching among remaining deletion candidates
+			// handles removal-from-middle where index pointed to the wrong volume.
+			if renameID == "" {
+				for delID := range toDelete {
+					if oldIDToSize[delID] == newSize {
+						renameID = delID
+						delete(toDelete, delID)
+						break
+					}
+				}
+			}
+
+			if renameID != "" {
+				err := vpmemVolumeClient.UpdatePvmVpmemVolume(instanceID, renameID, &models.VPMemVolumeUpdate{
+					Name: flex.PtrToString(newName),
+				})
+				if err != nil {
+					tfErr := flex.TerraformErrorf(err, fmt.Sprintf("UpdatePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
+				updatedNames = append(updatedNames, newName)
+			} else {
+				toCreate = append(toCreate, newVol)
+			}
+		}
+
+		// Wait for all renames to propagate.
+		if len(updatedNames) > 0 {
+			if _, err := isWaitForVpmemUpdated(ctx, vpmemVolumeClient, instanceID, updatedNames, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemUpdated failed: %s", err.Error()), "ibm_pi_instance", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+		}
+
+		// Delete volumes that were removed and not matched to a rename.
+		deletedIDs := make(map[string]bool)
+		for volID := range toDelete {
+			err := vpmemVolumeClient.DeletePvmVpmemVolume(instanceID, volID)
+			if err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("DeletePvmVpmemVolume failed: %s", err.Error()), "ibm_pi_instance", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			if _, err := isWaitForVpmemDeleted(ctx, vpmemVolumeClient, instanceID, volID, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemDeleted failed: %s", err.Error()), "ibm_pi_instance", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			deletedIDs[volID] = true
+		}
+
+		// Create brand-new volumes.
+		for _, newVol := range toCreate {
+			created, err := vpmemVolumeClient.CreatePvmVpmemVolumes(instanceID, &models.VPMemVolumeAttach{
+				VpmemVolumes: []*models.VPMemVolumeCreate{
+					resourceIBMPIInstanceVpmemVolumesMapToVpMemVolumeCreate(newVol),
+				},
+			})
+			if err != nil {
+				tfErr := flex.TerraformErrorf(err, fmt.Sprintf("CreatePvmVpmemVolumes failed: %s", err.Error()), "ibm_pi_instance", "update")
+				log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+				return tfErr.GetDiag()
+			}
+			for _, vol := range created.Volumes {
+				if _, err = isWaitForVpmemAvailable(ctx, vpmemVolumeClient, instanceID, *vol.UUID, d.Timeout(schema.TimeoutUpdate)); err != nil {
+					tfErr := flex.TerraformErrorf(err, fmt.Sprintf("isWaitForVpmemAvailable failed: %s", err.Error()), "ibm_pi_instance", "update")
+					log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
+					return tfErr.GetDiag()
+				}
+				d.SetId(d.Id() + "/" + *vol.UUID)
+			}
+		}
 	}
 
 	return resourceIBMPIInstanceRead(ctx, d, meta)
 }
 
-func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	sess, err := meta.(conns.ClientSession).IBMPISession()
 	if err != nil {
 		return diag.FromErr(err)
@@ -1227,7 +1475,7 @@ func resourceIBMPIInstanceDelete(ctx context.Context, d *schema.ResourceData, me
 	return nil
 }
 
-func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (any, error) {
 
 	log.Printf("Waiting for  (%s) to be deleted.", id)
 
@@ -1244,7 +1492,7 @@ func isWaitForPIInstanceDeleted(ctx context.Context, client *instance.IBMPIInsta
 }
 
 func isPIInstanceDeleteRefreshFunc(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		pvm, err := client.Get(id)
 		if err != nil {
 			log.Printf("The power vm does not exist")
@@ -1254,7 +1502,7 @@ func isPIInstanceDeleteRefreshFunc(client *instance.IBMPIInstanceClient, id stri
 	}
 }
 
-func isWaitForPIInstanceAvailable(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceAvailable(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance (%s) to be available and active ", id)
 
 	queryTimeOut := Timeout_Active
@@ -1275,7 +1523,7 @@ func isWaitForPIInstanceAvailable(ctx context.Context, client *instance.IBMPIIns
 }
 
 func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceReadyStatus string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		pvm, err := client.Get(id)
 		if err != nil {
@@ -1298,7 +1546,7 @@ func isPIInstanceRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceR
 	}
 }
 
-func isWaitForPIInstanceAvailableOrShutoffAfterUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceAvailableOrShutoffAfterUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance (%s) to be available and active or shutoff ", id)
 
 	stateConf := &retry.StateChangeConf{
@@ -1314,7 +1562,7 @@ func isWaitForPIInstanceAvailableOrShutoffAfterUpdate(ctx context.Context, clien
 }
 
 func isPIInstanceShutoffOrActiveAfterResourceChange(client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		pvm, err := client.Get(id)
 		if err != nil {
@@ -1333,7 +1581,7 @@ func isPIInstanceShutoffOrActiveAfterResourceChange(client *instance.IBMPIInstan
 	}
 }
 
-func isWaitForPIInstancePlacementGroupAdd(ctx context.Context, client *instance.IBMPIPlacementGroupClient, pgID string, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstancePlacementGroupAdd(ctx context.Context, client *instance.IBMPIPlacementGroupClient, pgID string, id string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance Placement Group (%s) to be updated ", id)
 
 	stateConf := &retry.StateChangeConf{
@@ -1349,7 +1597,7 @@ func isWaitForPIInstancePlacementGroupAdd(ctx context.Context, client *instance.
 }
 
 func isPIInstancePlacementGroupAddRefreshFunc(client *instance.IBMPIPlacementGroupClient, pgID string, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		pg, err := client.Get(pgID)
 		if err != nil {
 			return nil, "", err
@@ -1363,7 +1611,7 @@ func isPIInstancePlacementGroupAddRefreshFunc(client *instance.IBMPIPlacementGro
 	}
 }
 
-func isWaitForPIInstancePlacementGroupDelete(ctx context.Context, client *instance.IBMPIPlacementGroupClient, pgID string, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstancePlacementGroupDelete(ctx context.Context, client *instance.IBMPIPlacementGroupClient, pgID string, id string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance Placement Group (%s) to be updated ", id)
 
 	queryTimeOut := Timeout_Active
@@ -1381,7 +1629,7 @@ func isWaitForPIInstancePlacementGroupDelete(ctx context.Context, client *instan
 }
 
 func isPIInstancePlacementGroupDeleteRefreshFunc(client *instance.IBMPIPlacementGroupClient, pgID string, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		pg, err := client.Get(pgID)
 		if err != nil {
 			return nil, "", err
@@ -1395,7 +1643,7 @@ func isPIInstancePlacementGroupDeleteRefreshFunc(client *instance.IBMPIPlacement
 	}
 }
 
-func isWaitForPIInstanceSoftwareLicenses(ctx context.Context, client *instance.IBMPIInstanceClient, id string, softwareLicenses *models.SoftwareLicenses, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceSoftwareLicenses(ctx context.Context, client *instance.IBMPIInstanceClient, id string, softwareLicenses *models.SoftwareLicenses, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance Software Licenses (%s) to be updated ", id)
 
 	queryTimeOut := Timeout_Active
@@ -1413,7 +1661,7 @@ func isWaitForPIInstanceSoftwareLicenses(ctx context.Context, client *instance.I
 }
 
 func isPIInstanceSoftwareLicensesRefreshFunc(client *instance.IBMPIInstanceClient, id string, softwareLicenses *models.SoftwareLicenses) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		pvm, err := client.Get(id)
 		if err != nil {
@@ -1448,7 +1696,7 @@ func isPIInstanceSoftwareLicensesRefreshFunc(client *instance.IBMPIInstanceClien
 	}
 }
 
-func isWaitForPIInstanceShutoff(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceShutoff(ctx context.Context, client *instance.IBMPIInstanceClient, id string, instanceReadyStatus string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance (%s) to be shutoff and health active ", id)
 
 	queryTimeOut := Timeout_Active
@@ -1469,7 +1717,7 @@ func isWaitForPIInstanceShutoff(ctx context.Context, client *instance.IBMPIInsta
 }
 
 func isPIInstanceShutoffRefreshFunc(client *instance.IBMPIInstanceClient, id, instanceReadyStatus string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		pvm, err := client.Get(id)
 		if err != nil {
@@ -1500,7 +1748,7 @@ func encodeBase64(userData string) string {
 	return userData
 }
 
-func isWaitForPIInstanceStopped(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceStopped(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance (%s) to be stopped and powered off ", id)
 
 	stateConf := &retry.StateChangeConf{
@@ -1516,7 +1764,7 @@ func isWaitForPIInstanceStopped(ctx context.Context, client *instance.IBMPIInsta
 }
 
 func isPIInstanceRefreshFuncOff(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		log.Printf("Calling the check Refresh status of the pvm instance %s", id)
 		pvm, err := client.Get(id)
@@ -1603,7 +1851,7 @@ func performChangeAndReboot(ctx context.Context, client *instance.IBMPIInstanceC
 
 }
 
-func isWaitForPIInstanceShutoffAfterUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceShutoffAfterUpdate(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (any, error) {
 	log.Printf("Waiting for PIInstance (%s) to be ACTIVE or SHUTOFF AFTER THE RESIZE Due to DLPAR Operation ", id)
 
 	stateConf := &retry.StateChangeConf{
@@ -1619,7 +1867,7 @@ func isWaitForPIInstanceShutoffAfterUpdate(ctx context.Context, client *instance
 }
 
 func isPIInstanceShutAfterResourceChange(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 
 		pvm, err := client.Get(id)
 		if err != nil {
@@ -1635,10 +1883,10 @@ func isPIInstanceShutAfterResourceChange(client *instance.IBMPIInstanceClient, i
 	}
 }
 
-func expandPVMNetworks(networks []interface{}) []*models.PVMInstanceAddNetwork {
+func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 	pvmNetworks := make([]*models.PVMInstanceAddNetwork, 0, len(networks))
 	for _, v := range networks {
-		network := v.(map[string]interface{})
+		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
 			IPAddress:               network[Attr_IPAddress].(string),
 			NetworkID:               flex.PtrToString(network[Attr_NetworkID].(string)),
@@ -1678,7 +1926,7 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	profileID := d.Get(Arg_SAPProfileID).(string)
 	imageid := d.Get(Arg_ImageID).(string)
 
-	pvmNetworks := expandPVMNetworks(d.Get(Arg_Network).([]interface{}))
+	pvmNetworks := expandPVMNetworks(d.Get(Arg_Network).([]any))
 
 	var replicants int64
 	if r, ok := d.GetOk(Arg_Replicants); ok {
@@ -1772,11 +2020,11 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 			}
 		} else {
 			if avs, ok := d.GetOk(Arg_AntiAffinityVolumes); ok {
-				afvols := flex.ExpandStringList(avs.([]interface{}))
+				afvols := flex.ExpandStringList(avs.([]any))
 				affinity.AntiAffinityVolumes = afvols
 			}
 			if ais, ok := d.GetOk(Arg_AntiAffinityInstances); ok {
-				afinss := flex.ExpandStringList(ais.([]interface{}))
+				afinss := flex.ExpandStringList(ais.([]any))
 				affinity.AntiAffinityPVMInstances = afinss
 			}
 		}
@@ -1837,7 +2085,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		return nil, fmt.Errorf("%s is required for creating pvm instances", Arg_ProcType)
 	}
 
-	pvmNetworks := expandPVMNetworks(d.Get(Arg_Network).([]interface{}))
+	pvmNetworks := expandPVMNetworks(d.Get(Arg_Network).([]any))
 
 	var volids []string
 	if v, ok := d.GetOk(Arg_VolumeIDs); ok {
@@ -1926,11 +2174,11 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 			}
 		} else {
 			if avs, ok := d.GetOk(Arg_AntiAffinityVolumes); ok {
-				afvols := flex.ExpandStringList(avs.([]interface{}))
+				afvols := flex.ExpandStringList(avs.([]any))
 				affinity.AntiAffinityVolumes = afvols
 			}
 			if ais, ok := d.GetOk(Arg_AntiAffinityInstances); ok {
-				afinss := flex.ExpandStringList(ais.([]interface{}))
+				afinss := flex.ExpandStringList(ais.([]any))
 				affinity.AntiAffinityPVMInstances = afinss
 			}
 		}
@@ -2011,7 +2259,7 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 		body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 	}
 	if vsn, ok := d.GetOk(Arg_VirtualSerialNumber); ok {
-		vsnListType := vsn.([]interface{})
+		vsnListType := vsn.([]any)
 		vsnCreateModel := vsnSetToCreateModel(vsnListType)
 		body.VirtualSerialNumber = vsnCreateModel
 	}
@@ -2034,10 +2282,10 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	return pvmList, nil
 }
 
-func expandDeploymentTarget(dt []interface{}) *models.DeploymentTarget {
+func expandDeploymentTarget(dt []any) *models.DeploymentTarget {
 	dtexpanded := &models.DeploymentTarget{}
 	for _, v := range dt {
-		dtarget := v.(map[string]interface{})
+		dtarget := v.(map[string]any)
 		dtexpanded.ID = core.StringPtr(dtarget[Attr_ID].(string))
 		dtexpanded.Type = core.StringPtr(dtarget[Attr_Type].(string))
 	}
@@ -2054,8 +2302,8 @@ func splitID(id string) (id1, id2 string, err error) {
 	return
 }
 
-func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSerialNumber {
-	vsnItemMap := vsnSetList[0].(map[string]interface{})
+func vsnSetToCreateModel(vsnSetList []any) *models.CreateServerVirtualSerialNumber {
+	vsnItemMap := vsnSetList[0].(map[string]any)
 	serialString := vsnItemMap[Attr_Serial].(string)
 	model := &models.CreateServerVirtualSerialNumber{
 		Serial: &serialString,
@@ -2072,9 +2320,9 @@ func vsnSetToCreateModel(vsnSetList []interface{}) *models.CreateServerVirtualSe
 	return model
 }
 
-func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]interface{} {
-	v := make([]map[string]interface{}, 1)
-	v[0] = map[string]interface{}{
+func flattenVirtualSerialNumberToList(vsn *models.GetServerVirtualSerialNumber) []map[string]any {
+	v := make([]map[string]any, 1)
+	v[0] = map[string]any{
 		Attr_Description:  vsn.Description,
 		Attr_Serial:       vsn.Serial,
 		Attr_SoftwareTier: vsn.SoftwareTier,
@@ -2100,7 +2348,7 @@ func instanceRestartAfterVSNFailure(ctx context.Context, instanceID string, rest
 
 // isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped will wait for VSN assigned, will also wait for correct values in updateBody if specified (specify nil to ignore updateBody checks)
 // Will also wait for VM to be in stopped state, mainly used for async VSN operations
-func isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx context.Context, client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber, timeout time.Duration) (any, error) {
 
 	log.Printf("Waiting until VSN assigned to %s or updated.", id)
 
@@ -2117,7 +2365,7 @@ func isWaitForPIInstanceVSNAssignedOrUpdatedAndStopped(ctx context.Context, clie
 }
 
 func isPIInstanceVSNAssignedOrUpdatedAndStoppedRefreshFunc(client *instance.IBMPIInstanceClient, id string, updateBody *models.UpdateServerVirtualSerialNumber) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		pvm, err := client.Get(id)
 		if err != nil {
 			return nil, "", err
@@ -2133,7 +2381,7 @@ func isPIInstanceVSNAssignedOrUpdatedAndStoppedRefreshFunc(client *instance.IBMP
 	}
 }
 
-func isWaitForPIInstanceVSNRemoved(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (interface{}, error) {
+func isWaitForPIInstanceVSNRemoved(ctx context.Context, client *instance.IBMPIInstanceClient, id string, timeout time.Duration) (any, error) {
 
 	log.Printf("Waiting until VSN removed from %s.", id)
 
@@ -2150,7 +2398,7 @@ func isWaitForPIInstanceVSNRemoved(ctx context.Context, client *instance.IBMPIIn
 }
 
 func isPIInstanceVSNRemovedRefreshFunc(client *instance.IBMPIInstanceClient, id string) retry.StateRefreshFunc {
-	return func() (interface{}, string, error) {
+	return func() (any, string, error) {
 		pvm, err := client.Get(id)
 		if err != nil {
 			return nil, "", err
