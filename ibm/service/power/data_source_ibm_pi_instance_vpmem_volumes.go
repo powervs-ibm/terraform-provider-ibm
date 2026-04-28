@@ -80,7 +80,7 @@ func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta a
 	vpmemVol := make(map[string]any)
 	vpmemVol[Attr_CreationDate] = volume.CreationDate.String()
 	if volume.Crn != "" {
-		vpmemVol[Attr_CRN] = volume.Crn
+		vpmemVol[Attr_CRN] = string(volume.Crn)
 		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(volume.Crn), "", UserTagType)
 		if err != nil {
 			log.Printf("Error on get of vpmem (%s) user_tags: %s", *volume.UUID, err)
@@ -88,16 +88,28 @@ func dataSourceIBMPIVPMEMVolumeToMap(volume *models.VPMemVolumeReference, meta a
 		vpmemVol[Attr_UserTags] = tags
 	}
 	vpmemVol[Attr_ErrorCode] = volume.ErrorCode
-	vpmemVol[Attr_Href] = volume.Href
-	vpmemVol[Attr_Name] = volume.Name
-	vpmemVol[Attr_PVMInstanceID] = volume.PvmInstanceID
+	if volume.Href != nil {
+		vpmemVol[Attr_Href] = *volume.Href
+	}
+	if volume.Name != nil {
+		vpmemVol[Attr_Name] = *volume.Name
+	}
+	if volume.PvmInstanceID != nil {
+		vpmemVol[Attr_PVMInstanceID] = *volume.PvmInstanceID
+	}
 	vpmemVol[Attr_Reason] = volume.Reason
-	vpmemVol[Attr_Size] = volume.Size
-	vpmemVol[Attr_Status] = volume.Status
+	if volume.Size != nil {
+		vpmemVol[Attr_Size] = *volume.Size
+	}
+	if volume.Status != nil {
+		vpmemVol[Attr_Status] = *volume.Status
+	}
 	if volume.UpdatedDate != nil {
 		vpmemVol[Attr_UpdatedDate] = volume.UpdatedDate.String()
 	}
-	vpmemVol[Attr_VolumeID] = volume.UUID
+	if volume.UUID != nil {
+		vpmemVol[Attr_VolumeID] = *volume.UUID
+	}
 	return vpmemVol
 }
 
@@ -105,7 +117,7 @@ func vpmemVolumeSchema() *schema.Schema {
 	return &schema.Schema{
 		Computed:    true,
 		Description: "List of vPMEM volumes.",
-		Type:        schema.TypeList,
+		Type:        schema.TypeSet,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				Attr_CreationDate: {
