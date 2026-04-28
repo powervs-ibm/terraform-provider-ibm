@@ -37,6 +37,20 @@ resource "ibm_pi_image" "testacc_image  "{
 }
 ```
 
+- COS image import (S3-compatible with endpoint)
+
+```terraform
+resource "ibm_pi_image" "testacc_image  "{
+  pi_image_name       = "test_image"
+  pi_cloud_instance_id = "<value of the cloud_instance_id>"
+  pi_image_bucket_name = "images-public-bucket"
+  pi_image_bucket_access = "public"
+  pi_endpoint = "https://s3.example.com"
+  pi_image_bucket_file_name = "rhcos-48-07222021.ova.gz"
+  pi_image_storage_type = "tier1"
+}
+```
+
 ### Notes
 
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
@@ -71,6 +85,7 @@ Review the argument references that you can specify for your resource.
 - `pi_anti_affinity_instances` - (Optional, String) List of pvmInstances to base storage anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_volumes` is not provided.
 - `pi_anti_affinity_volumes`- (Optional, String) List of volumes to base storage anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_instances` is not provided.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_endpoint` - (Optional, String) S3 compatible endpoint URL for the Cloud Object Storage bucket. Required when `pi_image_bucket_region` is not provided. Conflicts with `pi_image_bucket_region`.(for on-prem locations only)
 - `pi_image_bucket_name` - (Optional, String) Cloud Object Storage bucket name; `bucket-name[/optional/folder]`
   - Either `pi_image_bucket_name` or `pi_image_id` is required.
 - `pi_image_access_key` - (Optional, String, Sensitive) Cloud Object Storage access key; required for buckets with private access.
@@ -79,7 +94,7 @@ Review the argument references that you can specify for your resource.
 - `pi_image_bucket_file_name` - (Optional, String) Cloud Object Storage image filename
   - `pi_image_bucket_file_name` is required with `pi_image_bucket_name`
 - `pi_image_bucket_region` - (Optional, String) Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `che01`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
-  - `pi_image_bucket_region` is required with `pi_image_bucket_name`
+  - Required when `pi_endpoint` is not provided. Conflicts with `pi_endpoint`.
 - `pi_image_id` - (Optional, String) Image ID of existing source image; required for copy image.
   - Either `pi_image_id` or `pi_image_bucket_name` is required.
   - You can retrieve this value from [pi_catalog_images](https://registry.terraform.io/providers/IBM-Cloud/ibm/latest/docs/data-sources/pi_catalog_images#image_id) as `image_id` from the stock image you intend to use.
