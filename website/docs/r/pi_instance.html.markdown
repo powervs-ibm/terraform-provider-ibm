@@ -105,7 +105,7 @@ Review the argument references that you can specify for your resource.
 
   Nested scheme for `pi_metadata_service`:
   - `enabled` - (Required, Boolean) Indicates whether the metadata service endpoint will be available to the virtual server.
-  - `force` - (Optional, Boolena). When true, the MDS update is forced to proceed while the VM is running. Default value is `false`.
+  - `force_disable` - (Optional, Boolean) When true, allow the metadata service to be disabled while the VM is active. Default value is `false`.
 - `pi_network` - (Required, List of Map) List of one or more networks to attach to the instance.
 
   The `pi_network` block supports:

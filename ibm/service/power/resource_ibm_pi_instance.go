@@ -238,9 +238,9 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Required:    true,
 							Type:        schema.TypeBool,
 						},
-						Attr_Force: {
+						Attr_ForceDisable: {
 							Default:     false,
-							Description: "When true, the MDS update is forced to proceed while the VM is running.",
+							Description: "when true, allow the metadata service to be disabled while the VM is active.",
 							Optional:    true,
 							Type:        schema.TypeBool,
 						},
@@ -706,7 +706,7 @@ func resourceIBMPIInstanceCreate(ctx context.Context, d *schema.ResourceData, me
 		if len(msData) > 0 && msData[0] != nil {
 			data := msData[0].(map[string]interface{})
 			enabled, _ := data[Attr_Enabled].(bool)
-			force, _ := data[Attr_Force].(bool)
+			force, _ := data[Attr_ForceDisable].(bool)
 			if !enabled && force {
 				for _, s := range *pvmList {
 					body := &models.PVMInstanceUpdate{
@@ -857,7 +857,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		// force is a write-only operation flag not returned by the API;
 		// preserve the current state value to prevent false drift.
 		if len(ms) > 0 {
-			ms[0][Attr_Force] = d.Get(Arg_MetadataService + ".0." + Attr_Force).(bool)
+			ms[0][Attr_ForceDisable] = d.Get(Arg_MetadataService + ".0." + Attr_ForceDisable).(bool)
 		}
 		d.Set(Arg_MetadataService, ms)
 	}
@@ -2446,8 +2446,8 @@ func expandUpdateMetadataService(input any) *models.UpdateMetadataService {
 		enabled := v.(bool)
 		ms.Enabled = &enabled
 	}
-	if v, ok := data[Attr_Force]; ok {
-		ms.Force = v.(bool)
+	if v, ok := data[Attr_ForceDisable]; ok {
+		ms.ForceDisable = v.(bool)
 	}
 	return ms
 }

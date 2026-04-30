@@ -303,7 +303,7 @@ const (
 	Attr_Flag                                = "flag"
 	Attr_FlashCopyMappings                   = "flash_copy_mappings"
 	Attr_FlashCopyName                       = "flash_copy_name"
-	Attr_Force                               = "force"
+	Attr_ForceDisable                        = "force_disable"
 	Attr_FreezeTime                          = "freeze_time"
 	Attr_FullSystemProfile                   = "full_system_profile"
 	Attr_Gateway                             = "gateway"

@@ -112,7 +112,6 @@ func Provider() *schema.Provider {
 			"zone": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"IBMCLOUD_ZONE", "IC_ZONE"}, nil),
 				Description: "The IBM cloud Region zone (for example 'us-south-1') for power resources.",
 			},
 			"resource_group": {
