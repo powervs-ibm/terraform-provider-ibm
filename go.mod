@@ -2,10 +2,6 @@ module github.com/IBM-Cloud/terraform-provider-ibm
 
 go 1.25.2
 
-// replace github.ibm.com/DRAutomation/dra-go-sdk => ./ibm/service/drautomationservice/dra-go-sdk
-
-// replace github.ibm.com/DRAutomation/dra-go-sdk => ./ibm/service/drautomationservice/dra-go-sdk
-
 require (
 	github.com/IBM-Cloud/bluemix-go v0.0.0-20251201140418-17dfa457ce31
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae23113
@@ -19,7 +15,7 @@ require (
 	github.com/IBM/configuration-aggregator-go-sdk v0.0.2
 	github.com/IBM/container-registry-go-sdk v1.3.0
 	github.com/IBM/continuous-delivery-go-sdk/v2 v2.0.6
-	github.com/IBM/dra-go-sdk v0.0.0-20251210070042-5072d22c26d0
+	github.com/IBM/dra-go-sdk v0.1.0
 	github.com/IBM/event-notifications-go-admin-sdk v0.22.0
 	github.com/IBM/eventstreams-go-sdk v1.4.0
 	github.com/IBM/go-sdk-core/v5 v5.21.2
