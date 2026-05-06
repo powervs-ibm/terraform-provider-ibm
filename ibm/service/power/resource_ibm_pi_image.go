@@ -90,6 +90,13 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_Endpoint: {
+				ConflictsWith: []string{Arg_ImageID, Arg_ImageBucketRegion},
+				Description:   "S3 compatible endpoint URL; required if pi_image_bucket_region not provided",
+				ForceNew:      true,
+				Optional:      true,
+				Type:          schema.TypeString,
+			},
 			Arg_ImageAccessKey: {
 				Description:  "Cloud Object Storage access key; required for buckets with private access",
 				ForceNew:     true,
@@ -121,12 +128,12 @@ func ResourceIBMPIImage() *schema.Resource {
 				ExactlyOneOf:  []string{Arg_ImageID, Arg_ImageBucketName},
 				ForceNew:      true,
 				Optional:      true,
-				RequiredWith:  []string{Arg_ImageBucketRegion, Arg_ImageBucketFileName, Arg_ImageName},
+				RequiredWith:  []string{Arg_ImageBucketFileName, Arg_ImageName},
 				Type:          schema.TypeString,
 			},
 			Arg_ImageBucketRegion: {
-				ConflictsWith: []string{Arg_ImageID},
-				Description:   "Cloud Object Storage region",
+				ConflictsWith: []string{Arg_ImageID, Arg_Endpoint},
+				Description:   "Cloud Object Storage region; required if pi_endpoint not provided.",
 				ForceNew:      true,
 				Optional:      true,
 				RequiredWith:  []string{Arg_ImageBucketName},
@@ -272,17 +279,24 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 	if v, ok := d.GetOk(Arg_ImageBucketName); ok {
 		bucketName := v.(string)
 		bucketImageFileName := d.Get(Arg_ImageBucketFileName).(string)
-		bucketRegion := d.Get(Arg_ImageBucketRegion).(string)
 		bucketAccess := d.Get(Arg_ImageBucketAccess).(string)
-
+		if _, ok := d.GetOk(Arg_ImageBucketRegion); !ok {
+			if _, ok := d.GetOk(Arg_Endpoint); !ok {
+				return diag.Errorf("one of pi_image_bucket_region or pi_endpoint must be provided")
+			}
+		}
 		body := &models.CreateCosImageImportJob{
 			ImageName:     &imageName,
 			BucketName:    &bucketName,
 			BucketAccess:  &bucketAccess,
 			ImageFilename: &bucketImageFileName,
-			Region:        &bucketRegion,
 		}
-
+		if v, ok := d.GetOk(Arg_ImageBucketRegion); ok {
+			body.Region = v.(string)
+		}
+		if v, ok := d.GetOk(Arg_Endpoint); ok {
+			body.Endpoint = v.(string)
+		}
 		if v, ok := d.GetOk(Arg_ImageAccessKey); ok {
 			body.AccessKey = v.(string)
 		}
