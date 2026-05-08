@@ -62,6 +62,11 @@ func DataSourceIBMPIInstances() *schema.Resource {
 										Computed:    true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
+												Attr_Account: {
+													Computed:    true,
+													Description: "Account ID where the trusted profile is located.",
+													Type:        schema.TypeString,
+												},
 												Attr_CRN: {
 													Computed:    true,
 													Description: "The CRN for the trusted profile.",
@@ -70,6 +75,11 @@ func DataSourceIBMPIInstances() *schema.Resource {
 												Attr_ID: {
 													Computed:    true,
 													Description: "Unique identifier for the trusted profile.",
+													Type:        schema.TypeString,
+												},
+												Attr_Name: {
+													Computed:    true,
+													Description: "Name of the trusted profile.",
 													Type:        schema.TypeString,
 												},
 											},

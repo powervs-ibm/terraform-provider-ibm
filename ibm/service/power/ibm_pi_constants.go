@@ -202,6 +202,7 @@ const (
 
 	// Attributes
 	Attr_Access                              = "access"
+	Attr_Account                             = "account"
 	Attr_Action                              = "action"
 	Attr_Addresses                           = "addresses"
 	Attr_Advertise                           = "advertise"

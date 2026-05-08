@@ -65,10 +65,15 @@ func DataSourceIBMPIInstance() *schema.Resource {
 							Type:        schema.TypeBool,
 						},
 						Attr_Target: {
-							Description: "Either the ID or the CRN of the target.",
+							Description: "The target of the trusted profile.",
 							Computed:    true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									Attr_Account: {
+										Computed:    true,
+										Description: "Account ID where the trusted profile is located.",
+										Type:        schema.TypeString,
+									},
 									Attr_CRN: {
 										Computed:    true,
 										Description: "The CRN for the trusted profile.",
@@ -77,6 +82,11 @@ func DataSourceIBMPIInstance() *schema.Resource {
 									Attr_ID: {
 										Computed:    true,
 										Description: "Unique identifier for the trusted profile.",
+										Type:        schema.TypeString,
+									},
+									Attr_Name: {
+										Computed:    true,
+										Description: "Name of the trusted profile.",
 										Type:        schema.TypeString,
 									},
 								},
