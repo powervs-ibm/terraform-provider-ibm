@@ -33,7 +33,7 @@ resource "ibm_pi_image_export" "testacc_image_export"{
   pi_image_id               = "test_image"
   pi_image_access_key       = "dummy-access-key"
   pi_image_bucket_name      = "images-public-bucket"
-  pi_endpoint  = "https://s3.example.com"
+  pi_endpoint               = "https://s3.example.com"
   pi_image_secret_key       = "dummy-secret-key"
 }
 ```
