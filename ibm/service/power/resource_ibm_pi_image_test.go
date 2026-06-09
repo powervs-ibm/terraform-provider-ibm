@@ -219,3 +219,38 @@ func testAccCheckIBMPIImageBYOLConfig(name string) string {
 	}
 	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key, acc.Pi_image_bucket_region)
 }
+func TestAccIBMPIImageCOSEndpointImport(t *testing.T) {
+	imageRes := "ibm_pi_image.cos_image_endpoint"
+	name := fmt.Sprintf("tf-pi-image-endpoint-%d", acctest.RandIntRange(10, 100))
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIImageCOSEndpointConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIImageExists(imageRes),
+					resource.TestCheckResourceAttr(imageRes, "pi_image_name", name),
+					resource.TestCheckResourceAttrSet(imageRes, "image_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckIBMPIImageCOSEndpointConfig(name string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_image" "cos_image_endpoint" {
+		pi_image_name             = "%[1]s"
+		pi_cloud_instance_id      = "%[2]s"
+		pi_image_bucket_name      = "%[3]s"
+		pi_image_bucket_access    = "private"
+		pi_endpoint               = "%[4]s"
+		pi_image_bucket_file_name = "%[5]s"
+		pi_image_access_key       = "%[6]s"
+		pi_image_secret_key       = "%[7]s"
+		pi_image_storage_type     = "tier3"
+	}
+	`, name, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_endpoint, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_access_key, acc.Pi_image_bucket_secret_key)
+}
