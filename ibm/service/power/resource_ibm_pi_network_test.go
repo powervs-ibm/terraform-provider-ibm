@@ -41,7 +41,7 @@ func TestAccIBMPINetworkbasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPINetworkExists(networkRes),
 					resource.TestCheckResourceAttr(networkRes, "pi_network_name", name),
-					resource.TestCheckResourceAttr(networkRes, "pi_dns.#", "1"),
+					resource.TestCheckResourceAttr(networkRes, "dns.#", "1"),
 					resource.TestCheckResourceAttrSet(networkRes, "id"),
 					resource.TestCheckResourceAttrSet(networkRes, "pi_gateway"),
 					resource.TestCheckResourceAttrSet(networkRes, "pi_ipaddress_range.#"),
