@@ -196,7 +196,7 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Description: "The DNS Servers for the network.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Type:        schema.TypeSet,
-      },
+			},
 			Attr_EnableDHCP: {
 				Computed:    true,
 				Description: "DHCP enabled network.",
