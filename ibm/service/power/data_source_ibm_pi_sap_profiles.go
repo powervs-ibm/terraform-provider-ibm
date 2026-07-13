@@ -47,6 +47,11 @@ func DataSourceIBMPISAPProfiles() *schema.Resource {
 				Description: "List of all the SAP Profiles.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_Asaps: {
+							Computed:    true,
+							Description: "Accelerated SAP Application Performance Standard.",
+							Type:        schema.TypeInt,
+						},
 						Attr_Certified: {
 							Computed:    true,
 							Description: "Has certification been performed on profile.",
@@ -61,6 +66,11 @@ func DataSourceIBMPISAPProfiles() *schema.Resource {
 							Computed:    true,
 							Description: "System to use if not provided",
 							Type:        schema.TypeString,
+						},
+						Attr_Deprecated: {
+							Computed:    true,
+							Description: "Profile is deprecated.",
+							Type:        schema.TypeBool,
 						},
 						Attr_FullSystemProfile: {
 							Computed:    true,
@@ -158,9 +168,11 @@ func dataSourceIBMPISAPProfilesRead(ctx context.Context, d *schema.ResourceData,
 	result := make([]map[string]any, 0, len(sapProfiles.Profiles))
 	for _, sapProfile := range sapProfiles.Profiles {
 		profile := map[string]any{
+			Attr_Asaps:             sapProfile.Asaps,
 			Attr_Certified:         *sapProfile.Certified,
 			Attr_Cores:             *sapProfile.Cores,
 			Attr_DefaultSystem:     sapProfile.DefaultSystem,
+			Attr_Deprecated:        sapProfile.Deprecated,
 			Attr_FullSystemProfile: sapProfile.FullSystemProfile,
 			Attr_Memory:            *sapProfile.Memory,
 			Attr_ProfileID:         *sapProfile.ProfileID,

@@ -35,8 +35,10 @@ In addition to all argument references listed, you can access the following attr
 
 - `name` - (String) Source name.
 
-- `description` - (String) Source description.
+- `description` - (String) Source description. 
 
 - `enabled` - (bool) Flag to enable/disable the api source.
+
+- `store_notifications` - (Optional, bool) enable to view the payload of incoming events for troubleshooting.
 
 - `updated_at` - (String) Last updated time.

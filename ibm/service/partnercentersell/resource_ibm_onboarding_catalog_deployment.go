@@ -1,8 +1,8 @@
-// Copyright IBM Corp. 2025 All Rights Reserved.
+// Copyright IBM Corp. 2026 All Rights Reserved.
 // Licensed under the Mozilla Public License v2.0
 
 /*
- * IBM OpenAPI Terraform Generator Version: 3.107.1-41b0fbd0-20250825-080732
+ * IBM OpenAPI Terraform Generator Version: 3.114.2-b2884bfd-20260601-185447
  */
 
 package partnercentersell
@@ -183,7 +183,7 @@ func ResourceIbmOnboardingCatalogDeployment() *schema.Resource {
 									},
 									"plan_updateable": &schema.Schema{
 										Type:        schema.TypeBool,
-										Computed:    true,
+										Optional:    true,
 										Description: "Indicates plan update support and controls the Plan tab on the Resource Details page.",
 									},
 									"service_key_supported": &schema.Schema{
@@ -830,6 +830,21 @@ func ResourceIbmOnboardingCatalogDeployment() *schema.Resource {
 								},
 							},
 						},
+						"other": &schema.Schema{
+							Type:        schema.TypeList,
+							MaxItems:    1,
+							Optional:    true,
+							Description: "Additional deployment metadata for \"other\" location type.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"location_proxied_by": &schema.Schema{
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The region that proxies this deployment location.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1301,6 +1316,13 @@ func ResourceIbmOnboardingCatalogDeploymentMapToGlobalCatalogDeploymentMetadataP
 		}
 		model.Deployment = DeploymentModel
 	}
+	if modelMap["other"] != nil && len(modelMap["other"].([]interface{})) > 0 {
+		OtherModel, err := ResourceIbmOnboardingCatalogDeploymentMapToGlobalCatalogMetadataDeploymentOther(modelMap["other"].([]interface{})[0].(map[string]interface{}))
+		if err != nil {
+			return model, err
+		}
+		model.Other = OtherModel
+	}
 	return model, nil
 }
 
@@ -1314,6 +1336,9 @@ func ResourceIbmOnboardingCatalogDeploymentMapToGlobalCatalogDeploymentMetadataS
 	}
 	if modelMap["service_key_supported"] != nil {
 		model.ServiceKeySupported = core.BoolPtr(modelMap["service_key_supported"].(bool))
+	}
+	if modelMap["plan_updateable"] != nil {
+		model.PlanUpdateable = core.BoolPtr(modelMap["plan_updateable"].(bool))
 	}
 	if modelMap["parameters"] != nil {
 		parameters := []partnercentersellv1.GlobalCatalogMetadataServiceCustomParameters{}
@@ -1616,6 +1641,14 @@ func ResourceIbmOnboardingCatalogDeploymentMapToGlobalCatalogMetadataDeploymentB
 	return model, nil
 }
 
+func ResourceIbmOnboardingCatalogDeploymentMapToGlobalCatalogMetadataDeploymentOther(modelMap map[string]interface{}) (*partnercentersellv1.GlobalCatalogMetadataDeploymentOther, error) {
+	model := &partnercentersellv1.GlobalCatalogMetadataDeploymentOther{}
+	if modelMap["location_proxied_by"] != nil && modelMap["location_proxied_by"].(string) != "" {
+		model.LocationProxiedBy = core.StringPtr(modelMap["location_proxied_by"].(string))
+	}
+	return model, nil
+}
+
 func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogOverviewUIToMap(model *partnercentersellv1.GlobalCatalogOverviewUI) (map[string]interface{}, error) {
 	modelMap := make(map[string]interface{})
 	if model.En != nil {
@@ -1671,6 +1704,13 @@ func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogDeploymentMetadataToMap(
 			return modelMap, err
 		}
 		modelMap["deployment"] = []map[string]interface{}{deploymentMap}
+	}
+	if model.Other != nil {
+		otherMap, err := ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentOtherToMap(model.Other)
+		if err != nil {
+			return modelMap, err
+		}
+		modelMap["other"] = []map[string]interface{}{otherMap}
 	}
 	return modelMap, nil
 }
@@ -1980,6 +2020,14 @@ func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentBroker
 	return modelMap, nil
 }
 
+func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentOtherToMap(model *partnercentersellv1.GlobalCatalogMetadataDeploymentOther) (map[string]interface{}, error) {
+	modelMap := make(map[string]interface{})
+	if model.LocationProxiedBy != nil {
+		modelMap["location_proxied_by"] = *model.LocationProxiedBy
+	}
+	return modelMap, nil
+}
+
 func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogDeploymentPatchAsPatch(patchVals *partnercentersellv1.GlobalCatalogDeploymentPatch, d *schema.ResourceData) map[string]interface{} {
 	patch, _ := patchVals.AsPatch()
 	var path string
@@ -2055,6 +2103,25 @@ func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogDeploymentMetadataProtot
 	} else if !exists {
 		delete(patch, "deployment")
 	}
+	path = rootPath + ".other"
+	if _, exists := d.GetOk(path); d.HasChange(path) && !exists {
+		patch["other"] = nil
+	} else if exists && patch["other"] != nil {
+		ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentOtherAsPatch(patch["other"].(map[string]interface{}), d, fmt.Sprintf("%s.0", path))
+	} else if !exists {
+		delete(patch, "other")
+	}
+}
+
+func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentOtherAsPatch(patch map[string]interface{}, d *schema.ResourceData, rootPath string) {
+	var path string
+
+	path = rootPath + ".location_proxied_by"
+	if _, exists := d.GetOk(path); d.HasChange(path) && !exists {
+		patch["location_proxied_by"] = nil
+	} else if !exists {
+		delete(patch, "location_proxied_by")
+	}
 }
 
 func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogMetadataDeploymentAsPatch(patch map[string]interface{}, d *schema.ResourceData, rootPath string) {
@@ -2125,6 +2192,12 @@ func ResourceIbmOnboardingCatalogDeploymentGlobalCatalogDeploymentMetadataServic
 		patch["service_key_supported"] = nil
 	} else if !exists {
 		delete(patch, "service_key_supported")
+	}
+	path = rootPath + ".plan_updateable"
+	if _, exists := d.GetOk(path); d.HasChange(path) && !exists {
+		patch["plan_updateable"] = nil
+	} else if !exists {
+		delete(patch, "plan_updateable")
 	}
 	path = rootPath + ".parameters"
 	if _, exists := d.GetOk(path); d.HasChange(path) && !exists {

@@ -4,6 +4,7 @@
 package conns
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -32,6 +33,7 @@ import (
 	"github.com/IBM/go-sdk-core/v5/core"
 	cosconfig "github.com/IBM/ibm-cos-sdk-go-config/v2/resourceconfigurationv1"
 	kp "github.com/IBM/keyprotect-go-client"
+	kpCryptoUnit "github.com/IBM/keyprotect-go-client/dedicated"
 	"github.com/IBM/logs-router-go-sdk/ibmcloudlogsroutingv0"
 	"github.com/IBM/mqcloud-go-sdk/mqcloudv1"
 	cisalertsv1 "github.com/IBM/networking-go-sdk/alertsv1"
@@ -71,6 +73,7 @@ import (
 	cisratelimitv1 "github.com/IBM/networking-go-sdk/zoneratelimitsv1"
 	cisdomainsettingsv1 "github.com/IBM/networking-go-sdk/zonessettingsv1"
 	ciszonesv1 "github.com/IBM/networking-go-sdk/zonesv1"
+	"github.com/IBM/platform-services-go-sdk/accountmanagementv4"
 	"github.com/IBM/platform-services-go-sdk/atrackerv2"
 	"github.com/IBM/platform-services-go-sdk/catalogmanagementv1"
 	"github.com/IBM/platform-services-go-sdk/contextbasedrestrictionsv1"
@@ -129,6 +132,7 @@ import (
 	"github.com/IBM/continuous-delivery-go-sdk/v2/cdtektonpipelinev2"
 	"github.com/IBM/continuous-delivery-go-sdk/v2/cdtoolchainv2"
 	"github.com/IBM/dra-go-sdk/drautomationservicev1"
+	"github.com/IBM/dra-go-sdk/powerhaautomationservicev1"
 	"github.com/IBM/event-notifications-go-admin-sdk/eventnotificationsv1"
 	"github.com/IBM/eventstreams-go-sdk/pkg/adminrestv1"
 	"github.com/IBM/eventstreams-go-sdk/pkg/schemaregistryv1"
@@ -144,6 +148,13 @@ import (
 const RetryAPIDelay = 5 * time.Second
 
 const IAMURL = iamidentity.DefaultServiceURL
+
+const (
+	bearerPrefix    = "Bearer "
+	bearerPrefixLen = len(bearerPrefix)
+	bxClientID      = "bx"
+	bxClientSecret  = "bx"
+)
 
 // BluemixRegion ...
 var BluemixRegion string
@@ -270,6 +281,7 @@ type ClientSession interface {
 	AppConfigurationV1() (*appconfigurationv1.AppConfigurationV1, error)
 	KeyProtectAPI() (*kp.Client, error)
 	KeyManagementAPI() (*kp.Client, error)
+	KeyProtectCryptoUnitAPI(context.Context, *kpCryptoUnit.KeyProtectCryptoUnitAPIOptions) (*kpCryptoUnit.KeyProtectCryptoUnitAPI, error)
 	VpcV1API() (*vpc.VpcV1, error)
 	VpcV1BetaAPI() (*vpcbeta.VpcbetaV1, error)
 	PrivateDNSClientSession() (*dns.DnsSvcsV1, error)
@@ -311,6 +323,7 @@ type ClientSession interface {
 	CisRangeAppClientSession() (*cisrangeappv1.RangeApplicationsV1, error)
 	CisWAFRuleClientSession() (*ciswafrulev1.WafRulesApiV1, error)
 	CisListsSession() (*cislistsapiv1.ListsApiV1, error)
+	AccountManagementV4() (*accountmanagementv4.AccountManagementV4, error)
 	IAMIdentityV1API() (*iamidentity.IamIdentityV1, error)
 	IBMCloudShellV1() (*ibmcloudshellv1.IBMCloudShellV1, error)
 	ResourceManagerV2API() (*resourcemanager.ResourceManagerV2, error)
@@ -342,10 +355,15 @@ type ClientSession interface {
 	SdsaasV1() (*sdsaasv1.SdsaasV1, error)
 	DrAutomationServiceV1() (*drautomationservicev1.DrAutomationServiceV1, error)
 	PlatformNotificationsV1() (*platformnotificationsv1.PlatformNotificationsV1, error)
+	PowerhaAutomationServiceV1() (*powerhaautomationservicev1.PowerhaAutomationServiceV1, error)
 }
 
 type clientSession struct {
 	session *Session
+
+	// Shared authenticator for all IBM Cloud SDK clients
+	authenticator    core.Authenticator
+	authenticatorErr error
 
 	appidErr error
 	appidAPI *appid.AppIDManagementV4
@@ -572,6 +590,10 @@ type clientSession struct {
 	cisListsClient *cislistsapiv1.ListsApiV1
 	cisListsErr    error
 
+	// Account Management Option
+	accountManagementErr error
+	accountManagementAPI *accountmanagementv4.AccountManagementV4
+
 	// IAM Identity Option
 	iamIdentityErr error
 	iamIdentityAPI *iamidentity.IamIdentityV1
@@ -731,6 +753,10 @@ type clientSession struct {
 	// Platform Notifications
 	platformNotificationsClient    *platformnotificationsv1.PlatformNotificationsV1
 	platformNotificationsClientErr error
+
+	// pha automation
+	powerhaAutomationServiceClient    *powerhaautomationservicev1.PowerhaAutomationServiceV1
+	powerhaAutomationServiceClientErr error
 }
 
 // Usage Reports
@@ -944,6 +970,51 @@ func (sess clientSession) KeyManagementAPI() (*kp.Client, error) {
 	return sess.kmsAPI, sess.kmsErr
 }
 
+func (sess *clientSession) KeyProtectCryptoUnitAPI(ctx context.Context, kpOpts *kpCryptoUnit.KeyProtectCryptoUnitAPIOptions) (*kpCryptoUnit.KeyProtectCryptoUnitAPI, error) {
+	auth, err := sess.Authenticator()
+	if err != nil {
+		return nil, err
+	}
+	envVars := []string{
+		"IBMCLOUD_KP_CRYPTOUNIT_ENDPOINT",
+		"KP_TARGET_ADDR",
+	}
+
+	var config *kpCryptoUnit.KeyProtectCryptoUnitAPIOptions
+	var envVarFound bool
+	for _, v := range envVars {
+		if _, ok := os.LookupEnv(v); ok {
+			envVarFound = true
+			break
+		}
+	}
+	if envVarFound {
+		defaultURL := fmt.Sprintf("https://%s.api.%s.kms.appdomain.cloud", kpOpts.InstanceID, kpOpts.Region)
+		config = &kpCryptoUnit.KeyProtectCryptoUnitAPIOptions{
+			URL: EnvFallBack([]string{
+				"IBMCLOUD_KP_CRYPTOUNIT_ENDPOINT",
+				"KP_TARGET_ADDR",
+			}, defaultURL),
+			Authenticator: auth,
+		}
+	} else {
+		config = kpOpts
+		config.Authenticator = auth
+	}
+	client, disconnect, err := kpCryptoUnit.NewKeyProtectCryptoUnitAPI(config)
+	if err != nil {
+		return nil, err
+	}
+
+	// context-aware cleanup function
+	go func() {
+		<-ctx.Done()
+		disconnect()
+	}()
+
+	return client, nil
+}
+
 func (sess clientSession) VpcV1API() (*vpc.VpcV1, error) {
 	return sess.vpcAPI, sess.vpcErr
 }
@@ -1079,6 +1150,11 @@ func (session clientSession) DrAutomationServiceV1() (*drautomationservicev1.DrA
 	return session.drAutomationServiceClient, session.drAutomationServiceClientErr
 }
 
+// PowerhaAutomation Service
+func (session clientSession) PowerhaAutomationServiceV1() (*powerhaautomationservicev1.PowerhaAutomationServiceV1, error) {
+	return session.powerhaAutomationServiceClient, session.powerhaAutomationServiceClientErr
+}
+
 // CIS WAF Packages
 func (sess clientSession) CisWAFPackageClientSession() (*ciswafpackagev1.WafRulePackagesApiV1, error) {
 	if sess.cisWAFPackageErr != nil {
@@ -1197,6 +1273,11 @@ func (sess clientSession) CisListsSession() (*cislistsapiv1.ListsApiV1, error) {
 		return sess.cisListsClient, sess.cisListsErr
 	}
 	return sess.cisListsClient.Clone(), nil
+}
+
+// Account Management Session
+func (sess clientSession) AccountManagementV4() (*accountmanagementv4.AccountManagementV4, error) {
+	return sess.accountManagementAPI, sess.accountManagementErr
 }
 
 // IAM Identity Session
@@ -1396,14 +1477,105 @@ func (session clientSession) PlatformNotificationsV1() (*platformnotificationsv1
 	return session.platformNotificationsClient, session.platformNotificationsClientErr
 }
 
+// Authenticator returns the shared authenticator instance
+func (s *clientSession) Authenticator() (core.Authenticator, error) {
+	if s.authenticatorErr != nil {
+		return nil, s.authenticatorErr
+	}
+	return s.authenticator, nil
+}
+
+// buildAuthenticator creates the appropriate authenticator based on configuration
+func (c *Config) buildAuthenticator(sess *Session, iamURL string) (core.Authenticator, error) {
+	// Priority 1: Trusted Profile Authentication (API Key + Profile)
+	if c.BluemixAPIKey != "" && (c.IAMTrustedProfileID != "" || c.IAMTrustedProfileName != "") {
+		return c.buildTrustedProfileAuthenticator(iamURL)
+	}
+
+	// Priority 2: API Key or Refresh Token Authentication
+	if c.BluemixAPIKey != "" || sess.BluemixSession.Config.IAMRefreshToken != "" {
+		return c.buildIAMAuthenticator(sess, iamURL)
+	}
+
+	// Priority 3: Bearer Token Authentication
+	return c.buildBearerTokenAuthenticator(sess)
+}
+
+// buildTrustedProfileAuthenticator creates an IAM Assume authenticator for trusted profiles
+func (c *Config) buildTrustedProfileAuthenticator(iamURL string) (core.Authenticator, error) {
+	builder := core.NewIamAssumeAuthenticatorBuilder().
+		SetApiKey(c.BluemixAPIKey).
+		SetURL(EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL))
+
+	if c.IAMTrustedProfileID != "" {
+		builder.SetIAMProfileID(c.IAMTrustedProfileID)
+	} else {
+		// Validate required fields for profile name authentication
+		if c.Account == "" {
+			return nil, fmt.Errorf("IAM account ID is required when using trusted profile name")
+		}
+		builder.SetIAMProfileName(c.IAMTrustedProfileName).
+			SetIAMAccountID(c.Account)
+	}
+
+	authenticator, err := builder.Build()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build IAM assume authenticator: %w", err)
+	}
+
+	return authenticator, nil
+}
+
+// buildIAMAuthenticator creates an IAM authenticator using API key or refresh token
+func (c *Config) buildIAMAuthenticator(sess *Session, iamURL string) (core.Authenticator, error) {
+	url := EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL)
+
+	if c.BluemixAPIKey != "" {
+		return &core.IamAuthenticator{
+			ApiKey: c.BluemixAPIKey,
+			URL:    url,
+		}, nil
+	}
+
+	// Use refresh token authentication
+	if sess.BluemixSession.Config.IAMRefreshToken == "" {
+		return nil, fmt.Errorf("IAM refresh token is empty")
+	}
+
+	return &core.IamAuthenticator{
+		RefreshToken: sess.BluemixSession.Config.IAMRefreshToken,
+		ClientId:     bxClientID,
+		ClientSecret: bxClientSecret,
+		URL:          url,
+	}, nil
+}
+
+// buildBearerTokenAuthenticator creates a bearer token authenticator
+func (c *Config) buildBearerTokenAuthenticator(sess *Session) (core.Authenticator, error) {
+	token := sess.BluemixSession.Config.IAMAccessToken
+
+	if token == "" {
+		return nil, fmt.Errorf("IAM access token is empty")
+	}
+
+	// Strip "Bearer " prefix if present
+	if strings.HasPrefix(token, bearerPrefix) {
+		token = token[bearerPrefixLen:]
+	}
+
+	return &core.BearerTokenAuthenticator{
+		BearerToken: token,
+	}, nil
+}
+
 // ClientSession configures and returns a fully initialized ClientSession
-func (c *Config) ClientSession() (interface{}, error) {
+func (c *Config) ClientSession() (*clientSession, error) {
 	sess, fileMap, err := newSession(c)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("[INFO] Configured Region: %s\n", c.Region)
-	session := clientSession{
+	session := &clientSession{
 		session: sess,
 	}
 
@@ -1477,6 +1649,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 		session.cisLockdownErr = errEmptyBluemixCredentials
 		session.cisRangeAppErr = errEmptyBluemixCredentials
 		session.cisWAFRuleErr = errEmptyBluemixCredentials
+		session.accountManagementErr = errEmptyBluemixCredentials
 		session.iamIdentityErr = errEmptyBluemixCredentials
 		session.secretsManagerClientErr = errEmptyBluemixCredentials
 		session.cisFiltersErr = errEmptyBluemixCredentials
@@ -1568,6 +1741,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 	}
 	session.hpcsEndpointAPI = hpcsAPI
 
+	// Key Management (KP Endpoint)
 	kpurl := ContructEndpoint(fmt.Sprintf("%s.kms", c.Region), cloudEndpoint)
 	if c.Visibility == "private" || c.Visibility == "public-and-private" {
 		kpurl = ContructEndpoint(fmt.Sprintf("private.%s.kms", c.Region), cloudEndpoint)
@@ -1610,7 +1784,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 		iamURL = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_IAM_API_ENDPOINT", c.Region, iamURL)
 	}
 
-	// KEY MANAGEMENT Service
+	// KEY MANAGEMENT Service (KMS)
 	kmsurl := ContructEndpoint(fmt.Sprintf("%s.kms", c.Region), cloudEndpoint)
 	if c.Visibility == "private" || c.Visibility == "public-and-private" {
 		kmsurl = ContructEndpoint(fmt.Sprintf("private.%s.kms", c.Region), cloudEndpoint)
@@ -1644,52 +1818,12 @@ func (c *Config) ClientSession() (interface{}, error) {
 
 	var authenticator core.Authenticator
 
-	if (c.BluemixAPIKey != "") && (c.IAMTrustedProfileID != "" || c.IAMTrustedProfileName != "") {
-		if c.IAMTrustedProfileID != "" {
-			authenticator, err = core.NewIamAssumeAuthenticatorBuilder().
-				SetApiKey(c.BluemixAPIKey).
-				SetIAMProfileID(c.IAMTrustedProfileID).
-				SetURL(EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL)).
-				Build()
-			if err != nil {
-				log.Fatalf("Error in authenticating using NewIamAssumeAuthenticatorBuilder. Error: %s", err)
-			}
-		} else {
-			authenticator, err = core.NewIamAssumeAuthenticatorBuilder().
-				SetApiKey(c.BluemixAPIKey).
-				SetIAMProfileName(c.IAMTrustedProfileName).
-				SetIAMAccountID(c.Account).
-				SetURL(EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL)).
-				Build()
-			if err != nil {
-				log.Fatalf("Error in authenticating using NewIamAssumeAuthenticatorBuilder with trusted profile name. Error: %s", err)
-			}
-
-		}
-	} else if c.BluemixAPIKey != "" || sess.BluemixSession.Config.IAMRefreshToken != "" {
-		if c.BluemixAPIKey != "" {
-			authenticator = &core.IamAuthenticator{
-				ApiKey: c.BluemixAPIKey,
-				URL:    EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL),
-			}
-		} else {
-			// Construct the IamAuthenticator with the IAM refresh token.
-			authenticator = &core.IamAuthenticator{
-				RefreshToken: sess.BluemixSession.Config.IAMRefreshToken,
-				ClientId:     "bx",
-				ClientSecret: "bx",
-				URL:          EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamURL),
-			}
-		}
-	} else if strings.HasPrefix(sess.BluemixSession.Config.IAMAccessToken, "Bearer") {
-		authenticator = &core.BearerTokenAuthenticator{
-			BearerToken: sess.BluemixSession.Config.IAMAccessToken[7:],
-		}
-	} else {
-		authenticator = &core.BearerTokenAuthenticator{
-			BearerToken: sess.BluemixSession.Config.IAMAccessToken,
-		}
+	// Build authenticator once and store in session for reuse
+	session.authenticator, err = c.buildAuthenticator(sess, iamURL)
+	if err != nil {
+		session.authenticatorErr = fmt.Errorf("failed to create authenticator: %w", err)
 	}
+	authenticator = session.authenticator
 
 	// Construct the service options.
 	var backupRecoveryURL string = "https://default.backup-recovery.cloud.ibm.com/v2"
@@ -2008,7 +2142,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 		})
 	}
 
-	//Usage Reports Service Client
+	// Usage Reports Service Client
 	usageReportsURL := usagereportsv4.DefaultServiceURL
 	if c.Visibility == "private" {
 		if c.Region == "us-south" || c.Region == "us-east" {
@@ -2047,8 +2181,12 @@ func (c *Config) ClientSession() (interface{}, error) {
 
 	// CATALOG MANAGEMENT Service
 	catalogManagementURL := "https://cm.globalcatalog.cloud.ibm.com/api/v1-beta"
-	if c.Visibility == "private" {
-		session.catalogManagementClientErr = fmt.Errorf("Catalog Management resource doesnot support private endpoints")
+	if c.Visibility == "private" || c.Visibility == "public-and-private" {
+		if c.Region == "us-south" || c.Region == "us-east" {
+			catalogManagementURL = ContructEndpoint(fmt.Sprintf("cm.private.%s.globalcatalog", c.Region), fmt.Sprintf("%s/api/v1-beta", cloudEndpoint))
+		} else {
+			catalogManagementURL = ContructEndpoint("cm.private.globalcatalog", fmt.Sprintf("%s/api/v1-beta", cloudEndpoint))
+		}
 	}
 	if fileMap != nil && c.Visibility != "public-and-private" {
 		catalogManagementURL = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_CATALOG_MANAGEMENT_API_ENDPOINT", c.Region, catalogManagementURL)
@@ -2342,10 +2480,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 		containerRegistryClientURL = containerregistryv1.DefaultServiceURL
 	}
 	if c.Visibility == "private" || c.Visibility == "public-and-private" {
-		containerRegistryClientURL, err = GetPrivateServiceURLForRegion(c.Region)
-		if err != nil {
-			containerRegistryClientURL, _ = GetPrivateServiceURLForRegion("global")
-		}
+		containerRegistryClientURL = strings.Replace(containerRegistryClientURL, "https://", "https://private.", 1)
 	}
 	if fileMap != nil && c.Visibility != "public-and-private" {
 		containerRegistryClientURL = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_CR_API_ENDPOINT", c.Region, containerRegistryClientURL)
@@ -2730,7 +2865,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisZonesErr != nil {
 		session.cisZonesErr = fmt.Errorf(
 			"Error occured while configuring CIS Zones service: %s",
-			session.cisZonesErr)
+			session.cisZonesErr,
+		)
 	}
 	if session.cisZonesV1Client != nil && session.cisZonesV1Client.Service != nil {
 		session.cisZonesV1Client.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -2768,7 +2904,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisDNSBulkErr != nil {
 		session.cisDNSBulkErr = fmt.Errorf(
 			"Error occured while configuration CIS DNS bulk service : %s",
-			session.cisDNSBulkErr)
+			session.cisDNSBulkErr,
+		)
 	}
 	if session.cisDNSRecordBulkClient != nil && session.cisDNSRecordBulkClient.Service != nil {
 		session.cisDNSRecordBulkClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -2860,7 +2997,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisRLErr != nil {
 		session.cisRLErr = fmt.Errorf(
 			"Error occured while cofiguring CIS Zone Rate Limit service: %s",
-			session.cisRLErr)
+			session.cisRLErr,
+		)
 	}
 	if session.cisRLClient != nil && session.cisRLClient.Service != nil {
 		session.cisRLClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -2916,7 +3054,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisPageRuleErr != nil {
 		session.cisPageRuleErr = fmt.Errorf(
 			"Error occured while cofiguring CIS Page Rule service: %s",
-			session.cisPageRuleErr)
+			session.cisPageRuleErr,
+		)
 	}
 	if session.cisPageRuleClient != nil && session.cisPageRuleClient.Service != nil {
 		session.cisPageRuleClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -3166,7 +3305,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisWAFRuleErr != nil {
 		session.cisWAFRuleErr = fmt.Errorf(
 			"Error occured while configuring CIS WAF Rules service: %s",
-			session.cisWAFRuleErr)
+			session.cisWAFRuleErr,
+		)
 	}
 	if session.cisWAFRuleClient != nil && session.cisWAFRuleClient.Service != nil {
 		session.cisWAFRuleClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -3314,7 +3454,8 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if session.cisOriginAuthPullErr != nil {
 		session.cisOriginAuthPullErr = fmt.Errorf(
 			"Error occured while configuring CIS Authenticated Origin Pullservice: %s",
-			session.cisOriginAuthPullErr)
+			session.cisOriginAuthPullErr,
+		)
 	}
 	if session.cisOriginAuthClient != nil && session.cisOriginAuthClient.Service != nil {
 		session.cisOriginAuthClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
@@ -3357,6 +3498,29 @@ func (c *Config) ClientSession() (interface{}, error) {
 	if fileMap != nil && c.Visibility != "public-and-private" {
 		iamIdenityURL = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_IAM_API_ENDPOINT", c.Region, iamIdenityURL)
 	}
+	// ACCOUNT MANAGEMENT Service
+	accountManagementURL := accountmanagementv4.DefaultServiceURL
+	if c.Visibility == "private" || c.Visibility == "public-and-private" {
+		if c.Region == "us-south" || c.Region == "us-east" {
+			accountManagementURL = ContructEndpoint(fmt.Sprintf("private.%s.iam", c.Region), cloudEndpoint)
+		}
+	}
+	accountManagementOptions := &accountmanagementv4.AccountManagementV4Options{
+		Authenticator: authenticator,
+		URL:           EnvFallBack([]string{"IBMCLOUD_ACCOUNT_MANAGEMENT_API_ENDPOINT"}, accountManagementURL),
+	}
+	accountManagementClient, err := accountmanagementv4.NewAccountManagementV4(accountManagementOptions)
+	if err != nil {
+		session.accountManagementErr = fmt.Errorf("[ERROR] Error occurred while configuring Account Management service: %q", err)
+	}
+	if accountManagementClient != nil && accountManagementClient.Service != nil {
+		accountManagementClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
+		accountManagementClient.SetDefaultHeaders(gohttp.Header{
+			"X-Original-User-Agent": {fmt.Sprintf("terraform-provider-ibm/%s", version.Version)},
+		})
+	}
+	session.accountManagementAPI = accountManagementClient
+
 	iamIdentityOptions := &iamidentity.IamIdentityV1Options{
 		Authenticator: authenticator,
 		URL:           EnvFallBack([]string{"IBMCLOUD_IAM_API_ENDPOINT"}, iamIdenityURL),
@@ -3576,6 +3740,27 @@ func (c *Config) ClientSession() (interface{}, error) {
 			})
 		} else {
 			session.drAutomationServiceClientErr = fmt.Errorf("error occurred while constructing 'DrAutomation Service' service client: %q", err)
+		}
+	}
+
+	// Construct an instance of the 'PowerhaAutomation Service' service.
+	if session.powerhaAutomationServiceClientErr == nil {
+		// Construct the service options.
+		powerhaAutomationServiceClientOptions := &powerhaautomationservicev1.PowerhaAutomationServiceV1Options{
+			Authenticator: authenticator,
+		}
+
+		// Construct the service client.
+		session.powerhaAutomationServiceClient, err = powerhaautomationservicev1.NewPowerhaAutomationServiceV1(powerhaAutomationServiceClientOptions)
+		if err == nil {
+			// Enable retries for API calls
+			session.powerhaAutomationServiceClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
+			// Add custom header for analytics
+			session.powerhaAutomationServiceClient.SetDefaultHeaders(gohttp.Header{
+				"X-Original-User-Agent": {fmt.Sprintf("terraform-provider-ibm/%s", version.Version)},
+			})
+		} else {
+			session.powerhaAutomationServiceClientErr = fmt.Errorf("Error occurred while constructing 'PowerhaAutomation Service' service client: %q", err)
 		}
 	}
 
@@ -3812,7 +3997,7 @@ func (c *Config) ClientSession() (interface{}, error) {
 	codeEngineClientOptions := &codeengine.CodeEngineV2Options{
 		Authenticator: authenticator,
 		URL:           EnvFallBack([]string{"IBMCLOUD_CODE_ENGINE_API_ENDPOINT"}, codeEngineEndpoint),
-		Version:       core.StringPtr("2025-07-10"),
+		Version:       core.StringPtr("2026-02-20"),
 	}
 
 	// Construct the service client.
