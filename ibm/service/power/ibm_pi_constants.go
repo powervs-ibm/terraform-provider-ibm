@@ -617,6 +617,7 @@ const (
 	Attr_WorkspaceStatus                     = "pi_workspace_status"
 	Attr_WorkspaceType                       = "pi_workspace_type"
 	Attr_WWN                                 = "wwn"
+	Attr_ZonalSnapshotPools                  = "zonal_snapshot_pools"
 
 	// OS Type
 	OS_AIX   = "aix"
