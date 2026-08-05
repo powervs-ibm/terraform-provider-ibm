@@ -609,6 +609,7 @@ const (
 	Attr_WorkloadType                        = "workload_type"
 	Attr_Workspace                           = "workspace"
 	Attr_WorkspaceCapabilities               = "pi_workspace_capabilities"
+	Attr_WorkspaceCRN                        = "workspace_crn"
 	Attr_WorkspaceDetails                    = "pi_workspace_details"
 	Attr_WorkspaceID                         = "pi_workspace_id"
 	Attr_WorkspaceLocation                   = "pi_workspace_location"
