@@ -210,6 +210,8 @@ const (
 	Arg_WorkspaceCRN                         = "pi_workspace_crn"
 
 	// Attributes
+	Attr_ResourceID                          = "resource_id"
+	Attr_ResourceType                        = "resource_type"
 	Attr_Access                              = "access"
 	Attr_Account                             = "account"
 	Attr_Action                              = "action"
