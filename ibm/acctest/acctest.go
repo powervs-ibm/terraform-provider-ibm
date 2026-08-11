@@ -246,6 +246,7 @@ var (
 // For Power Colo
 
 var (
+	Pi_async_job_id                   string
 	Pi_auxiliary_volume_name          string
 	Pi_cloud_instance_id              string
 	Pi_dhcp_id                        string
@@ -1392,6 +1393,11 @@ func init() {
 		fmt.Println("[INFO] Set the environment variable PI_AUXILIARY_VOLUME_NAME for testing ibm_pi_volume_onboarding resource else it is set to default value 'terraform-test-power'")
 	}
 
+	Pi_async_job_id = os.Getenv("PI_ASYNC_JOB_ID")
+	if Pi_async_job_id == "" {
+		Pi_async_job_id = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_ASYNC_JOB_ID for testing ibm_pi_async_job resource else it is set to default value 'terraform-test-power'")
+	}
 	Pi_volume_group_name = os.Getenv("PI_VOLUME_GROUP_NAME")
 	if Pi_volume_group_name == "" {
 		Pi_volume_group_name = "terraform-test-power"

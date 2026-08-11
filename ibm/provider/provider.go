@@ -752,6 +752,8 @@ func Provider() *schema.Provider {
 			"ibm_schematics_agent_health":   schematics.DataSourceIbmSchematicsAgentHealth(),
 
 			// Added for Power Resources
+			"ibm_pi_async_job":                              power.DataSourceIBMPIAsyncJob(),
+			"ibm_pi_async_jobs":                             power.DataSourceIBMPIAsyncJobs(),
 			"ibm_pi_available_hosts":                        power.DataSourceIBMPIAvailableHosts(),
 			"ibm_pi_catalog_images":                         power.DataSourceIBMPICatalogImages(),
 			"ibm_pi_cloud_connection":                       power.DataSourceIBMPICloudConnection(),
