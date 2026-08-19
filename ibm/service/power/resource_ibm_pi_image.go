@@ -197,6 +197,12 @@ func ResourceIBMPIImage() *schema.Resource {
 				Optional: true,
 				Type:     schema.TypeList,
 			},
+			Arg_ReplicatedSnapshotSupport: {
+				Description: "Indicates if the image should be replicated snapshot support enabled or not.",
+				ForceNew:    true,
+				Optional:    true,
+				Type:        schema.TypeBool,
+			},
 			Arg_SourceChecksum: {
 				ConflictsWith: []string{Arg_ImageID},
 				Description:   "Checks the checksum file from the COS bucket against the one computed on the downloaded image.",
@@ -247,6 +253,10 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 		var body = &models.CreateImage{
 			ImageID: imageid,
 			Source:  &source,
+		}
+		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+			rss := v.(bool)
+			body.ReplicatedSnapshotSupport = &rss
 		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {
 			body.UserTags = flex.FlattenSet(tags.(*schema.Set))
@@ -342,6 +352,10 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 				Vendor:      core.StringPtr(details[Attr_Vendor].(string)),
 			}
 			body.ImportDetails = &importDetailsModel
+		}
+		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+			rss := v.(bool)
+			body.ReplicatedSnapshotSupport = &rss
 		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {
 			body.UserTags = flex.FlattenSet(tags.(*schema.Set))

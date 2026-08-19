@@ -1637,3 +1637,52 @@ func testAccCheckIBMPIInstanceStatus(n, status string) resource.TestCheckFunc {
 		return nil
 	}
 }
+
+// TestAccIBMPIInstanceReplicatedSnapshotSupport tests pi_replicated_snapshot_support for PVM instances
+func TestAccIBMPIInstanceReplicatedSnapshotSupport(t *testing.T) {
+	instanceRes := "ibm_pi_instance.power_instance"
+	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIBMPIInstanceReplicatedSnapshotSupportConfig(name, power.OK),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttr(instanceRes, "pi_replicated_snapshot_support", "true"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIBMPIInstanceReplicatedSnapshotSupportConfig(name, instanceHealthStatus string) string {
+	return fmt.Sprintf(`
+	data "ibm_pi_image" "power_image" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_image_name        = "%[3]s"
+	}
+	data "ibm_pi_network" "power_networks" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_network_name      = "%[4]s"
+	}
+	resource "ibm_pi_instance" "power_instance" {
+		pi_cloud_instance_id           = "%[1]s"
+		pi_health_status               = "%[5]s"
+		pi_image_id                    = data.ibm_pi_image.power_image.id
+		pi_instance_name               = "%[2]s"
+		pi_memory                      = "2"
+		pi_proc_type                   = "shared"
+		pi_processors                  = "0.25"
+		pi_replicated_snapshot_support = true
+		pi_storage_pool                = data.ibm_pi_image.power_image.storage_pool
+		pi_sys_type                    = "e980"
+		pi_network {
+			network_id = data.ibm_pi_network.power_networks.id
+		}
+	}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, instanceHealthStatus)
+}

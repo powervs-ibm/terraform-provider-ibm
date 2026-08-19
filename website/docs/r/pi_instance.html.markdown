@@ -125,6 +125,7 @@ Review the argument references that you can specify for your resource.
 - `pi_replication_policy` - (Optional, String) The replication policy that you want to use, either `affinity`, `anti-affinity` or `none`. If this parameter is not set, `none` is used by default.
 - `pi_replication_scheme` - (Optional, String) The replication scheme that you want to set, either `prefix` or `suffix`.
 - `pi_replication_sites` - (Optional, List) Indicates the replication sites of the boot volume.
+- `pi_replicated_snapshot_support` - (Optional, Boolean) Indicates if the boot volume should be replicated snapshot support enabled or not.
 - `pi_retain_virtual_serial_number` - (Optional, Boolean) Indicates whether attached virtual serial number will be reserved when serial assigned to instance is changed, removed, or instance is deleted. If using `ibm_pi_virtual_serial_number` resource, will unassign and unreserved virtual serial number attached to instance if set to false. Default value is `false`.
 - `pi_sap_profile_id` - (Optional, String) SAP Profile ID for the amount of cores and memory.
   - Required only when creating SAP instances.

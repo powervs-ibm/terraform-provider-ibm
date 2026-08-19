@@ -94,6 +94,7 @@ Review the argument references that you can specify for your resource.
   - `license_type` - (Required, String) Origin of the license of the product. Allowable value is: `byol`.
   - `product` - (Required, String) Product within the image.Allowable values are: `Hana`, `Netweaver`.
   - `vendor` - (Required, String) Vendor supporting the product. Allowable value is: `SAP`.
+- `pi_replicated_snapshot_support` - (Optional, Boolean, Forces new resource) Indicates if the image should be replicated snapshot support enabled or not.
 - `pi_source_checksum` - (Optional, Bool) Checks the checksum file from the COS bucket against the one computed on the downloaded image. This argument is only available for on-prem locations.
 - `pi_user_tags` - (Optional, List) The user tags attached to this resource.
 

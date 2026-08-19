@@ -58,6 +58,7 @@ Review the argument references that you can specify for your resource.
 - `pi_anti_affinity_instances` - (Optional, String) List of pvmInstances to base volume anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_volumes` is not provided.
 - `pi_anti_affinity_volumes`- (Optional, String) List of volumes to base volume anti-affinity policy against; required if requesting `anti-affinity` and `pi_anti_affinity_instances` is not provided.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
+- `pi_replicated_snapshot_support` - (Optional, Boolean, Forces new resource) Indicates if the volume should be replicated snapshot support enabled or not.
 - `pi_replication_enabled` - (Optional, Boolean) Indicates if the volume should be replication enabled or not.
 
   **Note:** `replication_sites` will be populated automatically with default sites if set to true and sites are not specified.
