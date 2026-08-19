@@ -1652,7 +1652,7 @@ func TestAccIBMPIInstanceReplicatedSnapshotSupport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIBMPIInstanceExists(instanceRes),
 					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
-					resource.TestCheckResourceAttr(instanceRes, "pi_replicated_snapshot_support", "true"),
+					resource.TestCheckResourceAttr(instanceRes, "pi_replicated_snapshot_support", "zonal_only"),
 				),
 			},
 		},

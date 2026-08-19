@@ -198,10 +198,11 @@ func ResourceIBMPIImage() *schema.Resource {
 				Type:     schema.TypeList,
 			},
 			Arg_ReplicatedSnapshotSupport: {
-				Description: "Indicates if the image should be replicated snapshot support enabled or not.",
-				ForceNew:    true,
-				Optional:    true,
-				Type:        schema.TypeBool,
+				Description:  "Indicates if the image is required to be created in a storage pool that supports replicated instance snapshots. Allowable values: `none`, `zonal_only`, `zonal_with_regional`.",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{ReplicatedSnapshotSupportNone, ReplicatedSnapshotSupportZonalOnly, ReplicatedSnapshotSupportZonalWithRegional}),
 			},
 			Arg_SourceChecksum: {
 				ConflictsWith: []string{Arg_ImageID},
@@ -255,7 +256,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			Source:  &source,
 		}
 		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
-			rss := v.(bool)
+			rss := v.(string)
 			body.ReplicatedSnapshotSupport = &rss
 		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {
@@ -298,7 +299,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			BucketName:    &bucketName,
 			BucketAccess:  &bucketAccess,
 			ImageFilename: &bucketImageFileName,
-			Region:        &bucketRegion,
+			Region:        bucketRegion,
 		}
 
 		if v, ok := d.GetOk(Arg_ImageAccessKey); ok {
@@ -354,7 +355,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			body.ImportDetails = &importDetailsModel
 		}
 		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
-			rss := v.(bool)
+			rss := v.(string)
 			body.ReplicatedSnapshotSupport = &rss
 		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {

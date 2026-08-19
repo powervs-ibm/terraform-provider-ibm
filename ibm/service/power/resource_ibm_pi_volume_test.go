@@ -331,7 +331,7 @@ func testAccCheckIBMPIVolumeReplicatedSnapshotSupportConfig(name string) string 
 	return fmt.Sprintf(`
 		resource "ibm_pi_volume" "power_volume" {
 			pi_cloud_instance_id           = "%[2]s"
-			pi_replicated_snapshot_support = true
+			pi_replicated_snapshot_support = "zonal_only"
 			pi_volume_name                 = "%[1]s"
 			pi_volume_pool                 = "%[3]s"
 			pi_volume_shareable            = true

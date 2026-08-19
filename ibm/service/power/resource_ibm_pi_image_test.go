@@ -246,7 +246,7 @@ func testAccCheckIBMPIImageStockReplicatedSnapshotSupportConfig() string {
 	resource "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id           = "%[1]s"
 		pi_image_id                    = "%[2]s"
-		pi_replicated_snapshot_support = true
+		pi_replicated_snapshot_support = "zonal_only"
 	}
 	`, acc.Pi_cloud_instance_id, acc.Pi_image)
 }
@@ -282,7 +282,7 @@ func testAccCheckIBMPIImageCOSReplicatedSnapshotSupportConfig(name string) strin
 		pi_image_bucket_region         = "%[4]s"
 		pi_image_name                  = "%[5]s"
 		pi_image_storage_type          = "tier3"
-		pi_replicated_snapshot_support = true
+		pi_replicated_snapshot_support = "zonal_only"
 	}
 	`, acc.Pi_cloud_instance_id, acc.Pi_image_bucket_name, acc.Pi_image_bucket_file_name, acc.Pi_image_bucket_region, name)
 }
