@@ -84,6 +84,7 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Type:        schema.TypeSet,
 			},
 			Arg_EnableDHCP: {
+				Computed:    true,
 				Description: "Network will support DHCP.",
 				Optional:    true,
 				Type:        schema.TypeBool,
@@ -296,8 +297,9 @@ func resourceIBMPINetworkCreate(ctx context.Context, d *schema.ResourceData, met
 	if _, ok := d.GetOk(Arg_Cidr); ok && networktype == PubVlan {
 		return diag.Errorf("%s cannot be set when %s is pub-vlan", Arg_Cidr, Arg_NetworkType)
 	}
-	if v, ok := d.GetOk(Arg_EnableDHCP); ok {
-		body.EnableDHCP = flex.PtrToBool(v.(bool))
+
+	if !d.GetRawConfig().GetAttr(Arg_EnableDHCP).IsNull() {
+		body.EnableDHCP = flex.PtrToBool(d.Get(Arg_EnableDHCP).(bool))
 	}
 
 	if !sess.IsOnPrem() {
@@ -400,6 +402,7 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	d.Set(Arg_NetworkMTU, networkdata.Mtu)
 	d.Set(Arg_NetworkName, networkdata.Name)
 	d.Set(Arg_NetworkType, networkdata.Type)
+	d.Set(Arg_EnableDHCP, networkdata.EnableDHCP)
 	d.Set(Attr_EnableDHCP, networkdata.EnableDHCP)
 	d.Set(Attr_NetworkID, networkdata.NetworkID)
 	networkAddressTranslation := []map[string]interface{}{}
@@ -475,7 +478,12 @@ func resourceIBMPINetworkUpdate(ctx context.Context, d *schema.ResourceData, met
 		if d.HasChange(Arg_NetworkName) {
 			body.Name = flex.PtrToString(d.Get(Arg_NetworkName).(string))
 		}
-
+		if body.DNSServers == nil {
+			body.DNSServers = flex.ExpandStringList((d.Get(Arg_DNS).(*schema.Set)).List())
+		}
+		if networkType == Vlan && body.IPAddressRanges == nil {
+			body.IPAddressRanges = getIPAddressRanges(d.Get(Arg_IPAddressRange).([]interface{}))
+		}
 		_, err = client.Update(networkID, body)
 		if err != nil {
 			return diag.FromErr(err)
@@ -623,7 +631,11 @@ func isIBMPINetworkRefreshUpdateFunc(client *instance.IBMPINetworkClient, update
 				}
 			}
 		}
-
+		if updateBody.EnableDHCP != nil {
+			if *updateBody.EnableDHCP != network.EnableDHCP {
+				return network, State_Retry, nil
+			}
+		}
 		if updateBody.Gateway != nil {
 			if *updateBody.Gateway != network.Gateway {
 				return network, State_Retry, nil
