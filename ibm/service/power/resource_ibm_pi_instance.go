@@ -176,7 +176,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				ForceNew:     true,
 				Optional:     true,
 				Type:         schema.TypeString,
-				ValidateFunc: validate.ValidateAllowedStringValues([]string{ReplicatedSnapshotSupportNone, ReplicatedSnapshotSupportZonalOnly, ReplicatedSnapshotSupportZonalWithRegional}),
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{None, ZonalOnly, ZonalWithRegional}),
 			},
 			Arg_CloudInstanceID: {
 				Description: "This is the Power Instance id that is assigned to the account",
