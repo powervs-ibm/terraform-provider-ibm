@@ -171,6 +171,13 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Optional:    true,
 				Type:        schema.TypeBool,
 			},
+			Arg_ReplicatedSnapshotSupport: {
+				Description:  "Indicates if the pvm instance should be created on a storage pool that supports replicated instance snapshots. Allowable values: `none`, `zonal_only`, `zonal_with_regional`.",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{None, ZonalOnly, ZonalWithRegional}),
+			},
 			Arg_CloudInstanceID: {
 				Description: "This is the Power Instance id that is assigned to the account",
 				ForceNew:    true,
@@ -2068,6 +2075,10 @@ func createSAPInstance(d *schema.ResourceData, sapClient *instance.IBMPISAPInsta
 	if st, ok := d.GetOk(Arg_StorageType); ok {
 		body.StorageType = st.(string)
 	}
+	if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+		rss := v.(string)
+		body.ReplicatedSnapshotSupport = &rss
+	}
 	var bootVolumeReplicationEnabled bool
 	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {
 		bootVolumeReplicationEnabled = bootVolumeReplicationBoolean.(bool)
@@ -2333,6 +2344,10 @@ func createPVMInstance(d *schema.ResourceData, client *instance.IBMPIInstanceCli
 	}
 	if deploymentTarget, ok := d.GetOk(Arg_DeploymentTarget); ok {
 		body.DeploymentTarget = expandDeploymentTarget(deploymentTarget.(*schema.Set).List())
+	}
+	if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+		rss := v.(string)
+		body.ReplicatedSnapshotSupport = &rss
 	}
 	var bootVolumeReplicationEnabled bool
 	if bootVolumeReplicationBoolean, ok := d.GetOk(Arg_BootVolumeReplicationEnabled); ok {

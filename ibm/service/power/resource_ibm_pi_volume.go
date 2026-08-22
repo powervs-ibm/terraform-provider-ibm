@@ -89,6 +89,13 @@ func ResourceIBMPIVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.NoZeroValues,
 			},
+			Arg_ReplicatedSnapshotSupport: {
+				Description:  "Indicates if the volume is required to be created in a storage pool that supports replicated instance snapshots. Allowable values: `none`, `zonal_only`, `zonal_with_regional`.",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{None, ZonalOnly, ZonalWithRegional}),
+			},
 			Arg_ReplicationEnabled: {
 				Computed:    true,
 				Description: "Indicates if the volume should be replication enabled or not.",
@@ -277,6 +284,10 @@ func resourceIBMPIVolumeCreate(ctx context.Context, d *schema.ResourceData, meta
 	if v, ok := d.GetOk(Arg_VolumePool); ok {
 		volumePool := v.(string)
 		body.VolumePool = volumePool
+	}
+	if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+		rss := v.(string)
+		body.ReplicatedSnapshotSupport = &rss
 	}
 	if v, ok := d.GetOk(Arg_ReplicationEnabled); ok {
 		replicationEnabled := v.(bool)
