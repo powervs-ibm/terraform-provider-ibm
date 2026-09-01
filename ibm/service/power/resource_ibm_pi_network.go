@@ -191,6 +191,12 @@ func ResourceIBMPINetwork() *schema.Resource {
 				Description: "The CRN of this resource.",
 				Type:        schema.TypeString,
 			},
+			Attr_DNS: {
+				Computed:    true,
+				Description: "The DNS Servers for the network.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeSet,
+			},
 			Attr_EnableDHCP: {
 				Computed:    true,
 				Description: "DHCP enabled network.",
@@ -395,7 +401,7 @@ func resourceIBMPINetworkRead(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	d.Set(Arg_Cidr, networkdata.Cidr)
-	d.Set(Arg_DNS, networkdata.DNSServers)
+	d.Set(Attr_DNS, networkdata.DNSServers)
 	d.Set(Arg_Gateway, networkdata.Gateway)
 	d.Set(Arg_NetworkMTU, networkdata.Mtu)
 	d.Set(Arg_NetworkName, networkdata.Name)
