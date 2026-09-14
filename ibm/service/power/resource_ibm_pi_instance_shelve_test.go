@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccIBMPIInstanceShelve(t *testing.T) {
-	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	name := fmt.Sprintf("tf-pi-instance-shelve-%d", acctest.RandIntRange(10, 100))
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
@@ -25,7 +25,7 @@ func TestAccIBMPIInstanceShelve(t *testing.T) {
 				Config: testAccCheckIBMPIInstanceShelveConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"ibm_pi_instance_shelve.example", "status", strings.ToUpper(power.State_Shelved)),
+						"ibm_pi_instance_shelve.shelve", "status", strings.ToUpper(power.State_Shelved)),
 				),
 			},
 		},
@@ -36,11 +36,11 @@ func testAccCheckIBMPIInstanceShelveConfig(name string) string {
 	return fmt.Sprintf(`
 	data "ibm_pi_image" "power_image" {
 		pi_cloud_instance_id = "%[1]s"
-		pi_image_name        = "%[3]s"
+		pi_image_id          = "%[3]s"
 	  }
 	  data "ibm_pi_network" "power_networks" {
 		pi_cloud_instance_id = "%[1]s"
-		pi_network_name      = "%[4]s"
+		pi_network_id      = "%[4]s"
 	  }
 	  resource "ibm_pi_instance" "power_instance" {
 		pi_cloud_instance_id  = "%[1]s"
@@ -51,15 +51,20 @@ func testAccCheckIBMPIInstanceShelveConfig(name string) string {
 		pi_processors         = "0.25"
 		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
 		pi_storage_type       = "%[5]s"
-		pi_sys_type           = "s922"
+		pi_sys_type           = "s1022"
 		pi_network {
 			network_id = data.ibm_pi_network.power_networks.id
 		}
 	  }
-
-	resource "ibm_pi_instance_shelve" "example" {
-		pi_cloud_instance_id	= "%[1]s"
-		pi_instance_id			= resource.ibm_pi_instance.power_instance.pi_instance_name
-	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_name, acc.PiStorageType)
+		resource "ibm_pi_instance_action" "shutdown" {
+			pi_action				= "%[6]s"
+			pi_cloud_instance_id	= "%[1]s"
+			pi_instance_id			= resource.ibm_pi_instance.power_instance.instance_id 
+		}
+		resource "ibm_pi_instance_shelve" "shelve" {
+			depends_on  = [ibm_pi_instance_action.shutdown]
+			pi_cloud_instance_id	= "%[1]s"
+			pi_instance_id			= resource.ibm_pi_instance.power_instance.instance_id
+		}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_image_id, acc.Pi_network_id, acc.PiStorageType, power.Action_ImmediateShutdown)
 }
