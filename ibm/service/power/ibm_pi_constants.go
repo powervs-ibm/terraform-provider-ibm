@@ -724,6 +724,7 @@ const (
 	State_RESIZE             = "RESIZE"
 	State_Retry              = "retry"
 	State_Running            = "running"
+	State_Shelved            = "shelved"
 	State_Shutoff            = "shutoff"
 	State_SHUTOFF            = "SHUTOFF"
 	State_Stopping           = "stopping"
