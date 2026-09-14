@@ -19,6 +19,8 @@ resource "ibm_pi_instance_shelve" "example" {
 }
 ```
 
+~> **WARNING:** The power virtual server instance must be `shutdown`!
+
 ### Notes
 
 - Please find [supported Regions](https://cloud.ibm.com/apidocs/power-cloud#endpoint) for endpoints.
