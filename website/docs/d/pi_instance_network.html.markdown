@@ -49,6 +49,8 @@ Review the argument references that you can specify for your data source.
 In addition to all argument reference list, you can access the following attribute references after your data source is created.
 
 - `external_ip` - (String) TThe external IP address of the network (for pub-VLAN networks).
+- `external_network_interface_bandwidth` - (Integer) Bandwidth in Gbps of the external network interface.
+- `external_network_interface_crn` - (String) CRN of the attached VPC Virtual Network Interface.  
 - `href` - (String) Link to this PVM instance network.
 - `id` - (String) The unique identifier of the data source in the form <pi_cloud_instance_id>/<pi_instance_id>/<pi_network_id>.
 - `ip_address` - (String) The IP address of the network interface.

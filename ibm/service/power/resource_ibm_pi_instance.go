@@ -123,6 +123,22 @@ func ResourceIBMPIInstance() *schema.Resource {
 				}
 				return nil
 			},
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
+				networks := diff.Get(Arg_Network).([]any)
+				for i, n := range networks {
+					network := n.(map[string]any)
+					networkID, _ := network[Attr_NetworkID].(string)
+					externalCRN, _ := network[Attr_ExternalNetworkInterfaceCRN].(string)
+					bandwidth, _ := network[Attr_ExternalNetworkInterfaceBandwidth].(int)
+					if networkID == "" && externalCRN == "" {
+						return fmt.Errorf("%s[%d] requires either %s or %s to be set", Arg_Network, i, Attr_NetworkID, Attr_ExternalNetworkInterfaceCRN)
+					}
+					if bandwidth != 0 && externalCRN == "" {
+						return fmt.Errorf("%s[%d].%s is only valid when %s is set", Arg_Network, i, Attr_ExternalNetworkInterfaceBandwidth, Attr_ExternalNetworkInterfaceCRN)
+					}
+				}
+				return nil
+			},
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -332,6 +348,17 @@ func ResourceIBMPIInstance() *schema.Resource {
 				DiffSuppressFunc: flex.ApplyOnce,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_ExternalNetworkInterfaceBandwidth: {
+							Description:  "Bandwidth in Gbps for the external network interface. Valid range is 1 to 100. Only valid when external_network_interface_crn is specified.",
+							Optional:     true,
+							Type:         schema.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						Attr_ExternalNetworkInterfaceCRN: {
+							Description: "CRN of the VPC Virtual Network Interface to attach. Required if network_id is not specified. Cannot be combined with network_id.",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
 						Attr_IPAddress: {
 							Computed: true,
 							Optional: true,
@@ -342,8 +369,9 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:     schema.TypeString,
 						},
 						Attr_NetworkID: {
-							Required: true,
-							Type:     schema.TypeString,
+							Description: "ID of the network. Required if external_network_interface_crn is not specified. Cannot be combined with external_network_interface_crn.",
+							Optional:    true,
+							Type:        schema.TypeString,
 						},
 						Attr_NetworkInterfaceID: {
 							Computed:    true,
@@ -857,13 +885,15 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		for _, n := range powervmdata.Networks {
 			if n != nil {
 				v := map[string]any{
-					Attr_ExternalIP:         n.ExternalIP,
-					Attr_IPAddress:          n.IPAddress,
-					Attr_MacAddress:         n.MacAddress,
-					Attr_NetworkID:          n.NetworkID,
-					Attr_NetworkInterfaceID: n.NetworkInterfaceID,
-					Attr_NetworkName:        n.NetworkName,
-					Attr_Type:               n.Type,
+					Attr_ExternalIP:                        n.ExternalIP,
+					Attr_ExternalNetworkInterfaceBandwidth: n.ExternalNetworkInterfaceBandwidth,
+					Attr_ExternalNetworkInterfaceCRN:       n.ExternalNetworkInterfaceCRN,
+					Attr_IPAddress:                         n.IPAddress,
+					Attr_MacAddress:                        n.MacAddress,
+					Attr_NetworkID:                         n.NetworkID,
+					Attr_NetworkInterfaceID:                n.NetworkInterfaceID,
+					Attr_NetworkName:                       n.NetworkName,
+					Attr_Type:                              n.Type,
 				}
 				if len(n.NetworkSecurityGroupIDs) > 0 {
 					v[Attr_NetworkSecurityGroupIDs] = n.NetworkSecurityGroupIDs
@@ -1971,9 +2001,11 @@ func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 	for _, v := range networks {
 		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
-			IPAddress:               network[Attr_IPAddress].(string),
-			NetworkID:               flex.PtrToString(network[Attr_NetworkID].(string)),
-			NetworkSecurityGroupIDs: flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
+			ExternalNetworkInterfaceBandwidth: int64(network[Attr_ExternalNetworkInterfaceBandwidth].(int)),
+			ExternalNetworkInterfaceCRN:       network[Attr_ExternalNetworkInterfaceCRN].(string),
+			IPAddress:                         network[Attr_IPAddress].(string),
+			NetworkID:                         network[Attr_NetworkID].(string),
+			NetworkSecurityGroupIDs:           flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
 		}
 		pvmNetworks = append(pvmNetworks, pvmInstanceNetwork)
 	}
