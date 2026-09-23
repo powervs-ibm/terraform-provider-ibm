@@ -47,6 +47,16 @@ func DataSourceIBMPIInstanceNetworks() *schema.Resource {
 							Description: "The external IP address of the instance.",
 							Type:        schema.TypeString,
 						},
+						Attr_ExternalNetworkInterfaceBandwidth: {
+							Computed:    true,
+							Description: "Bandwidth in Gbps of the external network interface.",
+							Type:        schema.TypeInt,
+						},
+						Attr_ExternalNetworkInterfaceCRN: {
+							Computed:    true,
+							Description: "CRN of the attached VPC Virtual Network Interface.",
+							Type:        schema.TypeString,
+						},
 						Attr_Href: {
 							Computed:    true,
 							Description: "Link to this PVM instance network.",
@@ -139,6 +149,8 @@ func flattenPvmInstanceNetworksv2(InstanceNetworks []*models.PVMInstanceNetwork)
 		for i, pvmNet := range InstanceNetworks {
 			p := make(map[string]any)
 			p[Attr_ExternalIP] = pvmNet.ExternalIP
+			p[Attr_ExternalNetworkInterfaceBandwidth] = pvmNet.ExternalNetworkInterfaceBandwidth
+			p[Attr_ExternalNetworkInterfaceCRN] = pvmNet.ExternalNetworkInterfaceCRN
 			p[Attr_IPAddress] = pvmNet.IPAddress
 			p[Attr_MacAddress] = pvmNet.MacAddress
 			p[Attr_NetworkID] = pvmNet.NetworkID

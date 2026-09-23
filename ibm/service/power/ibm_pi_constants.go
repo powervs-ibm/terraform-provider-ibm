@@ -304,6 +304,8 @@ const (
 	Attr_ErrorCode                           = "error_code"
 	Attr_ExportRouteFilters                  = "export_route_filters"
 	Attr_ExternalIP                          = "external_ip"
+	Attr_ExternalNetworkInterfaceBandwidth   = "external_network_interface_bandwidth"
+	Attr_ExternalNetworkInterfaceCRN         = "external_network_interface_crn"
 	Attr_FailureMessage                      = "failure_message"
 	Attr_FailureReason                       = "failure_reason"
 	Attr_Fault                               = "fault"
