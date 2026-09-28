@@ -95,6 +95,8 @@ In addition to all argument reference list, you can access the following attribu
 
   Nested scheme for `networks`:
   - `external_ip` - (String) The external IP address of the instance.
+  - `external_network_interface_bandwidth` - (Integer) Bandwidth in Gbps of the external network interface.
+  - `external_network_interface_crn` - (String) CRN of the attached VPC Virtual Network Interface.
   - `ip` - (String) The IP address of the instance.
   - `mac_address` - (String) The MAC address of the instance.
   - `network_id` - (String) The network ID of the instance.
