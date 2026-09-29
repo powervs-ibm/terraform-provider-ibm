@@ -253,6 +253,7 @@ var (
 	Pi_auxiliary_volume_name          string
 	Pi_cloud_instance_id              string
 	Pi_dhcp_id                        string
+	Pi_external_network_interface_crn string
 	Pi_host_group_id                  string
 	Pi_host_id                        string
 	Pi_image                          string
@@ -1599,6 +1600,12 @@ func init() {
 	if Pi_network_address_group_id == "" {
 		Pi_network_address_group_id = "terraform-test-power"
 		fmt.Println("[INFO] Set the environment variable PI_NETWORK_ADDRESS_GROUP_ID for testing ibm_pi_network_address_group data source else it is set to default value 'terraform-test-power'")
+	}
+
+	Pi_external_network_interface_crn = os.Getenv("PI_EXTERNAL_NETWORK_INTERFACE_CRN")
+	if Pi_external_network_interface_crn == "" {
+		Pi_external_network_interface_crn = "terraform-test-power"
+		fmt.Println("[INFO] Set the environment variable PI_EXTERNAL_NETWORK_INTERFACE_CRN for testing ibm_pi_instance resource with a VPC Virtual Network Interface else it is set to default value 'terraform-test-power'")
 	}
 
 	WorkspaceID = os.Getenv("SCHEMATICS_WORKSPACE_ID")

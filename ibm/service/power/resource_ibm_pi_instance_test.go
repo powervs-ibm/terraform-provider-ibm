@@ -1538,6 +1538,50 @@ func testAccCheckIBMPIInstanceDefaultTrustedProfileConfig(name, instanceHealthSt
 	`, acc.Pi_cloud_instance_id, name, acc.Pi_image, acc.Pi_network_id, instanceHealthStatus, acc.PiStorageType, trustedProfileID, autolinkLine)
 }
 
+func TestAccIBMPIInstanceExternalNetworkInterface(t *testing.T) {
+	instanceRes := "ibm_pi_instance.power_instance"
+	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccIBMPIInstanceExternalNetworkInterfaceConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIInstanceExists(instanceRes),
+					resource.TestCheckResourceAttr(instanceRes, "pi_instance_name", name),
+					resource.TestCheckResourceAttr(instanceRes, "pi_network.0.external_network_interface_crn", acc.Pi_external_network_interface_crn),
+					resource.TestCheckResourceAttr(instanceRes, "pi_network.0.external_network_interface_bandwidth", "10"),
+				),
+			},
+		},
+	})
+}
+
+func testAccIBMPIInstanceExternalNetworkInterfaceConfig(name string) string {
+	return fmt.Sprintf(`
+	data "ibm_pi_image" "power_image" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_image_id          = "%[4]s"
+	}
+	resource "ibm_pi_instance" "power_instance" {
+		pi_cloud_instance_id  = "%[1]s"
+		pi_image_id           = data.ibm_pi_image.power_image.id
+		pi_instance_name      = "%[2]s"
+		pi_memory             = "2"
+		pi_proc_type          = "shared"
+		pi_processors         = "0.25"
+		pi_storage_type       = "tier3"
+		pi_sys_type           = "s922"
+		pi_network {
+			external_network_interface_crn       = "%[3]s"
+			external_network_interface_bandwidth = 10
+		}
+	}
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_external_network_interface_crn, acc.Pi_image)
+}
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
 	if err != nil {
