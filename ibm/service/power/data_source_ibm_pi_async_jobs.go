@@ -100,10 +100,22 @@ func DataSourceIBMPIAsyncJobs() *schema.Resource {
 							Description: "ID of the asynchronous job.",
 							Type:        schema.TypeString,
 						},
+						Attr_InputValues: {
+							Computed:    true,
+							Description: "Input values of the operation being tracked by the job.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeMap,
+						},
 						Attr_LastUpdateDate: {
 							Computed:    true,
 							Description: "Date the job was last updated.",
 							Type:        schema.TypeString,
+						},
+						Attr_OutputValues: {
+							Computed:    true,
+							Description: "Output values of the operation being tracked by the job.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:        schema.TypeMap,
 						},
 						Attr_ParentAsyncJobID: {
 							Computed:    true,
@@ -174,6 +186,8 @@ func flattenAsyncJobs(jobs []*models.AsyncJob) []map[string]any {
 			Attr_CreationDate:     job.CreationDate.String(),
 			Attr_ErrorMessage:     job.ErrorMessage,
 			Attr_ID:               job.ID,
+			Attr_InputValues:      flex.Flatten(job.InputValues),
+			Attr_OutputValues:     flex.Flatten(job.OutputValues),
 			Attr_ParentAsyncJobID: job.ParentAsyncJobID,
 			Attr_ProgressPercent:  job.ProgressPercent,
 			Attr_ResourceID:       job.ResourceID,

@@ -451,6 +451,7 @@ const (
 	Attr_OperatingSystem                     = "operating_system"
 	Attr_OSType                              = "os_type"
 	Attr_OutOfBandDeleted                    = "out_of_band_deleted"
+	Attr_OutputValues                        = "output_values"
 	Attr_ParentAsyncJobID                    = "parent_async_job_id"
 	Attr_PeerID                              = "peer_id"
 	Attr_PeerInterfaceID                     = "peer_interface_id"
