@@ -1983,7 +1983,7 @@ func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
 			IPAddress:               network[Attr_IPAddress].(string),
-			NetworkID:               flex.PtrToString(network[Attr_NetworkID].(string)),
+			NetworkID:               network[Attr_NetworkID].(string),
 			NetworkSecurityGroupIDs: flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
 		}
 		pvmNetworks = append(pvmNetworks, pvmInstanceNetwork)
