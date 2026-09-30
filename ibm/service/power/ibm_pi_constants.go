@@ -511,6 +511,7 @@ const (
 	Attr_RouteID                             = "route_id"
 	Attr_Routes                              = "routes"
 	Attr_Rules                               = "rules"
+	Attr_SafeToUnquiesceDate                 = "safe_to_unquiesce_date"
 	Attr_SAPS                                = "saps"
 	Attr_Secondaries                         = "secondaries"
 	Attr_Serial                              = "serial"
@@ -626,6 +627,7 @@ const (
 	Attr_WorkspaceStatus                     = "pi_workspace_status"
 	Attr_WorkspaceType                       = "pi_workspace_type"
 	Attr_WWN                                 = "wwn"
+	Attr_ZonalCompletionDate                 = "zonal_completion_date"
 	Attr_ZonalSnapshotPools                  = "zonal_snapshot_pools"
 
 	// OS Type

@@ -96,7 +96,7 @@ In addition to all argument reference list, you can access the following attribu
 - `remote_peer_snapshot` - (List) Details of the remote peer snapshot.
 
   Nested scheme for `remote_peer_snapshot`:
-  - `completion_date` - (String) Date of remote snapshot completion.
+  - `completion_date` - (String) Date when the instance snapshot completed. This will represent the date when in-place and zonal instance snapshots complete.  For a zonal instance snapshot with a remote peer instance snapshot, this will represent when both instance snapshots have completed.
   - `copy_volumes` - (List) List of copy volumes for the remote snapshot. See `copy_volumes` above for nested schema.
   - `crn` - (String) The CRN of the remote peer snapshot.
   - `id` - (String) The ID of the remote peer snapshot.
@@ -104,11 +104,13 @@ In addition to all argument reference list, you can access the following attribu
   - `status` - (String) The status of the remote peer snapshot.
   - `status_detail` - (String) Detailed status information for the remote peer snapshot.
 
+- `safe_to_unquiesce_date` - (String) After the given date, safe for applications to resume their workloads on the given snapshot volumes.
 - `snapshot_id` - (String) ID of the PVM instance snapshot.
 - `status` - (String) Status of the PVM instance snapshot.
 - `status_detail` - (String) Detailed information for the last PVM instance snapshot action.
 - `type` - (String) The type of the snapshot.
 - `volume_snapshots` - (Map) A map of volume snapshots included in the PVM instance snapshot.
+- `zonal_completion_date` - (String) Date when the zonal instance snapshot completed.
 
 ## Import
 

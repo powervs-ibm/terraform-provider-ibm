@@ -137,7 +137,7 @@ func ResourceIBMPIInstanceSnapshotV2() *schema.Resource {
 			},
 			Attr_CompletionDate: {
 				Computed:    true,
-				Description: "Date of snapshot completion.",
+				Description: "Date when the instance snapshot completed. This will represent the date when in-place and zonal instance snapshots complete.  For a zonal instance snapshot with a remote peer instance snapshot, this will represent when both instance snapshots have completed.",
 				Type:        schema.TypeString,
 			},
 			Attr_CopyVolumes: {
@@ -282,6 +282,11 @@ func ResourceIBMPIInstanceSnapshotV2() *schema.Resource {
 					},
 				},
 			},
+			Attr_SafeToUnquiesceDate: {
+				Computed:    true,
+				Description: "After the given date, safe for applications to resume their workloads on the given snapshot volumes.",
+				Type:        schema.TypeString,
+			},
 			Attr_SnapshotID: {
 				Computed:    true,
 				Description: "ID of the PVM instance snapshot.",
@@ -306,6 +311,11 @@ func ResourceIBMPIInstanceSnapshotV2() *schema.Resource {
 				Computed:    true,
 				Description: "A map of volume snapshots included in the PVM instance snapshot.",
 				Type:        schema.TypeMap,
+			},
+			Attr_ZonalCompletionDate: {
+				Computed:    true,
+				Description: "Date when the zonal instance snapshot completed.",
+				Type:        schema.TypeString,
 			},
 		},
 	}
@@ -445,6 +455,14 @@ func resourceIBMPIInstanceSnapshotV2Read(ctx context.Context, d *schema.Resource
 
 	if snapshotData.CompletionDate.String() != "" {
 		d.Set(Attr_CompletionDate, snapshotData.CompletionDate.String())
+	}
+
+	if snapshotData.SafeToUnquiesceDate.String() != "" {
+		d.Set(Attr_SafeToUnquiesceDate, snapshotData.SafeToUnquiesceDate.String())
+	}
+
+	if snapshotData.ZonalCompletionDate.String() != "" {
+		d.Set(Attr_ZonalCompletionDate, snapshotData.ZonalCompletionDate.String())
 	}
 
 	if snapshotData.Crn != nil {
