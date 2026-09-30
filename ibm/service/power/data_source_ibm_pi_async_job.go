@@ -94,10 +94,22 @@ func DataSourceIBMPIAsyncJob() *schema.Resource {
 				Description: "Detailed information of error encountered during job processing.",
 				Type:        schema.TypeString,
 			},
+			Attr_InputValues: {
+				Computed:    true,
+				Description: "Input values of the operation being tracked by the job.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeMap,
+			},
 			Attr_LastUpdateDate: {
 				Computed:    true,
 				Description: "Date the job was last updated.",
 				Type:        schema.TypeString,
+			},
+			Attr_OutputValues: {
+				Computed:    true,
+				Description: "Output values of the operation being tracked by the job.",
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeMap,
 			},
 			Attr_ParentAsyncJobID: {
 				Computed:    true,
@@ -154,9 +166,11 @@ func dataSourceIBMPIAsyncJobRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	d.Set(Attr_CreationDate, asyncJob.CreationDate.String())
 	d.Set(Attr_ErrorMessage, asyncJob.ErrorMessage)
+	d.Set(Attr_InputValues, flex.Flatten(asyncJob.InputValues))
 	if !asyncJob.LastUpdateDate.IsZero() {
 		d.Set(Attr_LastUpdateDate, asyncJob.LastUpdateDate.String())
 	}
+	d.Set(Attr_OutputValues, flex.Flatten(asyncJob.OutputValues))
 	d.Set(Attr_ParentAsyncJobID, asyncJob.ParentAsyncJobID)
 	d.Set(Attr_ProgressPercent, asyncJob.ProgressPercent)
 	d.Set(Attr_ResourceID, asyncJob.ResourceID)

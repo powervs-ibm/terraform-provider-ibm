@@ -62,7 +62,9 @@ In addition to all argument reference list, you can access the following attribu
   - `creation_date` - (String) Date the job was created.
   - `error_message` - (String) Detailed information of error encountered during job processing.
   - `id` - (String) ID of the asynchronous job.
+  - `input_values` - (Map) Input values of the operation being tracked by the job.
   - `last_update_date` - (String) Date the job was last updated.
+  - `output_values` - (Map) Output values of the operation being tracked by the job.
   - `parent_async_job_id` - (String) ID of the parent async job.
   - `progress_percent` - (Integer) Percentage of the job that has completed.
   - `resource_id` - (String) ID of the resource being acted upon in the job.
