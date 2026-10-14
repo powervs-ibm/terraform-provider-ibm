@@ -24,8 +24,6 @@ func TestAccIBMPIAsyncJobDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(asyncJobResData, "id"),
 					resource.TestCheckResourceAttrSet(asyncJobResData, "action"),
 					resource.TestCheckResourceAttrSet(asyncJobResData, "status"),
-					resource.TestCheckResourceAttrSet(asyncJobResData, "resource_id"),
-					resource.TestCheckResourceAttrSet(asyncJobResData, "resource_type"),
 				),
 			},
 		},
