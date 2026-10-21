@@ -209,7 +209,6 @@ func ResourceIBMPIInstanceSnapshotV2() *schema.Resource {
 			Attr_RemotePeerSnapshot: {
 				Computed:    true,
 				Description: "Details of the remote peer snapshot.",
-				MaxItems:    1,
 				Type:        schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -440,38 +439,40 @@ func resourceIBMPIInstanceSnapshotV2Read(ctx context.Context, d *schema.Resource
 	d.Set(Attr_CreationDate, snapshotData.CreationDate.String())
 	d.Set(Arg_Description, snapshotData.Description)
 	d.Set(Attr_JobID, snapshotData.JobID)
-	d.Set(Attr_LastUpdateDate, snapshotData.LastUpdateDate.String())
 	d.Set(Attr_PercentComplete, snapshotData.PercentComplete)
 	d.Set(Attr_PVMInstanceCRN, string(snapshotData.PvmInstanceCRN))
 	d.Set(Attr_Status, snapshotData.Status)
 	d.Set(Attr_StatusDetail, snapshotData.StatusDetail)
 	d.Set(Attr_VolumeSnapshots, snapshotData.VolumeSnapshots)
+
+	if snapshotData.CompletionDate != nil {
+		d.Set(Attr_CompletionDate, snapshotData.CompletionDate.String())
+	}
+
+	d.Set(Attr_CopyVolumes, flattenCopyVolumesV2(snapshotData.CopyVolumes))
+
+	if snapshotData.LastUpdateDate != nil {
+		d.Set(Attr_LastUpdateDate, snapshotData.LastUpdateDate.String())
+	}
+
 	if snapshotData.Name != nil {
 		d.Set(Arg_SnapshotName, *snapshotData.Name)
 	}
+
+	if snapshotData.RemotePeerSnapshot != nil {
+		d.Set(Attr_RemotePeerSnapshot, flattenRemotePeerSnapshotV2(snapshotData.RemotePeerSnapshot))
+	}
+
+	if snapshotData.SafeToUnquiesceDate != nil {
+		d.Set(Attr_SafeToUnquiesceDate, snapshotData.SafeToUnquiesceDate.String())
+	}
+
 	if snapshotData.Type != nil {
 		d.Set(Attr_Type, *snapshotData.Type)
 	}
 
-	if snapshotData.CompletionDate.String() != "" {
-		d.Set(Attr_CompletionDate, snapshotData.CompletionDate.String())
-	}
-
-	if snapshotData.SafeToUnquiesceDate.String() != "" {
-		d.Set(Attr_SafeToUnquiesceDate, snapshotData.SafeToUnquiesceDate.String())
-	}
-
-	if snapshotData.ZonalCompletionDate.String() != "" {
+	if snapshotData.ZonalCompletionDate != nil {
 		d.Set(Attr_ZonalCompletionDate, snapshotData.ZonalCompletionDate.String())
-	}
-
-	if snapshotData.Crn != nil {
-		d.Set(Attr_CRN, string(*snapshotData.Crn))
-		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(*snapshotData.Crn), "", UserTagType)
-		if err != nil {
-			log.Printf("Error on get of pi snapshot v2 (%s) pi_user_tags: %s", *snapshotData.SnapshotID, err)
-		}
-		d.Set(Arg_UserTags, tags)
 	}
 
 	if snapshotData.AggregatedSnapshotUsage != nil {
@@ -482,10 +483,13 @@ func resourceIBMPIInstanceSnapshotV2Read(ctx context.Context, d *schema.Resource
 		d.Set(Attr_AggregatedSnapshotUsage, usage)
 	}
 
-	d.Set(Attr_CopyVolumes, flattenCopyVolumesV2(snapshotData.CopyVolumes))
-
-	if snapshotData.RemotePeerSnapshot != nil {
-		d.Set(Attr_RemotePeerSnapshot, flattenRemotePeerSnapshotV2(snapshotData.RemotePeerSnapshot))
+	if snapshotData.Crn != nil {
+		d.Set(Attr_CRN, string(*snapshotData.Crn))
+		tags, err := flex.GetGlobalTagsUsingCRN(meta, string(*snapshotData.Crn), "", UserTagType)
+		if err != nil {
+			log.Printf("Error on get of pi snapshot v2 (%s) pi_user_tags: %s", *snapshotData.SnapshotID, err)
+		}
+		d.Set(Arg_UserTags, tags)
 	}
 
 	return nil
