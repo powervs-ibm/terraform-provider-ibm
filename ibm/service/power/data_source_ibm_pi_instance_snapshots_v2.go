@@ -290,11 +290,10 @@ func flattenSnapshotsV2(list []*models.SnapshotV2, meta any) []map[string]any {
 		}
 		l := map[string]any{
 			Attr_Action:          s.Action,
+			Attr_CreationDate:    s.CreationDate.String(),
 			Attr_Description:     s.Description,
 			Attr_ID:              *s.SnapshotID,
 			Attr_JobID:           s.JobID,
-			Attr_LastUpdateDate:  s.LastUpdateDate.String(),
-			Attr_CreationDate:    s.CreationDate.String(),
 			Attr_PercentComplete: s.PercentComplete,
 			Attr_PVMInstanceCRN:  string(s.PvmInstanceCRN),
 			Attr_PVMInstanceID:   s.PvmInstanceID,
@@ -302,32 +301,35 @@ func flattenSnapshotsV2(list []*models.SnapshotV2, meta any) []map[string]any {
 			Attr_StatusDetail:    s.StatusDetail,
 			Attr_VolumeSnapshots: s.VolumeSnapshots,
 		}
+
+		if s.CompletionDate != nil {
+			l[Attr_CompletionDate] = s.CompletionDate.String()
+		}
+
+		l[Attr_CopyVolumes] = flattenCopyVolumesV2(s.CopyVolumes)
+
+		if s.LastUpdateDate != nil {
+			l[Attr_LastUpdateDate] = s.LastUpdateDate.String()
+		}
+
 		if s.Name != nil {
 			l[Attr_Name] = *s.Name
 		}
+
+		if s.RemotePeerSnapshot != nil {
+			l[Attr_RemotePeerSnapshot] = flattenRemotePeerSnapshotV2(s.RemotePeerSnapshot)
+		}
+
+		if s.SafeToUnquiesceDate != nil {
+			l[Attr_SafeToUnquiesceDate] = s.SafeToUnquiesceDate.String()
+		}
+
 		if s.Type != nil {
 			l[Attr_Type] = *s.Type
 		}
 
-		if s.CompletionDate.String() != "" {
-			l[Attr_CompletionDate] = s.CompletionDate.String()
-		}
-
-		if s.SafeToUnquiesceDate.String() != "" {
-			l[Attr_SafeToUnquiesceDate] = s.SafeToUnquiesceDate.String()
-		}
-
-		if s.ZonalCompletionDate.String() != "" {
+		if s.ZonalCompletionDate != nil {
 			l[Attr_ZonalCompletionDate] = s.ZonalCompletionDate.String()
-		}
-
-		if s.Crn != nil {
-			l[Attr_CRN] = string(*s.Crn)
-			tags, err := flex.GetGlobalTagsUsingCRN(meta, string(*s.Crn), "", UserTagType)
-			if err != nil {
-				log.Printf("Error on get of pi instance snapshot v2 (%s) user_tags: %s", *s.SnapshotID, err)
-			}
-			l[Attr_UserTags] = tags
 		}
 
 		if s.AggregatedSnapshotUsage != nil {
@@ -338,10 +340,13 @@ func flattenSnapshotsV2(list []*models.SnapshotV2, meta any) []map[string]any {
 			l[Attr_AggregatedSnapshotUsage] = usage
 		}
 
-		l[Attr_CopyVolumes] = flattenCopyVolumesV2(s.CopyVolumes)
-
-		if s.RemotePeerSnapshot != nil {
-			l[Attr_RemotePeerSnapshot] = flattenRemotePeerSnapshotV2(s.RemotePeerSnapshot)
+		if s.Crn != nil {
+			l[Attr_CRN] = string(*s.Crn)
+			tags, err := flex.GetGlobalTagsUsingCRN(meta, string(*s.Crn), "", UserTagType)
+			if err != nil {
+				log.Printf("Error on get of pi instance snapshot v2 (%s) user_tags: %s", *s.SnapshotID, err)
+			}
+			l[Attr_UserTags] = tags
 		}
 
 		result = append(result, l)
