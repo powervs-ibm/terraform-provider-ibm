@@ -460,9 +460,7 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	if powervmdata.MetadataService != nil {
 		d.Set(Attr_MetadataService, flattenMetadataService(powervmdata.MetadataService))
 	}
-	if powervmdata.Netboot != nil {
-		d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
-	}
+	d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
 
 	return nil
 }

@@ -983,9 +983,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 	if powervmdata.DefaultTrustedProfile != nil {
 		d.Set(Arg_DefaultTrustedProfile, flattenDefaultTrustedProfile(powervmdata.DefaultTrustedProfile))
 	}
-	if powervmdata.Netboot != nil {
-		d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
-	}
+	d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
 	if powervmdata.MetadataService != nil {
 		ms := flattenMetadataService(powervmdata.MetadataService)
 		// force is a write-only operation flag not returned by the API;

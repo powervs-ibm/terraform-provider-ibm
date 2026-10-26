@@ -566,6 +566,9 @@ func netbootSchema() *schema.Schema {
 }
 
 func flattenNetboot(nb *models.PVMInstanceNetbootConfig) []map[string]any {
+	if nb == nil {
+		return []map[string]any{}
+	}
 	m := map[string]any{}
 	if nb.Iscsi != nil {
 		m[Attr_Iscsi] = []map[string]any{{
