@@ -661,6 +661,7 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "Minimum Virtual Cores Assigned to the PVMInstance",
 				Type:        schema.TypeInt,
 			},
+			Attr_Netboot: netbootSchema(),
 			Attr_OperatingSystem: {
 				Computed:    true,
 				Description: "Operating System",
@@ -981,6 +982,9 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 
 	if powervmdata.DefaultTrustedProfile != nil {
 		d.Set(Arg_DefaultTrustedProfile, flattenDefaultTrustedProfile(powervmdata.DefaultTrustedProfile))
+	}
+	if powervmdata.Netboot != nil {
+		d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
 	}
 	if powervmdata.MetadataService != nil {
 		ms := flattenMetadataService(powervmdata.MetadataService)
@@ -1983,7 +1987,7 @@ func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
 			IPAddress:               network[Attr_IPAddress].(string),
-			NetworkID:               flex.PtrToString(network[Attr_NetworkID].(string)),
+			NetworkID:               network[Attr_NetworkID].(string),
 			NetworkSecurityGroupIDs: flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
 		}
 		pvmNetworks = append(pvmNetworks, pvmInstanceNetwork)

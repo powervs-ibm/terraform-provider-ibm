@@ -5,6 +5,7 @@ package power_test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -110,6 +111,94 @@ func TestAccIBMPIInstanceActionDumprestart(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccIBMPIInstanceActionStartWithChap(t *testing.T) {
+	name := fmt.Sprintf("tf-pi-instance-%d", acctest.RandIntRange(10, 100))
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
+			{
+				// Stop first, otherwise start is skipped because the instance is already active
+				Config: testAccCheckIBMPIInstanceActionConfig(name, power.Action_Stop),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"ibm_pi_instance_action.example", "status", strings.ToUpper(power.State_Shutoff)),
+				),
+			},
+			{
+				Config: testAccCheckIBMPIInstanceActionChapConfig(name, power.Action_Start, "chapuser", "chapsecret12345"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"ibm_pi_instance_action.example", "status", strings.ToUpper(power.State_Active)),
+					resource.TestCheckResourceAttr(
+						"ibm_pi_instance_action.example", "pi_chap_name", "chapuser"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccIBMPIInstanceActionChapInvalidAction(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckIBMPIInstanceActionChapInvalidActionConfig(power.Action_Stop, "chapuser", "chapsecret12345"),
+				ExpectError: regexp.MustCompile("can only be set when"),
+			},
+		},
+	})
+}
+
+// No real instance is needed: the CHAP validation fails at plan time, before any API call.
+func testAccCheckIBMPIInstanceActionChapInvalidActionConfig(action, chapName, chapSecret string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_instance_action" "example" {
+		pi_action            = "%[1]s"
+		pi_chap_name         = "%[2]s"
+		pi_chap_secret       = "%[3]s"
+		pi_cloud_instance_id = "00000000-0000-0000-0000-000000000000"
+		pi_instance_id       = "00000000-0000-0000-0000-000000000000"
+	}
+	`, action, chapName, chapSecret)
+}
+
+func testAccCheckIBMPIInstanceActionChapConfig(name, action, chapName, chapSecret string) string {
+	return fmt.Sprintf(`
+	data "ibm_pi_image" "power_image" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_image_name        = "%[4]s"
+	  }
+	  data "ibm_pi_network" "power_networks" {
+		pi_cloud_instance_id = "%[1]s"
+		pi_network_name      = "%[5]s"
+	  }
+	  resource "ibm_pi_instance" "power_instance" {
+		pi_cloud_instance_id  = "%[1]s"
+		pi_image_id           = data.ibm_pi_image.power_image.id
+		pi_instance_name      = "%[2]s"
+		pi_memory             = "2"
+		pi_proc_type          = "shared"
+		pi_processors         = "0.25"
+		pi_storage_pool       = data.ibm_pi_image.power_image.storage_pool
+		pi_storage_type       = "%[6]s"
+		pi_sys_type           = "s922"
+		pi_network {
+			network_id = data.ibm_pi_network.power_networks.id
+		}
+	  }
+
+	resource "ibm_pi_instance_action" "example" {
+		pi_action				= "%[3]s"
+		pi_chap_name			= "%[7]s"
+		pi_chap_secret			= "%[8]s"
+		pi_cloud_instance_id	= "%[1]s"
+		pi_instance_id			= resource.ibm_pi_instance.power_instance.pi_instance_name
+	}
+	`, acc.Pi_cloud_instance_id, name, action, acc.Pi_image, acc.Pi_network_name, acc.PiStorageType, chapName, chapSecret)
 }
 
 func testAccCheckIBMPIInstanceActionConfig(name, action string) string {

@@ -91,6 +91,21 @@ In addition to all argument reference list, you can access the following attribu
 - `minmem`- (Float) The minimum amount of memory that must be allocated to the instance.
 - `minproc`- (Float) The minimum number of processors that must be allocated to the instance.
 - `min_virtual_cores` - (Integer) The minimum number of virtual cores that can be assigned without rebooting the instance.
+- `netboot` - (List) The current network boot configuration of the instance, used for D-mode IPL.
+
+  Nested schema for `netboot`:
+  - `iscsi` - (List) The iSCSI network boot configuration.
+
+    Nested schema for `iscsi`:
+    - `initiator_name` - (String) The iSCSI Qualified Name (IQN) of the initiator.
+    - `target_ip_address` - (String) The IP address of the iSCSI target.
+    - `target_name` - (String) The iSCSI Qualified Name (IQN) of the target.
+    - `target_port` - (String) The port used for the iSCSI connection.
+  - `nfs` - (List) The NFS network boot configuration.
+
+    Nested schema for `nfs`:
+    - `server_directory` - (String) The NFS directory containing the boot or installation image.
+    - `server_ip_address` - (String) The IP address of the NFS server.
 - `networks` - (List) List of networks associated with this instance.
 
   Nested scheme for `networks`:
