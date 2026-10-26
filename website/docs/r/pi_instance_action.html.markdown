@@ -65,6 +65,8 @@ Review the argument references that you can specify for your resource.
 - `pi_action` - (Required, String) Name of the action to take. Allowed values are `dumprestart`, `hard-reboot`, `immediate-shutdown`, `reset-state`, `soft-reboot`, `start`, `stop`.
 - `pi_chap_name` - (Optional, String) The CHAP authentication name used for iSCSI D-mode IPL. Must be 1 to 32 ASCII characters. Can only be set when `pi_action` is `start`. Requires `pi_chap_secret`.
 - `pi_chap_secret` - (Optional, String, Sensitive) The CHAP authentication secret used for iSCSI D-mode IPL. Must be 12 to 32 ASCII characters. Can only be set when `pi_action` is `start`. Requires `pi_chap_name`.
+
+  ~> **Note:** The API rejects a `start` with CHAP credentials unless a D-mode netboot configuration is already staged on the instance. Staging is done with the instance operations API, which this provider does not support.
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
 - `pi_health_status` - (Optional, String) Specifies if Terraform should poll for the health status to be `OK` or `WARNING`. The default value is `OK`. Ignored for `pi_action = "reset-state"`.
 - `pi_instance_id` - (Required, String) The ID of the pvm instance to perform an action on.
