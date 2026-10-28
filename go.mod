@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/IBM-Cloud/bluemix-go v0.0.0-20260624064701-576d2f801297
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240725064144-454a2ae23113
-	github.com/IBM-Cloud/power-go-client v1.17.0
+	github.com/IBM-Cloud/power-go-client v1.18.0-beta6
 	github.com/IBM/appconfiguration-go-admin-sdk v0.5.1
 	github.com/IBM/appid-management-go-sdk v0.0.0-20210908164609-dd0e0eaf732f
 	github.com/IBM/cloud-databases-go-sdk v0.8.1
@@ -18,7 +18,7 @@ require (
 	github.com/IBM/dra-go-sdk v0.1.0
 	github.com/IBM/event-notifications-go-admin-sdk v0.25.0
 	github.com/IBM/eventstreams-go-sdk v1.4.0
-	github.com/IBM/go-sdk-core/v5 v5.23.4
+	github.com/IBM/go-sdk-core/v5 v5.23.5
 	github.com/IBM/ibm-backup-recovery-sdk-go v1.5.0
 	github.com/IBM/ibm-cos-sdk-go v1.12.2
 	github.com/IBM/ibm-cos-sdk-go-config/v2 v2.3.0
@@ -29,7 +29,7 @@ require (
 	github.com/IBM/logs-router-go-sdk v1.0.8
 	github.com/IBM/mqcloud-go-sdk v0.4.0
 	github.com/IBM/networking-go-sdk v0.54.0
-	github.com/IBM/platform-services-go-sdk v0.103.2
+	github.com/IBM/platform-services-go-sdk v0.103.4
 	github.com/IBM/project-go-sdk v0.4.0
 	github.com/IBM/push-notifications-go-sdk v0.0.0-20210310100607-5790b96c47f5
 	github.com/IBM/sarama v1.50.3
@@ -107,7 +107,7 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.23.0 // indirect
-	github.com/go-openapi/errors v0.22.8 // indirect
+	github.com/go-openapi/errors v0.22.9 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/loads v0.22.0 // indirect

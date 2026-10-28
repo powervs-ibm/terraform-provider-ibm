@@ -180,6 +180,21 @@ In addition to all argument reference list, you can access the following attribu
 - `min_memory` - (Float) The minimum memory that was allocated to the instance.
 - `max_memory`- (Float) The maximum amount of memory that can be allocated to the instance without shut down or reboot the `LPAR`.
 - `min_virtual_cores` - (Integer) The minimum number of virtual cores.
+- `netboot` - (List) The current network boot configuration of the instance, used for D-mode IPL.
+
+  Nested schema for `netboot`:
+  - `iscsi` - (List) The iSCSI network boot configuration.
+
+    Nested schema for `iscsi`:
+    - `initiator_name` - (String) The iSCSI Qualified Name (IQN) of the initiator.
+    - `target_ip_address` - (String) The IP address of the iSCSI target.
+    - `target_name` - (String) The iSCSI Qualified Name (IQN) of the target.
+    - `target_port` - (String) The port used for the iSCSI connection.
+  - `nfs` - (List) The NFS network boot configuration.
+
+    Nested schema for `nfs`:
+    - `server_directory` - (String) The NFS directory containing the boot or installation image.
+    - `server_ip_address` - (String) The IP address of the NFS server.
 - `pin_policy`  - (String) The pinning policy of the instance.
 - `pi_network` - (List of Map) - A list of networks that are assigned to the instance.
   Nested scheme for `pi_network`:

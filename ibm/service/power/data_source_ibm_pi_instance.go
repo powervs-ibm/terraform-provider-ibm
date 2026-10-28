@@ -191,6 +191,7 @@ func DataSourceIBMPIInstance() *schema.Resource {
 				Description: "The minimum number of virtual cores that can be assigned without rebooting the instance.",
 				Type:        schema.TypeInt,
 			},
+			Attr_Netboot: netbootSchema(),
 			Attr_Networks: {
 				Computed:    true,
 				Description: "List of networks associated with this instance.",
@@ -459,6 +460,7 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	if powervmdata.MetadataService != nil {
 		d.Set(Attr_MetadataService, flattenMetadataService(powervmdata.MetadataService))
 	}
+	d.Set(Attr_Netboot, flattenNetboot(powervmdata.Netboot))
 
 	return nil
 }

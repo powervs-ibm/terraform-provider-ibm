@@ -22,6 +22,7 @@ func TestAccIBMPIInstanceDataSource_basic(t *testing.T) {
 				Config: testAccCheckIBMPIInstanceDataSourceConfig(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(instanceResData, "id"),
+					resource.TestCheckResourceAttrSet(instanceResData, "netboot.#"),
 				),
 			},
 		},

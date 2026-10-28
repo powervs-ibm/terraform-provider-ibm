@@ -5,6 +5,7 @@ package power_test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -110,6 +111,32 @@ func TestAccIBMPIInstanceActionDumprestart(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccIBMPIInstanceActionChapInvalidAction(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckIBMPIInstanceActionChapInvalidActionConfig(power.Action_Stop, "chapuser", "chapsecret12345"),
+				ExpectError: regexp.MustCompile("can only be set when"),
+			},
+		},
+	})
+}
+
+// No real instance is needed: the CHAP validation fails at plan time, before any API call.
+func testAccCheckIBMPIInstanceActionChapInvalidActionConfig(action, chapName, chapSecret string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_instance_action" "example" {
+		pi_action            = "%[1]s"
+		pi_chap_name         = "%[2]s"
+		pi_chap_secret       = "%[3]s"
+		pi_cloud_instance_id = "00000000-0000-0000-0000-000000000000"
+		pi_instance_id       = "00000000-0000-0000-0000-000000000000"
+	}
+	`, action, chapName, chapSecret)
 }
 
 func testAccCheckIBMPIInstanceActionConfig(name, action string) string {

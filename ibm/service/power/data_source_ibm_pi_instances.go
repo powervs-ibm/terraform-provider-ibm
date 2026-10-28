@@ -504,3 +504,85 @@ func flattenMetadataService(ms *models.MetadataService) []map[string]any {
 	result[0] = m
 	return result
 }
+
+func netbootSchema() *schema.Schema {
+	return &schema.Schema{
+		Computed:    true,
+		Description: "The current network boot configuration of the instance, used for D-mode IPL.",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				Attr_Iscsi: {
+					Computed:    true,
+					Description: "The iSCSI network boot configuration.",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							Attr_InitiatorName: {
+								Computed:    true,
+								Description: "The iSCSI Qualified Name (IQN) of the initiator.",
+								Type:        schema.TypeString,
+							},
+							Attr_TargetIPAddress: {
+								Computed:    true,
+								Description: "The IP address of the iSCSI target.",
+								Type:        schema.TypeString,
+							},
+							Attr_TargetName: {
+								Computed:    true,
+								Description: "The iSCSI Qualified Name (IQN) of the target.",
+								Type:        schema.TypeString,
+							},
+							Attr_TargetPort: {
+								Computed:    true,
+								Description: "The port used for the iSCSI connection.",
+								Type:        schema.TypeString,
+							},
+						},
+					},
+					Type: schema.TypeList,
+				},
+				Attr_Nfs: {
+					Computed:    true,
+					Description: "The NFS network boot configuration.",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							Attr_ServerDirectory: {
+								Computed:    true,
+								Description: "The NFS directory containing the boot or installation image.",
+								Type:        schema.TypeString,
+							},
+							Attr_ServerIPAddress: {
+								Computed:    true,
+								Description: "The IP address of the NFS server.",
+								Type:        schema.TypeString,
+							},
+						},
+					},
+					Type: schema.TypeList,
+				},
+			},
+		},
+		Type: schema.TypeList,
+	}
+}
+
+func flattenNetboot(nb *models.PVMInstanceNetbootConfig) []map[string]any {
+	if nb == nil {
+		return []map[string]any{}
+	}
+	m := map[string]any{}
+	if nb.Iscsi != nil {
+		m[Attr_Iscsi] = []map[string]any{{
+			Attr_InitiatorName:   nb.Iscsi.InitiatorName,
+			Attr_TargetIPAddress: nb.Iscsi.TargetIPAddress,
+			Attr_TargetName:      nb.Iscsi.TargetName,
+			Attr_TargetPort:      nb.Iscsi.TargetPort,
+		}}
+	}
+	if nb.Nfs != nil {
+		m[Attr_Nfs] = []map[string]any{{
+			Attr_ServerDirectory: nb.Nfs.ServerDirectory,
+			Attr_ServerIPAddress: nb.Nfs.ServerIPAddress,
+		}}
+	}
+	return []map[string]any{m}
+}
