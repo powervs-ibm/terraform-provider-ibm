@@ -201,6 +201,16 @@ func DataSourceIBMPIInstance() *schema.Resource {
 							Description: "The external IP address of the instance.",
 							Type:        schema.TypeString,
 						},
+						Attr_ExternalNetworkInterfaceBandwidth: {
+							Computed:    true,
+							Description: "Bandwidth in Gbps of the external network interface.",
+							Type:        schema.TypeInt,
+						},
+						Attr_ExternalNetworkInterfaceCRN: {
+							Computed:    true,
+							Description: "CRN of the attached VPC Virtual Network Interface.",
+							Type:        schema.TypeString,
+						},
 						Attr_IP: {
 							Computed:    true,
 							Description: "The IP address of the instance.",
