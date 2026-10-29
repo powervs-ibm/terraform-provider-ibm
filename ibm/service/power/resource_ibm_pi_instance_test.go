@@ -1592,14 +1592,14 @@ func testAccIBMPIInstanceExternalNetworkInterfaceConfig(name string) string {
 		pi_memory             = "2"
 		pi_proc_type          = "shared"
 		pi_processors         = "0.25"
-		pi_storage_type       = "tier3"
-		pi_sys_type           = "s922"
+		pi_storage_type       = "tier1"
+		pi_sys_type           = "s1022"
 		pi_network {
 			external_network_interface_crn       = "%[3]s"
 			external_network_interface_bandwidth = 10
 		}
 	}
-	`, acc.Pi_cloud_instance_id, name, acc.Pi_external_network_interface_crn, acc.Pi_image)
+	`, acc.Pi_cloud_instance_id, name, acc.Pi_external_network_interface_crn, acc.Pi_image_id)
 }
 func testAccCheckIBMPIInstanceDestroy(s *terraform.State) error {
 	sess, err := acc.TestAccProvider.Meta().(conns.ClientSession).IBMPISession()
