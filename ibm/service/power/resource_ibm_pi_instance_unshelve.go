@@ -190,7 +190,7 @@ func resourceIBMPIInstanceUnshelveCreate(ctx context.Context, d *schema.Resource
 	client := instance.NewIBMPIInstanceClient(ctx, sess, cloudInstanceID)
 
 	log.Printf("Calling the IBM PI Unshelve on the instance %s", id)
-	_, err = client.Unshelve(id, body)
+	err = client.Unshelve(id, body)
 	if err != nil {
 		tfErr := flex.TerraformErrorf(err, fmt.Sprintf("Unshelve failed: %s", err.Error()), "ibm_pi_instance_unshelve", "create")
 		log.Printf("[DEBUG]\n%s", tfErr.GetDebugMessage())
