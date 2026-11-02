@@ -534,7 +534,14 @@ func flattenDefaultTrustedProfile(tp *models.TrustedProfile) []map[string]any {
 	}
 	targetName := ""
 	if tp.Target.Name != nil {
-		targetName = *tp.Target.Crn
+		targetName = *tp.Target.Name
+	}
+	// The API returns a non-nil Target with all fields empty when no trusted
+	// profile has been configured. Treat that as "not configured" so import/
+	// refresh doesn't surface a spurious block that then fails the
+	// pi_default_trusted_profile/pi_metadata_service CustomizeDiff check.
+	if targetID == "" && targetCRN == "" && targetName == "" {
+		return nil
 	}
 	m := map[string]any{
 		Attr_Target: []map[string]any{{
