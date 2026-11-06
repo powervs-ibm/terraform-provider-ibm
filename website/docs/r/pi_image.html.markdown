@@ -78,7 +78,7 @@ Review the argument references that you can specify for your resource.
 - `pi_image_bucket_access` - (Optional, String) Indicates if the bucket has public or private access. The default value is `public`.
 - `pi_image_bucket_file_name` - (Optional, String) Cloud Object Storage image filename
   - `pi_image_bucket_file_name` is required with `pi_image_bucket_name`
-- `pi_image_bucket_region` - (Optional, String) Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `che01`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
+- `pi_image_bucket_region` - (Optional, String) Cloud Object Storage region. Supported COS regions are: `au-syd`, `br-sao`, `ca-tor`, `che01`, `eu-de`, `eu-es`, `eu-gb`, `in-che`, `in-mum`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
   - `pi_image_bucket_region` is required with `pi_image_bucket_name`
 - `pi_image_id` - (Optional, String) Image ID of existing source image; required for copy image.
   - Either `pi_image_id` or `pi_image_bucket_name` is required.
