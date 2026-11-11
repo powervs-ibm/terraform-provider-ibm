@@ -46,6 +46,16 @@ func DataSourceIBMPIInstanceNetwork() *schema.Resource {
 				Description: "The external IP address of the instance.",
 				Type:        schema.TypeString,
 			},
+			Attr_ExternalNetworkInterfaceBandwidth: {
+				Computed:    true,
+				Description: "Bandwidth in Gbps of the external network interface.",
+				Type:        schema.TypeInt,
+			},
+			Attr_ExternalNetworkInterfaceCRN: {
+				Computed:    true,
+				Description: "CRN of the attached VPC Virtual Network Interface.",
+				Type:        schema.TypeString,
+			},
 			Attr_Href: {
 				Computed:    true,
 				Description: "Link to this PVM instance network.",
@@ -127,6 +137,8 @@ func dataSourceIBMPIInstanceNetworkRead(ctx context.Context, d *schema.ResourceD
 
 	d.SetId(fmt.Sprintf("%s/%s/%s", cloudInstanceID, instanceID, networkID))
 	d.Set(Attr_ExternalIP, m[Attr_ExternalIP])
+	d.Set(Attr_ExternalNetworkInterfaceBandwidth, m[Attr_ExternalNetworkInterfaceBandwidth])
+	d.Set(Attr_ExternalNetworkInterfaceCRN, m[Attr_ExternalNetworkInterfaceCRN])
 	d.Set(Attr_Href, m[Attr_Href])
 	d.Set(Attr_IPAddress, m[Attr_IPAddress])
 	d.Set(Attr_MacAddress, m[Attr_MacAddress])

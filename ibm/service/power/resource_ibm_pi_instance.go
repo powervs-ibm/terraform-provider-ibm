@@ -123,6 +123,22 @@ func ResourceIBMPIInstance() *schema.Resource {
 				}
 				return nil
 			},
+			func(_ context.Context, diff *schema.ResourceDiff, v any) error {
+				networks := diff.Get(Arg_Network).([]any)
+				for i, n := range networks {
+					network := n.(map[string]any)
+					networkID, _ := network[Attr_NetworkID].(string)
+					externalCRN, _ := network[Attr_ExternalNetworkInterfaceCRN].(string)
+					bandwidth, _ := network[Attr_ExternalNetworkInterfaceBandwidth].(int)
+					if networkID == "" && externalCRN == "" {
+						return fmt.Errorf("%s[%d] requires either %s or %s to be set", Arg_Network, i, Attr_NetworkID, Attr_ExternalNetworkInterfaceCRN)
+					}
+					if bandwidth != 0 && externalCRN == "" {
+						return fmt.Errorf("%s[%d].%s is only valid when %s is set", Arg_Network, i, Attr_ExternalNetworkInterfaceBandwidth, Attr_ExternalNetworkInterfaceCRN)
+					}
+				}
+				return nil
+			},
 		),
 
 		Schema: map[string]*schema.Schema{
@@ -344,6 +360,17 @@ func ResourceIBMPIInstance() *schema.Resource {
 				DiffSuppressFunc: flex.ApplyOnce,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						Attr_ExternalNetworkInterfaceBandwidth: {
+							Description:  "Bandwidth in Gbps for the external network interface. Valid range is 1 to 100. Only valid when external_network_interface_crn is specified.",
+							Optional:     true,
+							Type:         schema.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						Attr_ExternalNetworkInterfaceCRN: {
+							Description: "CRN of the VPC Virtual Network Interface to attach. Required if network_id is not specified. Cannot be combined with network_id.",
+							Optional:    true,
+							Type:        schema.TypeString,
+						},
 						Attr_IPAddress: {
 							Computed: true,
 							Optional: true,
@@ -354,8 +381,9 @@ func ResourceIBMPIInstance() *schema.Resource {
 							Type:     schema.TypeString,
 						},
 						Attr_NetworkID: {
-							Required: true,
-							Type:     schema.TypeString,
+							Description: "ID of the network. Required if external_network_interface_crn is not specified. Cannot be combined with external_network_interface_crn.",
+							Optional:    true,
+							Type:        schema.TypeString,
 						},
 						Attr_NetworkInterfaceID: {
 							Computed:    true,
@@ -670,6 +698,64 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "Minimum Virtual Cores Assigned to the PVMInstance",
 				Type:        schema.TypeInt,
 			},
+			Attr_NetworkAttachments: {
+				Computed:    true,
+				Description: "List of VPC Virtual Network Interface network attachments associated with this instance.",
+				Type:        schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Name: {
+							Computed:    true,
+							Description: "The name of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_NetworkAttachmentID: {
+							Computed:    true,
+							Description: "ID of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_Type: {
+							Computed:    true,
+							Description: "The type of network that is attached.",
+							Type:        schema.TypeString,
+						},
+						Attr_VPCVirtualNetworkInterface: {
+							Computed:    true,
+							Description: "The VPC Virtual Network Interface that is attached.",
+							Type:        schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									Attr_Bandwidth: {
+										Computed:    true,
+										Description: "Bandwidth in Gbps of the network interface.",
+										Type:        schema.TypeInt,
+									},
+									Attr_CRN: {
+										Computed:    true,
+										Description: "CRN of the VPC Virtual Network Interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_IPAddress: {
+										Computed:    true,
+										Description: "The IP address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_MacAddress: {
+										Computed:    true,
+										Description: "The MAC address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_Name: {
+										Computed:    true,
+										Description: "The name for the network interface.",
+										Type:        schema.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			Attr_OperatingSystem: {
 				Computed:    true,
 				Description: "Operating System",
@@ -893,7 +979,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 	d.Set(Arg_Network, networksMap)
-
+	d.Set(Attr_NetworkAttachments, flattenPvmInstanceNetworkAttachments(powervmdata.NetworkAttachments))
 	if powervmdata.SapProfile != nil && powervmdata.SapProfile.ProfileID != nil {
 		d.Set(Arg_SAPProfileID, powervmdata.SapProfile.ProfileID)
 	}
@@ -2024,7 +2110,7 @@ func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
 			IPAddress:               network[Attr_IPAddress].(string),
-			NetworkID:               flex.PtrToString(network[Attr_NetworkID].(string)),
+			NetworkID:               network[Attr_NetworkID].(string),
 			NetworkSecurityGroupIDs: flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
 		}
 		pvmNetworks = append(pvmNetworks, pvmInstanceNetwork)
