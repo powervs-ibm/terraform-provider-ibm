@@ -511,6 +511,11 @@ func netbootSchema() *schema.Schema {
 		Description: "The current network boot configuration of the instance, used for D-mode IPL.",
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				Attr_BootMode: {
+					Computed:    true,
+					Description: "The server boot mode: a (boot from disk using copy A), b (boot from disk using copy B), c (reserved for IBM lab use only) or d (boot from media/drives).",
+					Type:        schema.TypeString,
+				},
 				Attr_Iscsi: {
 					Computed:    true,
 					Description: "The iSCSI network boot configuration.",
@@ -559,6 +564,11 @@ func netbootSchema() *schema.Schema {
 					},
 					Type: schema.TypeList,
 				},
+				Attr_OperatingMode: {
+					Computed:    true,
+					Description: "The server operating mode, either normal or manual.",
+					Type:        schema.TypeString,
+				},
 			},
 		},
 		Type: schema.TypeList,
@@ -569,7 +579,10 @@ func flattenNetboot(nb *models.PVMInstanceNetbootConfig) []map[string]any {
 	if nb == nil {
 		return []map[string]any{}
 	}
-	m := map[string]any{}
+	m := map[string]any{
+		Attr_BootMode:      nb.BootMode,
+		Attr_OperatingMode: nb.OperatingMode,
+	}
 	if nb.Iscsi != nil {
 		m[Attr_Iscsi] = []map[string]any{{
 			Attr_InitiatorName:   nb.Iscsi.InitiatorName,

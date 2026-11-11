@@ -183,6 +183,7 @@ In addition to all argument reference list, you can access the following attribu
 - `netboot` - (List) The current network boot configuration of the instance, used for D-mode IPL.
 
   Nested schema for `netboot`:
+  - `boot_mode` - (String) The server boot mode: `a` (boot from disk using copy A), `b` (boot from disk using copy B), `c` (reserved for IBM lab use only) or `d` (boot from media/drives).
   - `iscsi` - (List) The iSCSI network boot configuration.
 
     Nested schema for `iscsi`:
@@ -195,6 +196,7 @@ In addition to all argument reference list, you can access the following attribu
     Nested schema for `nfs`:
     - `server_directory` - (String) The NFS directory containing the boot or installation image.
     - `server_ip_address` - (String) The IP address of the NFS server.
+  - `operating_mode` - (String) The server operating mode, either `normal` or `manual`.
 - `pin_policy`  - (String) The pinning policy of the instance.
 - `pi_network` - (List of Map) - A list of networks that are assigned to the instance.
   Nested scheme for `pi_network`:
