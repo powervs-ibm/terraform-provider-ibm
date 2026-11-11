@@ -60,6 +60,26 @@ type TimeoutHelper struct {
 	Now time.Time
 }
 
+func sharedSetShardsInfo(d *schema.ResourceData, instance *rc.ResourceInstance) error {
+	service := d.Get("service").(string)
+	plan := d.Get("plan").(string)
+
+	if service != "databases-for-mongodb" || plan != "enterprise-sharding-gen2" {
+		return d.Set("shards", nil)
+	}
+
+	if instance == nil || instance.Extensions == nil {
+		return nil
+	}
+
+	// enterprise-sharding-gen2 stores shard data under "mongodbees" in extensions
+	shards := extractShardsFromExtensions(instance.Extensions)
+	if shards == 0 {
+		return nil
+	}
+	return d.Set("shards", shards)
+}
+
 // Allows mocking
 type DeploymentTaskFetcher interface {
 	ListDeploymentTasks(opts *clouddatabasesv5.ListDeploymentTasksOptions) (*clouddatabasesv5.Tasks, *core.DetailedResponse, error)
@@ -140,19 +160,35 @@ func isAttrConfiguredInDiff(d *schema.ResourceDiff, k string) bool {
 	}
 }
 
+func isShardAttrConfiguredInDiff(d *schema.ResourceDiff, k string) bool {
+	v, ok := d.GetOkExists(k)
+	if !ok {
+		return false
+	}
+
+	if intVal, isInt := v.(int); isInt {
+		return intVal > 0
+	}
+	return false
+}
+
 func isGen2Plan(plan string) bool {
 	gen2Pattern := regexp.MustCompile(`-gen2($|-.+)`)
 	return gen2Pattern.MatchString(strings.ToLower(plan))
 }
 
-// validateGen2BackupCRN validates if a backup CRN is allowed for Gen2 database restore.
-// Returns nil if the backup is allowed (Gen2 coupled or decoupled backup).
-// Returns an error if the backup is not allowed (Classic backup).
-//
-// Three backup types:
-//  1. Classic backup - NOT ALLOWED at this point
-//  2. Gen2 "coupled" backup - ALLOWED
-//  3. Gen2 "decoupled" backup - ALLOWED
+// instanceCRNFromCoupledBackupCRN extracts the source instance CRN from a
+// coupled backup CRN. Returns an error if the instance ID segment is missing.
+func instanceCRNFromCoupledBackupCRN(backupCRN string) (string, error) {
+	parts := strings.Split(backupCRN, ":")
+	if len(parts) < 8 || parts[7] == "" {
+		return "", fmt.Errorf("backup CRN does not contain instance ID and is not a decoupled backup")
+	}
+	return strings.Join(parts[:8], ":") + "::", nil
+}
+
+// validateGen2BackupCRN returns an error if backupCRN is a Classic backup;
+// Gen2 (decoupled) backups are allowed.
 func validateGen2BackupCRN(backupCRN string, meta interface{}) error {
 	if backupCRN == "" {
 		return nil
@@ -171,13 +207,10 @@ func validateGen2BackupCRN(backupCRN string, meta interface{}) error {
 	}
 
 	// It's a coupled backup - need to check if the source instance is Gen2
-	instanceID := parts[7]
-	if instanceID == "" {
-		return fmt.Errorf("backup CRN does not contain instance ID and is not a decoupled backup")
+	instanceCRN, err := instanceCRNFromCoupledBackupCRN(backupCRN)
+	if err != nil {
+		return err
 	}
-
-	// Construct instance CRN by clearing last 2 sections (resource-type and resource)
-	instanceCRN := strings.Join(parts[:8], ":") + "::"
 
 	// Get the instance to check its plan
 	rsConClient, err := meta.(conns.ClientSession).ResourceControllerV2API()
@@ -286,13 +319,22 @@ var databaseServicePrefixes = map[string]string{
 // getDatabaseTypeFromResourceID maps the resource ID or service name to the database type key.
 // Used in extensions for Gen2 and in parameters structure.
 // Returns an empty string if the resource ID doesn't match any known database service.
-func getDatabaseTypeFromResourceID(resourceID string) string {
-	for prefix, dbType := range databaseServicePrefixes {
+// For enterprise-sharding-gen2 MongoDB, returns "mongodbees" instead of "mongodb".
+func getDatabaseTypeFromResourceID(resourceID string, plan string) string {
+	dbType := ""
+	for prefix, t := range databaseServicePrefixes {
 		if strings.HasPrefix(resourceID, prefix) {
-			return dbType
+			dbType = t
+			break
 		}
 	}
-	return ""
+	if dbType == "" {
+		return ""
+	}
+	if plan == "enterprise-sharding-gen2" && dbType == "mongodb" {
+		return "mongodbees"
+	}
+	return dbType
 }
 
 // expandPlatformOptionsFromRCExtension extracts platform options from instance extensions for Gen2.
@@ -327,11 +369,11 @@ func expandPlatformOptionsFromRCExtension(extensions map[string]interface{}) []m
 // flattenIcdGroupsFromInstanceAndCatalog creates groups data from instance extensions and global catalog metadata for Gen2.
 // It combines actual allocation values from the instance with metadata constraints from the catalog.
 // Returns a slice of group configurations including memory, CPU, disk, and host flavor information.
-func flattenIcdGroupsFromInstanceAndCatalog(instance map[string]interface{}, catalogResources []interface{}, resourceID string) []map[string]interface{} {
+func flattenIcdGroupsFromInstanceAndCatalog(instance map[string]interface{}, catalogResources []interface{}, resourceID string, plan string) []map[string]interface{} {
 	groups := make([]map[string]interface{}, 0, len(catalogResources))
 
 	// Extract allocation values from instance extensions
-	allocations := extractDatabaseAllocations(instance, resourceID)
+	allocations := extractDatabaseAllocations(instance, resourceID, plan)
 
 	// Process catalog resources to build group configurations
 	for _, resource := range catalogResources {
@@ -351,12 +393,13 @@ func flattenIcdGroupsFromInstanceAndCatalog(instance map[string]interface{}, cat
 		}
 
 		group := map[string]interface{}{
-			"group_id":    groupID,
-			"count":       count,
-			"memory":      buildMemoryConfig(resourceMap, allocations.memoryGB),
-			"cpu":         buildCPUConfig(resourceMap, allocations.cpuCount),
-			"disk":        buildDiskConfig(resourceMap, allocations.storageGB),
-			"host_flavor": buildHostFlavorConfig(allocations.hostFlavorID),
+			"group_id":     groupID,
+			"count":        count,
+			"memory":       buildMemoryConfig(resourceMap, allocations.memoryGB),
+			"cpu":          buildCPUConfig(resourceMap, allocations.cpuCount),
+			"disk":         buildDiskConfig(resourceMap, allocations.storageGB),
+			"host_flavor":  buildHostFlavorConfig(allocations.hostFlavorID),
+			"member_zones": allocations.memberZones,
 		}
 		groups = append(groups, group)
 	}
@@ -371,14 +414,16 @@ type databaseAllocations struct {
 	memoryGB     float64
 	storageGB    float64
 	members      int64
+	memberZones  []string
+	shards       int64
 	hostFlavorID string
 }
 
 // extractDatabaseAllocations extracts allocation values from instance extensions for a specific database type
-func extractDatabaseAllocations(instance map[string]interface{}, resourceID string) databaseAllocations {
+func extractDatabaseAllocations(instance map[string]interface{}, resourceID string, plan string) databaseAllocations {
 	var alloc databaseAllocations
 
-	dbType := getDatabaseTypeFromResourceID(resourceID)
+	dbType := getDatabaseTypeFromResourceID(resourceID, plan)
 	if dbType == "" {
 		return alloc
 	}
@@ -390,7 +435,13 @@ func extractDatabaseAllocations(instance map[string]interface{}, resourceID stri
 
 	dbTypeData, ok := dataservices[dbType].(map[string]interface{})
 	if !ok {
-		return alloc
+		// enterprise-sharding-gen2 stores data under "mongodbees" instead of "mongodb"
+		if dbType == "mongodb" {
+			dbTypeData, ok = dataservices["mongodbees"].(map[string]interface{})
+		}
+		if !ok {
+			return alloc
+		}
 	}
 
 	if mem, ok := dbTypeData["memory_gb"].(float64); ok {
@@ -405,11 +456,43 @@ func extractDatabaseAllocations(instance map[string]interface{}, resourceID stri
 	if m, ok := dbTypeData["members"].(float64); ok {
 		alloc.members = int64(m)
 	}
+	if s, ok := dbTypeData["shards"].(float64); ok {
+		alloc.shards = int64(s)
+	}
 	if flavor, ok := dbTypeData["host_flavor"].(string); ok {
 		alloc.hostFlavorID = flavor
 	}
+	if zonesRaw, ok := dbTypeData["member_zones"].([]interface{}); ok {
+		alloc.memberZones = stringsFromInterfaceSlice(zonesRaw)
+	}
 
 	return alloc
+}
+
+func extractShardsFromExtensions(extensions map[string]interface{}) int {
+
+	dataservices, ok := extensions[dataservicesKey].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	dbTypeData, ok := dataservices["mongodbees"].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+
+	shards, ok := dbTypeData["shards"]
+	if !ok {
+		return 0
+	}
+
+	switch v := shards.(type) {
+	case float64:
+		return int(v)
+	case int:
+		return v
+	}
+	return 0
 }
 
 // buildMemoryConfig creates memory configuration from catalog metadata and actual allocation
@@ -552,12 +635,12 @@ func extractMemberCountFromMetadata(deployment *globalcatalogv1.CatalogEntry) in
 
 // extractVersionFromExtensions extracts the database version from instance extensions.
 // Returns an empty string if the version cannot be found.
-func extractVersionFromExtensions(extensions map[string]interface{}, resourceID string) string {
+func extractVersionFromExtensions(extensions map[string]interface{}, resourceID string, plan string) string {
 	if extensions == nil {
 		return ""
 	}
 
-	dbType := getDatabaseTypeFromResourceID(resourceID)
+	dbType := getDatabaseTypeFromResourceID(resourceID, plan)
 	if dbType == "" {
 		return ""
 	}
@@ -786,7 +869,8 @@ func setGen2VersionInfo(d *schema.ResourceData, instance *rc.ResourceInstance, i
 	// Extract version from instance.Extensions based on database type
 	version := ""
 	if instance.Extensions != nil && instance.ResourceID != nil {
-		version = extractVersionFromExtensions(instance.Extensions, *instance.ResourceID)
+		plan, _ := d.Get("plan").(string)
+		version = extractVersionFromExtensions(instance.Extensions, *instance.ResourceID, plan)
 	}
 	d.Set(versionKey, version)
 
@@ -839,7 +923,8 @@ func setGen2GroupsInfo(d *schema.ResourceData, instance *rc.ResourceInstance, me
 
 	// Flatten groups using instance extensions and catalog metadata
 	if instance.Extensions != nil && len(catalogResources) > 0 && instance.ResourceID != nil {
-		d.Set("groups", flattenIcdGroupsFromInstanceAndCatalog(instance.Extensions, catalogResources, *instance.ResourceID))
+		plan, _ := d.Get("plan").(string)
+		d.Set("groups", flattenIcdGroupsFromInstanceAndCatalog(instance.Extensions, catalogResources, *instance.ResourceID, plan))
 	}
 
 	return nil
@@ -872,4 +957,289 @@ func clearGen2UnsupportedAttributes(d *schema.ResourceData) {
 	// Note: backup_encryption_key_crn within platform_options is also not supported in Gen2,
 	// but platform_options is handled by the data source implementation which only sets
 	// disk_encryption_key_crn for Gen2 instances
+}
+
+const s2sAuthWarningHeader = "Database backup authorization required"
+const s2sAuthWarningDetail = "This database uses Independent Backups.\n" +
+	"Existing backups remain available for 30 days from their creation date. " +
+	"Backup creation and management are unavailable until the required service authorization is completed.\n" +
+	"Complete the required service authorization to enable backup operations.\n\n" +
+	"To configure the required IAM service authorization, please refer to the documentation below: \n" +
+	"https://cloud.ibm.com/docs/cloud-databases-gen2?topic=cloud-databases-gen2-iam&interface=ui#s2s-authorization-backups"
+
+// s2sAuthWarning is a sentinel error that the datasource router converts to a diag.Warning.
+type s2sAuthWarning struct{}
+
+func (s *s2sAuthWarning) Error() string { return s2sAuthWarningHeader }
+
+// hasIndependentBackups reports whether the instance extensions indicate that
+// the instance is using Independent Backups.  This is determined by the presence
+// of a non-nil "backups" object inside extensions["dataservices"].
+// The S2S authorization check is only meaningful for instances that use
+// Independent Backups, so callers should gate checkS2SAuthorization on this.
+func hasIndependentBackups(extensions map[string]interface{}) bool {
+	if extensions == nil {
+		return false
+	}
+	dataservices, ok := extensions["dataservices"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	backups, exists := dataservices["backups"]
+	return exists && backups != nil
+}
+
+// checkS2SAuthorization returns true only when both "independent_backups" and
+// "resource_group" authorizations are present and truthy in the RC extensions map.
+// The authorizations are nested under extensions["dataservices"]["authorizations"].
+func checkS2SAuthorization(extensions map[string]interface{}) bool {
+	if extensions == nil {
+		return false
+	}
+	dataservices, ok := extensions["dataservices"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	authsRaw, exists := dataservices["authorizations"]
+	if !exists || authsRaw == nil {
+		return false
+	}
+	auths, ok := authsRaw.(map[string]interface{})
+	if !ok || len(auths) == 0 {
+		return false
+	}
+	return isTruthy(auths["independent_backups"]) && isTruthy(auths["resource_group"])
+}
+
+// isTruthy returns true if v is the boolean true or the string "true".
+func isTruthy(v interface{}) bool {
+	switch val := v.(type) {
+	case bool:
+		return val
+	case string:
+		return val == "true"
+	}
+	return false
+}
+
+// getInstancesNext extracts the "next_url" query parameter from the URL returned
+// in a paginated Resource Controller list response's NextURL field, so it can be
+// used as the "start" token for the next page request. Returns an empty string,
+// with no error, when next is nil (i.e. there is no further page).
+func getInstancesNext(next *string) (string, error) {
+	if next == nil {
+		return "", nil
+	}
+	u, err := url.Parse(*next)
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	return q.Get("next_url"), nil
+}
+
+// extractGen2BackupExtensions reads the source deployment CRN and backup type
+// from a Gen2 backup instance's Extensions["dataservices"]["backup"] block.
+// Both return values are empty strings if extensions is nil or the expected
+// structure is missing.
+func extractGen2BackupExtensions(extensions map[string]interface{}) (sourceDataServiceCRN string, backupType string) {
+	if extensions == nil {
+		return
+	}
+	dataservices, ok := extensions["dataservices"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	backupData, ok := dataservices["backup"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	if v, ok := backupData["source_data_service_crn"].(string); ok {
+		sourceDataServiceCRN = v
+	}
+	if v, ok := backupData["type"].(string); ok {
+		backupType = v
+	}
+	return
+}
+
+// validateMemberZones checks that member_zones has allocation_count=1 and exactly one zone.
+func validateMemberZones(zones []string, memberCount int) error {
+	if memberCount != 1 {
+		return fmt.Errorf(
+			"Invalid group configuration: member_zones requires allocation_count = 1, but %d was provided.\n"+
+				"To deploy a single member in a specific availability zone, set:\n"+
+				"  members {\n"+
+				"    allocation_count = 1\n"+
+				"    member_zones     = [\"<zone>\"]\n"+
+				"  }",
+			memberCount,
+		)
+	}
+	if len(zones) != 1 {
+		quoted := make([]string, 0, len(zones))
+		for _, z := range zones {
+			quoted = append(quoted, fmt.Sprintf("%q", z))
+		}
+		return fmt.Errorf(
+			"Invalid group configuration: member_zones must contain exactly one availability zone, but %d were provided [%s].\n"+
+				"Please specify a single availability zone.",
+			len(zones),
+			strings.Join(quoted, ", "),
+		)
+	}
+	return nil
+}
+
+// stringsFromInterfaceSlice converts []interface{} to []string, skipping non-string elements.
+func stringsFromInterfaceSlice(in []interface{}) []string {
+	out := make([]string, 0, len(in))
+	for _, v := range in {
+		if s, ok := v.(string); ok {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// memberZonesInRawConfig calls fn for each group that has member_zones set in the raw config.
+func memberZonesInRawConfig(d *schema.ResourceDiff, fn func(zones []string, allocationCount int) error) error {
+	raw := d.GetRawConfig()
+	if raw.IsNull() || !raw.IsKnown() {
+		return nil
+	}
+	groupsVal := raw.GetAttr("group")
+	if groupsVal.IsNull() || !groupsVal.IsKnown() {
+		return nil
+	}
+	it := groupsVal.ElementIterator()
+	for it.Next() {
+		_, groupVal := it.Element()
+		if groupVal.IsNull() || !groupVal.IsKnown() {
+			continue
+		}
+		membersVal := groupVal.GetAttr("members")
+		if membersVal.IsNull() || !membersVal.IsKnown() || membersVal.LengthInt() == 0 {
+			continue
+		}
+		mit := membersVal.ElementIterator()
+		if !mit.Next() {
+			continue
+		}
+		_, memberVal := mit.Element() // first (only) element
+		if memberVal.IsNull() || !memberVal.IsKnown() {
+			continue
+		}
+		zonesVal := memberVal.GetAttr("member_zones")
+		if zonesVal.IsNull() || !zonesVal.IsKnown() || zonesVal.LengthInt() == 0 {
+			continue
+		}
+		var zones []string
+		zit := zonesVal.ElementIterator()
+		for zit.Next() {
+			_, zv := zit.Element()
+			if !zv.IsNull() && zv.IsKnown() {
+				zones = append(zones, zv.AsString())
+			}
+		}
+		allocationCount := 0
+		allocVal := memberVal.GetAttr("allocation_count")
+		if !allocVal.IsNull() && allocVal.IsKnown() {
+			n, _ := allocVal.AsBigFloat().Int64()
+			allocationCount = int(n)
+		}
+		if err := fn(zones, allocationCount); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// gen2GetOperationDescription extracts a human-readable description from the instance's last operation or state.
+func gen2GetOperationDescription(instance *rc.ResourceInstance) string {
+	if instance.LastOperation != nil {
+		if instance.LastOperation.Description != nil && *instance.LastOperation.Description != "" {
+			return *instance.LastOperation.Description
+		}
+		if instance.LastOperation.Type != nil && *instance.LastOperation.Type != "" {
+			return fmt.Sprintf("Operation: %s", *instance.LastOperation.Type)
+		}
+	}
+
+	if instance.State != nil {
+		return fmt.Sprintf("Instance state: %s", *instance.State)
+	}
+
+	return "Gen2 database instance operation"
+}
+
+// gen2MapStateToStatus converts Resource Controller instance state to task status.
+// Maps Gen2 instance states to standardized task statuses for consistency with classic databases.
+func gen2MapStateToStatus(instance *rc.ResourceInstance) string {
+	if instance.State == nil {
+		// Instance state is not available
+		return "unknown"
+	}
+
+	state := *instance.State
+	switch state {
+	case "active":
+		// Instance is fully provisioned and operational
+		return "completed"
+	case "provisioning", "in progress":
+		// Instance is being created or an operation is in progress
+		return "running"
+	case "removed":
+		// Instance has been deleted, operation is complete
+		return "completed"
+	default:
+		// Return the original state for any unmapped states
+		return state
+	}
+}
+
+// gen2CalculateProgress estimates task completion percentage based on instance state.
+// Note: RC API doesn't provide granular progress data, so these are approximations.
+func gen2CalculateProgress(instance *rc.ResourceInstance) int {
+	if instance.State == nil {
+		// No state information available
+		return 0
+	}
+
+	state := *instance.State
+	switch state {
+	case "active":
+		// Instance is fully provisioned and operational - 100% complete
+		return 100
+	case "provisioning":
+		// Instance is being created - estimated at 50% (midpoint of provisioning process)
+		// Note: Actual progress may vary; RC API doesn't provide granular progress data
+		return 50
+	case "in progress":
+		// Operation is in progress - estimated at 75% (nearing completion)
+		// Note: This is an approximation as RC API doesn't provide actual progress percentage
+		return 75
+	case "failed", "removed":
+		// Operation has completed (either failed or instance removed) - 100% done
+		return 100
+	case "inactive":
+		// Instance is stopped/suspended - no progress (0%)
+		return 0
+	default:
+		// Unknown state - assume no progress
+		return 0
+	}
+}
+
+// gen2GetOperationTime returns the most recent timestamp for the instance operation.
+// Prefers UpdatedAt over CreatedAt, falls back to current time if neither is available.
+func gen2GetOperationTime(instance *rc.ResourceInstance) string {
+	if instance.UpdatedAt != nil {
+		return flex.DateTimeToString(instance.UpdatedAt)
+	}
+	if instance.CreatedAt != nil {
+		return flex.DateTimeToString(instance.CreatedAt)
+	}
+
+	return time.Now().UTC().Format(time.RFC3339)
 }

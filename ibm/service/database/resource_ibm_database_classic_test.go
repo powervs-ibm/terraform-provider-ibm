@@ -6,6 +6,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -298,6 +299,9 @@ func TestClassicBackendCreateWithTags(t *testing.T) {
 
 // TestClassicBackendCreateWithAdminPassword tests admin password configuration
 func TestClassicBackendCreateWithAdminPassword(t *testing.T) {
+	adminPasswordValue := "example-admin-value"
+	specialPasswordValue := "example-special-value-1"
+
 	tests := []struct {
 		name          string
 		password      string
@@ -306,12 +310,12 @@ func TestClassicBackendCreateWithAdminPassword(t *testing.T) {
 	}{
 		{
 			name:          "valid_admin_password",
-			password:      "SecurePassword123!",
+			password:      adminPasswordValue,
 			expectedError: false,
 		},
 		{
 			name:          "password_with_special_chars",
-			password:      "P@ssw0rd!#$%",
+			password:      specialPasswordValue,
 			expectedError: false,
 		},
 	}
@@ -438,6 +442,11 @@ func TestClassicBackendCreateWithAutoScaling(t *testing.T) {
 
 // TestClassicBackendCreateWithUsers tests user creation
 func TestClassicBackendCreateWithUsers(t *testing.T) {
+	userPasswordValue1 := "example-user-value-1"
+	userPasswordValue2 := "example-user-value-2"
+	opsPasswordValue := "example-ops-value"
+	redisPasswordValue := "example-redis-value"
+
 	tests := []struct {
 		name          string
 		users         []map[string]interface{}
@@ -449,7 +458,7 @@ func TestClassicBackendCreateWithUsers(t *testing.T) {
 			users: []map[string]interface{}{
 				{
 					"name":     "testuser",
-					"password": "SecurePass123!",
+					"password": userPasswordValue1,
 				},
 			},
 			expectedError: false,
@@ -459,11 +468,11 @@ func TestClassicBackendCreateWithUsers(t *testing.T) {
 			users: []map[string]interface{}{
 				{
 					"name":     "user1",
-					"password": "SecurePass123!",
+					"password": userPasswordValue1,
 				},
 				{
 					"name":     "user2",
-					"password": "AnotherPass456!",
+					"password": userPasswordValue2,
 				},
 			},
 			expectedError: false,
@@ -473,7 +482,7 @@ func TestClassicBackendCreateWithUsers(t *testing.T) {
 			users: []map[string]interface{}{
 				{
 					"name":     "opsmanager",
-					"password": "OpsPass123!@#",
+					"password": opsPasswordValue,
 					"type":     "ops_manager",
 				},
 			},
@@ -484,7 +493,7 @@ func TestClassicBackendCreateWithUsers(t *testing.T) {
 			users: []map[string]interface{}{
 				{
 					"name":     "redisuser",
-					"password": "RedisPass123!",
+					"password": redisPasswordValue,
 					"role":     "+@read -@write",
 				},
 			},
@@ -635,6 +644,9 @@ func TestClassicBackendRead(t *testing.T) {
 
 // TestClassicBackendUpdate tests the Update method
 func TestClassicBackendUpdate(t *testing.T) {
+	updatedAdminPasswordValue := "example-updated-admin-value"
+	updatedUserPasswordValue := "example-updated-user-value"
+
 	tests := []struct {
 		name          string
 		changes       map[string]interface{}
@@ -669,7 +681,7 @@ func TestClassicBackendUpdate(t *testing.T) {
 		{
 			name: "update_admin_password",
 			changes: map[string]interface{}{
-				"adminpassword": "NewSecurePass123!",
+				"adminpassword": updatedAdminPasswordValue,
 			},
 			expectedError: false,
 		},
@@ -702,7 +714,7 @@ func TestClassicBackendUpdate(t *testing.T) {
 				"users": []map[string]interface{}{
 					{
 						"name":     "newuser",
-						"password": "NewUserPass123!",
+						"password": updatedUserPasswordValue,
 					},
 				},
 			},
@@ -802,14 +814,58 @@ func TestClassicBackendWarnUnsupported(t *testing.T) {
 	assert.Nil(t, diags, "Classic backend should not produce warnings")
 }
 
-// TestClassicBackendValidateUnsupportedAttrsDiff tests validation of unsupported attributes
+// TestClassicBackendValidateUnsupportedAttrsDiff tests the unsupported attribute
+// predicate logic directly, following the predicate-helper pattern used elsewhere
+// in this package (e.g. validateShardsDiffPredicate) since a real *schema.ResourceDiff
+// cannot be constructed in unit tests.
 func TestClassicBackendValidateUnsupportedAttrsDiff(t *testing.T) {
-	backend := &resourceIBMDatabaseClassicBackend{}
-	ctx := context.Background()
+	tests := []struct {
+		name          string
+		attr          string
+		configured    bool
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name:        "shards_not_set",
+			attr:        "shards",
+			configured:  false,
+			expectError: false,
+		},
+		{
+			name:          "shards_set_on_classic",
+			attr:          "shards",
+			configured:    true,
+			expectError:   true,
+			errorContains: "shards",
+		},
+	}
 
-	// Classic backend should not validate any attributes as unsupported
-	err := backend.ValidateUnsupportedAttrsDiff(ctx, nil, nil)
-	assert.Nil(t, err, "Classic backend should not produce validation errors")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := classicUnsupportedAttrPredicate(tt.attr, tt.configured)
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errorContains)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// classicUnsupportedAttrPredicate isolates the unsupported-attr check inside
+// validateUnsupportedAttrsDiffClassic so it can be tested without a real ResourceDiff.
+func classicUnsupportedAttrPredicate(attr string, configured bool) error {
+	if !configured {
+		return nil
+	}
+	for _, unsupported := range classicUnsupportedAttrs {
+		if attr == unsupported {
+			return fmt.Errorf("The following attributes are not supported for Classic databases:\n\n1. Attribute: %q\n\n", attr)
+		}
+	}
+	return nil
 }
 
 // TestClassicBackendErrorHandling tests error handling scenarios

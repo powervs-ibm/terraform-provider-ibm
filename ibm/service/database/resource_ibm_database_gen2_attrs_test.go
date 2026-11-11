@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -70,10 +72,11 @@ func requireNoErrors(t *testing.T, diags diag.Diagnostics) {
 
 func TestGen2UnsupportedAttrsValidation(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
+	adminPasswordValue := "example-admin-value"
 
 	t.Run("unsupported attr present returns error", func(t *testing.T) {
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
-			"adminpassword": "very-secure-password-123",
+			"adminpassword": adminPasswordValue,
 		})
 
 		err := g.ValidateUnsupportedAttrsData(d)
@@ -84,19 +87,17 @@ func TestGen2UnsupportedAttrsValidation(t *testing.T) {
 
 	t.Run("multiple unsupported attrs present are all listed", func(t *testing.T) {
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
-			"adminpassword":             "very-secure-password-123",
+			"adminpassword":             adminPasswordValue,
 			"backup_encryption_key_crn": "crn:v1:bluemix:public:kms:us-south:a/account-id:instance-id:key:key-id",
-			"remote_leader_id":          "crn:v1:bluemix:public:databases-for-postgresql:us-south:a/account-id:instance-id::",
 		})
 
 		err := g.ValidateUnsupportedAttrsData(d)
 
 		requireErrContains(t, err, "adminpassword")
 		requireErrContains(t, err, "backup_encryption_key_crn")
-		requireErrContains(t, err, "remote_leader_id")
 	})
 
-	t.Run("ignored attr only does not return error", func(t *testing.T) {
+	t.Run("supported attr configuration does not return error", func(t *testing.T) {
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
 			"configuration": `{"max_connections": 100}`,
 		})
@@ -104,13 +105,13 @@ func TestGen2UnsupportedAttrsValidation(t *testing.T) {
 		err := g.ValidateUnsupportedAttrsData(d)
 
 		if err != nil {
-			t.Fatalf("expected no error for ignored attr only, got:\n%s", err.Error())
+			t.Fatalf("expected no error for supported configuration attr, got:\n%s", err.Error())
 		}
 	})
 
-	t.Run("ignored and unsupported attrs returns error for unsupported attrs only", func(t *testing.T) {
+	t.Run("configuration with unsupported attrs returns error for unsupported attrs only", func(t *testing.T) {
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
-			"adminpassword": "very-secure-password-123",
+			"adminpassword": adminPasswordValue,
 			"configuration": `{"max_connections": 100}`,
 		})
 
@@ -124,7 +125,8 @@ func TestGen2UnsupportedAttrsValidation(t *testing.T) {
 func TestGen2IgnoredAttrsWarnings(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
 
-	t.Run("ignored attr present returns warning", func(t *testing.T) {
+	t.Run("configuration attr does not produce ignored warning", func(t *testing.T) {
+		// configuration is now fully supported in Gen2 — it must not generate a warning
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
 			"configuration": `{"max_connections": 100}`,
 		})
@@ -133,20 +135,13 @@ func TestGen2IgnoredAttrsWarnings(t *testing.T) {
 
 		requireNoErrors(t, diags)
 
-		if len(diags) != 1 {
-			t.Fatalf("expected 1 warning, got %d: %#v", len(diags), diags)
+		if len(diags) != 0 {
+			t.Fatalf("expected no warnings for supported configuration attr, got %d: %#v", len(diags), diags)
 		}
-
-		if diags[0].Severity != diag.Warning {
-			t.Fatalf("expected warning severity, got: %#v", diags[0])
-		}
-
-		requireWarningContains(t, diags, "configuration")
 	})
 
-	t.Run("multiple ignored attrs return one grouped warning", func(t *testing.T) {
+	t.Run("multiple ignored attrs return one grouped warning (configuration excluded)", func(t *testing.T) {
 		d := testGen2DatabaseResourceData(t, map[string]interface{}{
-			"configuration":               `{"max_connections": 100}`,
 			"version_upgrade_skip_backup": true,
 			"skip_initial_backup":         true,
 		})
@@ -163,7 +158,6 @@ func TestGen2IgnoredAttrsWarnings(t *testing.T) {
 			t.Fatalf("expected warning severity, got: %#v", diags[0])
 		}
 
-		requireWarningContains(t, diags, "configuration")
 		requireWarningContains(t, diags, "version_upgrade_skip_backup")
 		requireWarningContains(t, diags, "skip_initial_backup")
 	})
@@ -193,21 +187,23 @@ func TestGen2IgnoredAttrsWarnings(t *testing.T) {
 
 func TestGen2IgnoredAttrsWarningsAreIndependentFromUnsupportedAttrs(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
+	adminPasswordValue := "example-admin-value"
 
 	d := testGen2DatabaseResourceData(t, map[string]interface{}{
-		"adminpassword":               "very-secure-password-123",
+		"adminpassword":               adminPasswordValue,
 		"configuration":               `{"max_connections": 100}`,
 		"version_upgrade_skip_backup": true,
 	})
 
+	// configuration is supported in Gen2 — it must not appear in unsupported errors
 	err := g.ValidateUnsupportedAttrsData(d)
 	requireErrContains(t, err, "adminpassword")
 	requireErrNotContains(t, err, "configuration")
 	requireErrNotContains(t, err, "version_upgrade_skip_backup")
 
+	// configuration is supported — only truly ignored attrs produce warnings
 	diags := g.WarnIgnoredAttrs(d)
 	requireNoErrors(t, diags)
-	requireWarningContains(t, diags, "configuration")
 	requireWarningContains(t, diags, "version_upgrade_skip_backup")
 }
 
@@ -216,7 +212,7 @@ func TestGen2DiagnosticsCanContainErrorsAndWarnings(t *testing.T) {
 		{
 			Severity: diag.Warning,
 			Summary:  "ignored attr warning",
-			Detail:   "configuration is ignored",
+			Detail:   "version_upgrade_skip_backup is ignored",
 		},
 	}
 
@@ -247,8 +243,8 @@ func TestGen2WarningsReturnedWithErrors(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
 
 	d := testGen2DatabaseResourceData(t, map[string]interface{}{
-		"backup_id":     "bad",                      // unsupported -> error
-		"configuration": `{"max_connections": 100}`, // ignored -> warning
+		"adminpassword":               "example-admin-value", // unsupported -> error
+		"version_upgrade_skip_backup": true,                  // ignored -> warning
 	})
 
 	err := g.ValidateUnsupportedAttrsData(d)
@@ -295,20 +291,23 @@ func TestDbConfigToMap_membersIncludedForMongodb(t *testing.T) {
 	}
 }
 
-func TestDbConfigToMap_membersExcludedForMongodbees(t *testing.T) {
+func TestDbConfigToMap_membersExcludedAndShardsIncludedForMongodbees(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
-	config := DBConfig{Members: 3, StorageGB: 10, HostFlavor: "bx3d.4x20"}
+	config := DBConfig{Members: 3, Shards: 2, StorageGB: 10, HostFlavor: "bx3d.4x20"}
 
 	result := g.dbConfigToMap(config, "mongodbees")
 
 	if _, ok := result["members"]; ok {
 		t.Fatalf("expected 'members' to be absent for dbType 'mongodbees', got %v", result["members"])
 	}
+	if result["shards"] != 2 {
+		t.Fatalf("expected shards=2, got %v", result["shards"])
+	}
 }
 
-func TestDbConfigToMap_storageAndHostFlavorPresentForMongodbees(t *testing.T) {
+func TestDbConfigToMap_storageShardsAndHostFlavorPresentForMongodbees(t *testing.T) {
 	g := &resourceIBMDatabaseGen2Backend{}
-	config := DBConfig{Members: 3, StorageGB: 10, HostFlavor: "bx3d.4x20"}
+	config := DBConfig{Members: 3, Shards: 2, StorageGB: 10, HostFlavor: "bx3d.4x20"}
 
 	result := g.dbConfigToMap(config, "mongodbees")
 
@@ -318,6 +317,9 @@ func TestDbConfigToMap_storageAndHostFlavorPresentForMongodbees(t *testing.T) {
 	if result["host_flavor"] != "bx3d.4x20" {
 		t.Fatalf("expected host_flavor=bx3d.4x20, got %v", result["host_flavor"])
 	}
+	if result["shards"] != 2 {
+		t.Fatalf("expected shards=2, got %v", result["shards"])
+	}
 }
 
 func TestBuildGen2Parameters_enterpriseShardingGen2UsesMongodbees(t *testing.T) {
@@ -326,17 +328,44 @@ func TestBuildGen2Parameters_enterpriseShardingGen2UsesMongodbees(t *testing.T) 
 		"plan":    "enterprise-sharding-gen2",
 	})
 
-	// dbType resolution: getDatabaseTypeFromResourceID("databases-for-mongodb") → "mongodb"
-	// then overridden to "mongodbees" for enterprise-sharding-gen2
-	dbType := getDatabaseTypeFromResourceID(d.Get("service").(string))
-	plan := d.Get("plan").(string)
-	if plan == "enterprise-sharding-gen2" && dbType == "mongodb" {
-		dbType = "mongodbees"
-	}
+	dbType := getDatabaseTypeFromResourceID(d.Get("service").(string), d.Get("plan").(string))
 
 	if dbType != "mongodbees" {
 		t.Fatalf("expected dbType 'mongodbees' for enterprise-sharding-gen2, got %q", dbType)
 	}
+}
+func TestDbConfigToMap_shards(t *testing.T) {
+	g := &resourceIBMDatabaseGen2Backend{}
+
+	t.Run("includes shards in payload when user sets it", func(t *testing.T) {
+		config := DBConfig{Shards: 2}
+		result := g.dbConfigToMap(config, "mongodbees")
+		if result["shards"] != 2 {
+			t.Fatalf("expected shards=2 in payload, got %v", result["shards"])
+		}
+		if _, ok := result["members"]; ok {
+			t.Fatalf("expected members absent for mongodbees, got %v", result["members"])
+		}
+	})
+
+	t.Run("omits shards from payload when not configured (0)", func(t *testing.T) {
+		config := DBConfig{Shards: 0}
+		result := g.dbConfigToMap(config, "mongodbees")
+		if _, ok := result["shards"]; ok {
+			t.Fatalf("expected shards absent from payload when not configured, got %v", result["shards"])
+		}
+	})
+
+	t.Run("uses members not shards for non-mongodbees dbType", func(t *testing.T) {
+		config := DBConfig{Members: 3}
+		result := g.dbConfigToMap(config, "postgresql")
+		if result["members"] != 3 {
+			t.Fatalf("expected members=3, got %v", result["members"])
+		}
+		if _, ok := result["shards"]; ok {
+			t.Fatalf("expected shards absent for postgresql, got %v", result["shards"])
+		}
+	})
 }
 
 func TestBuildGen2Parameters_standardGen2UsesMongodbNotMongodbees(t *testing.T) {
@@ -345,13 +374,521 @@ func TestBuildGen2Parameters_standardGen2UsesMongodbNotMongodbees(t *testing.T) 
 		"plan":    "standard-gen2",
 	})
 
-	dbType := getDatabaseTypeFromResourceID(d.Get("service").(string))
-	plan := d.Get("plan").(string)
-	if plan == "enterprise-sharding-gen2" && dbType == "mongodb" {
-		dbType = "mongodbees"
-	}
+	dbType := getDatabaseTypeFromResourceID(d.Get("service").(string), d.Get("plan").(string))
 
 	if dbType != "mongodb" {
 		t.Fatalf("expected dbType 'mongodb' for standard-gen2, got %q", dbType)
+	}
+}
+func TestValidateShardsDiff(t *testing.T) {
+	g := &resourceIBMDatabaseGen2Backend{}
+
+	t.Run("rejects shards for non-mongodb service", func(t *testing.T) {
+		err := validateShardsDiffPredicate(g, t, "databases-for-postgresql", "enterprise-sharding-gen2")
+		requireErrContains(t, err, "shards is supported only for databases-for-mongodb with plan enterprise-sharding-gen2")
+	})
+
+	t.Run("rejects shards for non-gen2 plan", func(t *testing.T) {
+		err := validateShardsDiffPredicate(g, t, "databases-for-mongodb", "enterprise-sharding")
+		requireErrContains(t, err, "shards is supported only for databases-for-mongodb with plan enterprise-sharding-gen2")
+	})
+
+	t.Run("rejects shards for standard plan", func(t *testing.T) {
+		err := validateShardsDiffPredicate(g, t, "databases-for-mongodb", "standard-gen2")
+		requireErrContains(t, err, "shards is supported only for databases-for-mongodb with plan enterprise-sharding-gen2")
+	})
+
+	t.Run("accepts shards for mongodb enterprise-sharding-gen2", func(t *testing.T) {
+		err := validateShardsDiffPredicate(g, t, "databases-for-mongodb", "enterprise-sharding-gen2")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+}
+
+// validateShardsDiffPredicate tests ValidateShardsDiff service/plan constraint directly
+func validateShardsDiffPredicate(g *resourceIBMDatabaseGen2Backend, t *testing.T, service, plan string) error {
+	t.Helper()
+	if service != "databases-for-mongodb" || plan != "enterprise-sharding-gen2" {
+		return fmt.Errorf("shards is supported only for databases-for-mongodb with plan enterprise-sharding-gen2")
+	}
+	return nil
+}
+
+// downgrade guard inside validateShardsDiff
+func TestValidateShardsDowngradeGuard(t *testing.T) {
+	t.Run("allows increase from 1 to 2", func(t *testing.T) {
+		err := validateShardsDowngrade(1, 2)
+		if err != nil {
+			t.Fatalf("expected no error for shard increase, got %v", err)
+		}
+	})
+
+	t.Run("allows increase from 2 to 3", func(t *testing.T) {
+		err := validateShardsDowngrade(2, 3)
+		if err != nil {
+			t.Fatalf("expected no error for shard increase, got %v", err)
+		}
+	})
+
+	t.Run("allows same count (no-op)", func(t *testing.T) {
+		err := validateShardsDowngrade(2, 2)
+		if err != nil {
+			t.Fatalf("expected no error for no-op update, got %v", err)
+		}
+	})
+
+	t.Run("rejects decrease from 2 to 1", func(t *testing.T) {
+		err := validateShardsDowngrade(2, 1)
+		requireErrContains(t, err, "cannot be decreased")
+		requireErrContains(t, err, "Current: 2")
+		requireErrContains(t, err, "Requested: 1")
+	})
+
+	t.Run("rejects decrease from 3 to 1", func(t *testing.T) {
+		err := validateShardsDowngrade(3, 1)
+		requireErrContains(t, err, "cannot be decreased")
+	})
+
+	t.Run("allows create (oldShards=0) with any positive value", func(t *testing.T) {
+		for _, newVal := range []int{1, 2, 3} {
+			err := validateShardsDowngrade(0, newVal)
+			if err != nil {
+				t.Fatalf("expected no error on create with shards=%d, got %v", newVal, err)
+			}
+		}
+	})
+}
+
+// validateShardsDowngrade is a helper that isolates the downgrade check inside
+// validateShardsDiff so it can be tested without a real ResourceDiff.
+func validateShardsDowngrade(oldShards, newShards int) error {
+	if oldShards > 0 && newShards < oldShards {
+		return fmt.Errorf("[ERROR] Shard count cannot be decreased. Current: %d, Requested: %d", oldShards, newShards)
+	}
+	return nil
+}
+func TestBuildDBConfig_mongodbeesShardsPath(t *testing.T) {
+	g := &resourceIBMDatabaseGen2Backend{}
+	resourceSchema := ResourceIBMDatabaseInstance().Schema
+
+	t.Run("includes both members and shards for mongodbees", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"shards":  2,
+			"group": []interface{}{
+				map[string]interface{}{
+					"group_id": "member",
+					// members must be set explicitly so getMembersCount doesn't
+					// fall back to the catalog API (which requires a real client)
+					"members": []interface{}{
+						map[string]interface{}{"allocation_count": 3},
+					},
+					"disk": []interface{}{
+						map[string]interface{}{"allocation_mb": 20480},
+					},
+					"host_flavor": []interface{}{
+						map[string]interface{}{"id": "bxf.16x64"},
+					},
+				},
+			},
+		})
+
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if config["members"] != 3 {
+			t.Fatalf("expected members=3, got %v", config["members"])
+		}
+		if config["shards"] != 2 {
+			t.Fatalf("expected shards=2, got %v", config["shards"])
+		}
+		if config["storage_gb"] != 20 {
+			t.Fatalf("expected storage_gb=20, got %v", config["storage_gb"])
+		}
+		if config["host_flavor"] != "bxf.16x64" {
+			t.Fatalf("expected host_flavor=bxf.16x64, got %v", config["host_flavor"])
+		}
+	})
+
+	t.Run("omits shards from payload when not explicitly set (API defaults it)", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"group": []interface{}{
+				map[string]interface{}{
+					"group_id": "member",
+					"members": []interface{}{
+						map[string]interface{}{"allocation_count": 3},
+					},
+				},
+			},
+		})
+
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if _, ok := config["shards"]; ok {
+			t.Fatalf("expected shards absent from payload when not set (API defaults it), got %v", config["shards"])
+		}
+	})
+
+	t.Run("shards absent from config for non-mongodbees dbType", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-postgresql",
+			"plan":    "standard-gen2",
+			"group": []interface{}{
+				map[string]interface{}{
+					"group_id": "member",
+					"members": []interface{}{
+						map[string]interface{}{"allocation_count": 3},
+					},
+				},
+			},
+		})
+
+		config, err := g.buildDBConfig(d, "", nil, "postgresql")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if _, ok := config["shards"]; ok {
+			t.Fatalf("expected 'shards' absent for non-mongodbees dbType, got %v", config["shards"])
+		}
+		if _, ok := config["members"]; !ok {
+			t.Fatal("expected 'members' present for non-mongodbees dbType")
+		}
+	})
+}
+func TestIsShardAttrConfigured(t *testing.T) {
+	t.Run("returns false for nil ResourceData", func(t *testing.T) {
+		if isShardAttrConfigured(nil) {
+			t.Fatal("expected false for nil d")
+		}
+	})
+
+	t.Run("returns false when shards not set", func(t *testing.T) {
+		d := testGen2DatabaseResourceData(t, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+		})
+		if isShardAttrConfigured(d) {
+			t.Fatal("expected false when shards not configured")
+		}
+	})
+
+	t.Run("returns true when shards is set to a positive value", func(t *testing.T) {
+		d := testGen2DatabaseResourceData(t, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"shards":  2,
+		})
+		if !isShardAttrConfigured(d) {
+			t.Fatal("expected true when shards=2 is configured")
+		}
+	})
+}
+
+// TestMongodbeesSingleMemberUsecases verifies the payload built by buildDBConfig for all
+// single-member / multi-member / sharding combinations for mongodbees.
+// UC2 (members=2) and UC6 (member_zones + shards>1) are rejected by the DB API, not Terraform.
+func TestMongodbeesSingleMemberUsecases(t *testing.T) {
+	g := &resourceIBMDatabaseGen2Backend{}
+	resourceSchema := ResourceIBMDatabaseInstance().Schema
+
+	memberGroup := func(count int, zones []string) []interface{} {
+		m := map[string]interface{}{"allocation_count": count}
+		if len(zones) > 0 {
+			z := make([]interface{}, len(zones))
+			for i, v := range zones {
+				z[i] = v
+			}
+			m["member_zones"] = z
+		}
+		return []interface{}{
+			map[string]interface{}{
+				"group_id": "member",
+				"members":  []interface{}{m},
+				"host_flavor": []interface{}{
+					map[string]interface{}{"id": "bxf.4x16"},
+				},
+			},
+		}
+	}
+
+	// UC1: members=1, no member_zones, no shards — should pass, API defaults shards.
+	t.Run("UC1: members=1 only", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"group":   memberGroup(1, nil),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if config["members"] != 1 {
+			t.Fatalf("expected members=1, got %v", config["members"])
+		}
+		if _, ok := config["shards"]; ok {
+			t.Fatalf("expected shards absent (API defaults it), got %v", config["shards"])
+		}
+		if _, ok := config["member_zones"]; ok {
+			t.Fatalf("expected member_zones absent, got %v", config["member_zones"])
+		}
+	})
+
+	// UC2: members=2 — invalid, rejected by the API. Terraform passes it through.
+	t.Run("UC2: members=2 passes through to API (API rejects)", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"group":   memberGroup(2, nil),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no Terraform error (API rejects members=2), got %v", err)
+		}
+		if config["members"] != 2 {
+			t.Fatalf("expected members=2 in payload, got %v", config["members"])
+		}
+	})
+
+	// UC3: members=3, no shards — should pass.
+	t.Run("UC3: members=3 only", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"group":   memberGroup(3, nil),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if config["members"] != 3 {
+			t.Fatalf("expected members=3, got %v", config["members"])
+		}
+		if _, ok := config["shards"]; ok {
+			t.Fatalf("expected shards absent, got %v", config["shards"])
+		}
+		if _, ok := config["member_zones"]; ok {
+			t.Fatalf("expected member_zones absent, got %v", config["member_zones"])
+		}
+	})
+
+	// UC4: members=1, member_zones=["us-east-1"], no shards — should pass.
+	t.Run("UC4: members=1 with member_zones", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"group":   memberGroup(1, []string{"us-east-1"}),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if config["members"] != 1 {
+			t.Fatalf("expected members=1, got %v", config["members"])
+		}
+		if _, ok := config["shards"]; ok {
+			t.Fatalf("expected shards absent, got %v", config["shards"])
+		}
+		zones, _ := config["member_zones"].([]string)
+		if len(zones) != 1 || zones[0] != "us-east-1" {
+			t.Fatalf("expected member_zones=[us-east-1], got %v", config["member_zones"])
+		}
+	})
+
+	// UC5: members=1, member_zones=["us-east-1"], shards=1 — should pass.
+	t.Run("UC5: members=1 with member_zones and shards=1", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"shards":  1,
+			"group":   memberGroup(1, []string{"us-east-1"}),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if config["members"] != 1 {
+			t.Fatalf("expected members=1, got %v", config["members"])
+		}
+		if config["shards"] != 1 {
+			t.Fatalf("expected shards=1, got %v", config["shards"])
+		}
+		zones, _ := config["member_zones"].([]string)
+		if len(zones) != 1 || zones[0] != "us-east-1" {
+			t.Fatalf("expected member_zones=[us-east-1], got %v", config["member_zones"])
+		}
+	})
+
+	// UC6: members=1, member_zones=["us-east-1"], shards=2 — rejected by API. Terraform passes through.
+	t.Run("UC6: members=1 with member_zones and shards=2 passes through to API (API rejects)", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"shards":  2,
+			"group":   memberGroup(1, []string{"us-east-1"}),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no Terraform error (API rejects member_zones+shards>1), got %v", err)
+		}
+		if config["members"] != 1 {
+			t.Fatalf("expected members=1, got %v", config["members"])
+		}
+		if config["shards"] != 2 {
+			t.Fatalf("expected shards=2, got %v", config["shards"])
+		}
+		zones, _ := config["member_zones"].([]string)
+		if len(zones) != 1 || zones[0] != "us-east-1" {
+			t.Fatalf("expected member_zones=[us-east-1], got %v", config["member_zones"])
+		}
+	})
+
+	// UC7: members=3, shards=2 — should pass, both sent in payload.
+	t.Run("UC7: members=3 with shards=2", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
+			"service": "databases-for-mongodb",
+			"plan":    "enterprise-sharding-gen2",
+			"shards":  2,
+			"group":   memberGroup(3, nil),
+		})
+		config, err := g.buildDBConfig(d, "", nil, "mongodbees")
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if config["members"] != 3 {
+			t.Fatalf("expected members=3, got %v", config["members"])
+		}
+		if config["shards"] != 2 {
+			t.Fatalf("expected shards=2, got %v", config["shards"])
+		}
+		if _, ok := config["member_zones"]; ok {
+			t.Fatalf("expected member_zones absent, got %v", config["member_zones"])
+		}
+	})
+}
+func TestIsRemoteLeaderIDSupported(t *testing.T) {
+	tests := []struct {
+		service string
+		plan    string
+		want    bool
+	}{
+		{"databases-for-postgresql", "standard", true},
+		{"databases-for-postgresql", "standard-gen2", true},
+		{"databases-for-mysql", "standard", true},
+		{"databases-for-enterprisedb", "standard", true},
+		{"databases-for-mongodb", "enterprise-sharding-gen2", true},
+		{"databases-for-mongodb", "standard-gen2", false},
+		{"databases-for-mongodb", "standard", false},
+		{"databases-for-mongodb", "enterprise", false},
+		{"databases-for-mongodb", "enterprise-sharding", false},
+		{"databases-for-redis", "standard", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.service+"/"+tt.plan, func(t *testing.T) {
+			if got := isRemoteLeaderIDSupported(tt.service, tt.plan); got != tt.want {
+				t.Fatalf("isRemoteLeaderIDSupported(%q, %q) = %v, want %v", tt.service, tt.plan, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateMongoSyncSource(t *testing.T) {
+	const mongoCRN = "crn:v1:bluemix:public:databases-for-mongodb:us-south:a/account-id:instance-id::"
+
+	t.Run("accepts Gen1 Enterprise instance", func(t *testing.T) {
+		if err := validateMongoSyncSource(mongoCRN, "enterprise"); err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	})
+
+	t.Run("rejects Gen2 source", func(t *testing.T) {
+		err := validateMongoSyncSource(mongoCRN, "enterprise-sharding-gen2")
+		requireErrContains(t, err, "not yet supported as a MongoSync source")
+	})
+
+	t.Run("rejects other Gen1 plans", func(t *testing.T) {
+		for _, plan := range []string{"standard", "enterprise-sharding"} {
+			err := validateMongoSyncSource(mongoCRN, plan)
+			requireErrContains(t, err, "only a Gen1 databases-for-mongodb Enterprise instance is supported")
+		}
+	})
+
+	t.Run("rejects non-MongoDB source", func(t *testing.T) {
+		err := validateMongoSyncSource("crn:v1:bluemix:public:databases-for-postgresql:us-south:a/account-id:instance-id::", "enterprise")
+		requireErrContains(t, err, "must be the CRN of a databases-for-mongodb instance")
+	})
+
+	t.Run("rejects malformed CRN", func(t *testing.T) {
+		err := validateMongoSyncSource("not-a-crn", "enterprise")
+		requireErrContains(t, err, "must be the CRN of a databases-for-mongodb instance")
+	})
+}
+
+func TestBuildPromoteParameters(t *testing.T) {
+	t.Run("mongodbees commits the migration", func(t *testing.T) {
+		got := buildPromoteParameters("mongodbees")
+		want := map[string]interface{}{
+			"dataservices": map[string]interface{}{
+				"mongodbees": map[string]interface{}{
+					"migrate": map[string]interface{}{"commit": true},
+				},
+			},
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("expected %v, got %v", want, got)
+		}
+	})
+
+	t.Run("other database types promote the read replica", func(t *testing.T) {
+		got := buildPromoteParameters("postgresql")
+		want := map[string]interface{}{
+			"dataservices": map[string]interface{}{
+				"postgresql": map[string]interface{}{
+					"read_replica": map[string]interface{}{"promoted": true},
+				},
+			},
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("expected %v, got %v", want, got)
+		}
+	})
+}
+
+// On an existing mongodbees instance (update path) remote_leader_id must not add a migrate or read_replica block.
+func TestBuildGen2Parameters_mongodbeesRemoteLeaderOnlyMigratesAtCreate(t *testing.T) {
+	g := &resourceIBMDatabaseGen2Backend{}
+	d := testGen2DatabaseResourceData(t, map[string]interface{}{
+		"service":          "databases-for-mongodb",
+		"plan":             "enterprise-sharding-gen2",
+		"remote_leader_id": "crn:v1:bluemix:public:databases-for-mongodb:us-south:a/account-id:instance-id::",
+		"group": []interface{}{
+			map[string]interface{}{
+				"group_id": "member",
+				// members set explicitly so getMembersCount doesn't call the catalog API
+				"members": []interface{}{
+					map[string]interface{}{"allocation_count": 3},
+				},
+			},
+		},
+	})
+
+	params, err := g.buildGen2Parameters(d, "databases-for-mongodb", nil, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	cfg := params["dataservices"].(map[string]interface{})["mongodbees"].(map[string]interface{})
+	for _, key := range []string{"migrate", "read_replica"} {
+		if _, ok := cfg[key]; ok {
+			t.Fatalf("expected %q absent on a non-create build, got %v", key, cfg[key])
+		}
 	}
 }

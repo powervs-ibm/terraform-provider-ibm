@@ -29,21 +29,27 @@ data "ibm_tg_gateway" "ds_tggateway" {
 ---
 
 ## Argument reference
-Review the argument references that you can specify for your data source. 
+Review the argument references that you can specify for your data source.
 
 - `name` - (Required, String) The name of the gateway.
 
 ## Attribute reference
-In addition to the argument reference list, you can access the following attribute references after your data source is created. 
+In addition to the argument reference list, you can access the following attribute references after your data source is created.
 
+- `connection_count` - (Integer) The number of connections associated with this gateway.
+- `connection_needs_attention` - (Bool) Indicates if this gateway has a connection that needs attention, such as a cross-account approval.
 - `created_at` - (Timestamp) The date and time resource is created.
 - `crn` - (String) The CRN of the gateway.
-- `global` - (String) The gateways with global routing true to connect to the networks outside the associated region.
+- `global` - (Bool) The gateways with global routing true to connect to the networks outside the associated region.
+- `gre_enhanced_route_propagation` - (Bool) The gateways with GRE enhanced route propagation true to share routes across all GRE connections on the same gateway.
 - `id` - (String) The unique identifier of this gateway.
 - `location` - (String) The gateway location.
+- `redundancy_group` - (String) The name of the redundancy group this gateway belongs to.
+- `redundancy_group_id` - (String) The unique identifier of the redundancy group this gateway belongs to.
 - `resource_group` - (String) The resource group identifier.
-- `gre_enhanced_route_propagation` - (String) The gateways with GRE enhanced route propagation true to share routes across all GRE connections on the same gateway.
-- `connections` - (String) A list of connections in the gateway
+- `status` - (String) The gateway status.
+- `updated_at` - (Timestamp) The date and time resource is last updated.
+- `connections` - (List) A list of connections in the gateway.
 
   Nested scheme for `connections`:
 	- `created_at` - (String) The date and time the connection is created.
@@ -51,7 +57,7 @@ In addition to the argument reference list, you can access the following attribu
   - `base_connection_id` - (String) The ID of a network_type `classic` connection a tunnel is configured over.  This field applies to network type `gre_tunnel` or `unbound_gre_tunnel` connections.
   - `base_network_type` - (String) The type of network the unbound gre tunnel is targeting. This field is required for network type `unbound_gre_tunnel`.
   - `name` - (String) The user-defined name for the transit gateway connection.
-  - `network_type` - (String) The type of network connected with the connection. Possible values are `classic`, `directlink`, `vpc`, `gre_tunnel`,  `unbound_gre_tunnel`, `vpn_gateway`, or `power_virtual_server`.
+  - `network_type` - (String) The type of network connected with the connection. Possible values are `classic`, `directlink`, `vpc`, `gre_tunnel`, `unbound_gre_tunnel`, `vpn_gateway`, `dynamic_route_server`, or `power_virtual_server`.
   - `network_account_id` - (String) The ID of the network connected account. This is used if the network is in a different account than the gateway.
   - `network_id` - (String) The ID of the network being connected with the connection.
   - `local_bgp_asn` - (Integer) The local network BGP ASN. This field only applies to network type '`gre_tunnel` connections.

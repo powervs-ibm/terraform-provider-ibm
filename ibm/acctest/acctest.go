@@ -54,6 +54,7 @@ var (
 	CloudShellAccountID             string
 	CosBackupPolicyID               string
 	CosCRN                          string
+	CloudMonitoringInstanceID       string
 	CosName                         string
 	CsRegion                        string
 	Customerpeerip                  string
@@ -85,6 +86,8 @@ var (
 	ISCIDR                          string
 	ISCIDR2                         string
 	ISCatalogImageName              string
+	ISCatalogImageOfferingCRN       string
+	ISCatalogImagePlanCRN           string
 	ISIPV4Address                   string
 	ISPrivateSSHKeyFilePath         string
 	ISPublicSSHKeyFilePath          string
@@ -100,6 +103,7 @@ var (
 	InstanceCRN                     string
 	InstanceDiskProfileName         string
 	InstanceName                    string
+	ISInstanceProfileName           string
 	InstanceProfileName             string
 	InstanceProfileNameUpdate       string
 	IpsecDatacenter                 string
@@ -214,6 +218,7 @@ var (
 	SecretsManagerCodeEngineRegion                                                  string
 	SecretsManagerCodeEngineJobName                                                 string
 	SecretsManagerServiceIdForCustomCredentials                                     string
+	SecretsManagerDedicatedInstanceID                                               string
 )
 
 var (
@@ -229,8 +234,12 @@ var (
 	IksClusterSubnetID        string
 	IksClusterResourceGroupID string
 	IcdDbDeploymentId         string
+	IcdDbGen2DeploymentId     string
 	IcdDbBackupId             string
 	IcdDbTaskId               string
+	IcdDbGen2TaskId           string
+	Gen2DeploymentId          string
+	Gen2BackupId              string
 	KmsInstanceID             string
 	CrkID                     string
 	KmsAccountID              string
@@ -492,6 +501,7 @@ var (
 	PcsOnboardingCatalogProductId                     string
 	PcsOnboardingCatalogPlanId                        string
 	PcsIamServiceRegistrationId                       string
+	ResourceGroupCRN                                  string
 )
 
 // For cluster
@@ -669,6 +679,11 @@ func init() {
 	if CisResourceGroup == "" {
 		CisResourceGroup = ""
 		fmt.Println("[WARN] Set the environment variable IBM_CIS_RESOURCE_GROUP with the resource group for the CIS Instance ")
+	}
+
+	CloudMonitoringInstanceID = os.Getenv("IBM_CLOUD_MONITORING_INSTANCE_ID")
+	if CloudMonitoringInstanceID == "" {
+		fmt.Println("[WARN] Set the environment variable IBM_CLOUD_MONITORING_INSTANCE_ID with the GUID or CRN of an IBM Cloud Monitoring instance for testing ibm_cloud_monitoring_api_token")
 	}
 
 	CosCRN = os.Getenv("IBM_COS_CRN")
@@ -1053,6 +1068,12 @@ func init() {
 		fmt.Println("[INFO] Set the environment variable SL_INSTANCE_PROFILE for testing ibm_is_instance resource else it is set to default value 'cx2-2x4'")
 	}
 
+	ISInstanceProfileName = os.Getenv("IS_INSTANCE_PROFILE_NAME")
+	if ISInstanceProfileName == "" {
+		ISInstanceProfileName = "gx2-8x64x1v100" // GPU profile — vcpu_count.type == "enum"
+		fmt.Println("[INFO] Set the environment variable IS_INSTANCE_PROFILE_NAME for testing supported_vcpu_count backfill, else it is set to default value 'gx2-8x64x1v100'")
+	}
+
 	IsKMSInstanceId = os.Getenv("SL_KMS_INSTANCE_ID")
 	if IsKMSInstanceId == "" {
 		IsKMSInstanceId = "30222bb5-1c6d-3834-8d78-ae6348cf8z61" // kms instance id
@@ -1075,6 +1096,18 @@ func init() {
 	if ISCatalogImageName == "" {
 		ISCatalogImageName = "test-catalog"
 		fmt.Println("[INFO] Set the environment variable IS_CATALOG_IMAGE_NAME for testing ibm_is_instance_template resource else it is set to default value 'test-catalog'")
+	}
+
+	ISCatalogImageOfferingCRN = os.Getenv("IS_CATALOG_IMAGE_OFFERING_CRN")
+	if ISCatalogImageOfferingCRN == "" {
+		ISCatalogImageOfferingCRN = "crn:v1:staging:public:globalcatalog-collection:global::1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc:version:4f8466eb-2218-42e3-a755-bf352b559c69-global/6a73aa69-5dd9-4243-a908-3b62f467cbf8-global"
+		fmt.Println("[INFO] Set the environment variable IS_CATALOG_IMAGE_OFFERING_CRN for testing catalog offering and software attachment acceptance tests else it is set to default value 'crn:v1:staging:public:globalcatalog-collection:global::1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc:version:4f8466eb-2218-42e3-a755-bf352b559c69-global/6a73aa69-5dd9-4243-a908-3b62f467cbf8-global'")
+	}
+
+	ISCatalogImagePlanCRN = os.Getenv("IS_CATALOG_IMAGE_PLAN_CRN")
+	if ISCatalogImagePlanCRN == "" {
+		ISCatalogImagePlanCRN = "crn:v1:staging:public:globalcatalog-collection:global::1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc:plan:sw.1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc.279a3cee-ba7d-42d5-ae88-6a0ebc56fa4a-global"
+		fmt.Println("[INFO] Set the environment variable IS_CATALOG_IMAGE_PLAN_CRN for testing catalog offering and software attachment acceptance tests else it is set to default value 'crn:v1:staging:public:globalcatalog-collection:global::1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc:plan:sw.1082e7d2-5e2f-0a11-a3bc-f88a8e1931fc.279a3cee-ba7d-42d5-ae88-6a0ebc56fa4a-global'")
 	}
 
 	ISBootSnapshotID = os.Getenv("IS_BOOT_SNAPSHOT_ID")
@@ -1220,10 +1253,32 @@ func init() {
 		fmt.Println("[INFO] Set the environment variable ISSnapshotCRN for ibm_is_snapshot resource else it is set to default value 'crn:v1:bluemix:public:is:ca-tor:a/xxxxxxxx::snapshot:xxxx-xxxxc-xxx-xxxx-xxxx-xxxxxxxxxx'")
 	}
 
-	IcdDbDeploymentId = os.Getenv("ICD_DB_DEPLOYMENT_ID")
+	IcdDbDeploymentId = os.Getenv("ICD_DB_CRN")
+	if IcdDbDeploymentId == "" {
+		IcdDbDeploymentId = os.Getenv("ICD_DB_DEPLOYMENT_ID")
+	}
 	if IcdDbDeploymentId == "" {
 		IcdDbDeploymentId = "crn:v1:bluemix:public:databases-for-redis:au-syd:a/40ddc34a953a8c02f10987b59085b60e:5042afe1-72c2-4231-89cc-c949e5d56251::"
-		fmt.Println("[INFO] Set the environment variable ICD_DB_DEPLOYMENT_ID for testing ibm_cloud_databases else it is set to default value 'crn:v1:bluemix:public:databases-for-redis:au-syd:a/40ddc34a953a8c02f10987b59085b60e:5042afe1-72c2-4231-89cc-c949e5d56251::'")
+		fmt.Println("[INFO] Set the environment variable ICD_DB_CRN or ICD_DB_DEPLOYMENT_ID for testing ibm_cloud_databases else it is set to default value 'crn:v1:bluemix:public:databases-for-redis:au-syd:a/40ddc34a953a8c02f10987b59085b60e:5042afe1-72c2-4231-89cc-c949e5d56251::'")
+	}
+
+	// ICD_DB_GEN2_DEPLOYMENT_ID is used for testing Gen2 database data sources (ibm_database_tasks with Gen2 backend)
+	// Requires a Gen2 database instance CRN (plan: standard-gen2)
+	IcdDbGen2DeploymentId = os.Getenv("ICD_DB_GEN2_DEPLOYMENT_ID")
+	if IcdDbGen2DeploymentId == "" {
+		IcdDbGen2DeploymentId = "crn:v1:bluemix:public:databases-for-postgresql:ca-mon:a/40ddc34a953a8c02f10987b59085b60e:7b231067-9ddd-4de9-964a-d7bf84cfdc3f::"
+		fmt.Println("[INFO] Set the environment variable ICD_DB_GEN2_DEPLOYMENT_ID for testing Gen2 databases else it is set to default value 'crn:v1:bluemix:public:databases-for-postgresql:ca-mon:a/40ddc34a953a8c02f10987b59085b60e:7b231067-9ddd-4de9-964a-d7bf84cfdc3f::'")
+	}
+	Gen2DeploymentId = os.Getenv("GEN2_DEPLOYMENT_ID")
+	if Gen2DeploymentId == "" {
+		Gen2DeploymentId = "crn:v1:bluemix:public:databases-for-mysql:us-east:a/23b09aee04da4545b6e32805fa93249d:8ff728d1-35f2-4b35-86ce-8f9f9bea9721::"
+		fmt.Println("[INFO] Set the environment variable GEN2_DEPLOYMENT_ID for testing ibm_database_backups Gen2 else it is set to default value")
+	}
+
+	Gen2BackupId = os.Getenv("GEN2_BACKUP_ID")
+	if Gen2BackupId == "" {
+		Gen2BackupId = "crn:v1:bluemix:public:databases-independent-backups:us-east:a/23b09aee04da4545b6e32805fa93249d:4a7b205f-5469-4d23-a0fb-28035c8cb500::"
+		fmt.Println("[INFO] Set the environment variable GEN2_BACKUP_ID for testing ibm_database_backup Gen2 else it is set to default value")
 	}
 
 	IcdDbBackupId = os.Getenv("ICD_DB_BACKUP_ID")
@@ -1236,6 +1291,14 @@ func init() {
 	if IcdDbTaskId == "" {
 		IcdDbTaskId = "crn:v1:bluemix:public:databases-for-redis:au-syd:a/40ddc34a953a8c02f10987b59085b60e:367b0a22-05bb-41e3-a1ed-ded1ff0889e5:task:882013a6-2751-4df7-a77a-98d258638704"
 		fmt.Println("[INFO] Set the environment variable ICD_DB_TASK_ID for testing ibm_cloud_databases else it is set to default value 'crn:v1:bluemix:public:databases-for-redis:au-syd:a/40ddc34a953a8c02f10987b59085b60e:367b0a22-05bb-41e3-a1ed-ded1ff0889e5:task:882013a6-2751-4df7-a77a-98d258638704'")
+	}
+
+	// ICD_DB_GEN2_TASK_ID is used for testing Gen2 database data sources (ibm_database_task with Gen2 backend)
+	// Requires a Gen2 database instance CRN (plan: standard-gen2)
+	IcdDbGen2TaskId = os.Getenv("ICD_DB_GEN2_TASK_ID")
+	if IcdDbGen2TaskId == "" {
+		IcdDbGen2TaskId = "crn:v1:bluemix:public:databases-for-postgresql:ca-mon:a/40ddc34a953a8c02f10987b59085b60e:7b231067-9ddd-4de9-964a-d7bf84cfdc3f::"
+		fmt.Println("[INFO] Set the environment variable ICD_DB_GEN2_TASK_ID for testing Gen2 databases else it is set to default value 'crn:v1:bluemix:public:databases-for-postgresql:ca-mon:a/40ddc34a953a8c02f10987b59085b60e:7b231067-9ddd-4de9-964a-d7bf84cfdc3f::'")
 	}
 
 	NotificationDistributionListAccountId = os.Getenv("NOTIFICATION_DIST_ACCOUNT_ID")
@@ -1788,6 +1851,11 @@ func init() {
 		fmt.Println("[INFO] Set the environment variable SECRETS_MANAGER_SERVICE_ID_FOR_CUSTOM_CREDENTIALS for testing custom credential secret, else tests fail if not set correctly")
 	}
 
+	SecretsManagerDedicatedInstanceID = os.Getenv("SECRETS_MANAGER_DEDICATED_INSTANCE_ID")
+	if SecretsManagerDedicatedInstanceID == "" {
+		fmt.Println("[INFO] Set the environment variable SECRETS_MANAGER_DEDICATED_INSTANCE_ID for testing Secrets Manager's tests else tests will fail if this is not set correctly")
+	}
+
 	Tg_cross_network_account_api_key = os.Getenv("IBM_TG_CROSS_ACCOUNT_API_KEY")
 	if Tg_cross_network_account_api_key == "" {
 		fmt.Println("[INFO] Set the environment variable IBM_TG_CROSS_ACCOUNT_API_KEY for testing ibm_tg_connection resource else  tests will fail if this is not set correctly")
@@ -2336,6 +2404,11 @@ func init() {
 		fmt.Println("[WARN] Set the environment variable PCS_IAM_TEGISTRATION_ID for testing iam_onboarding resource else tests will fail if this is not set correctly")
 	}
 
+	ResourceGroupCRN = os.Getenv("RESOURCE_GROUP_CRN")
+	if ResourceGroupCRN == "" {
+		fmt.Println("[WARN] Set the environment variable RESOURCE_GROUP_CRN for testing brokers else tests will fail if this is not set correctly")
+	}
+
 	ToolchainID = os.Getenv("TOOLCHAIN_ID")
 	if ToolchainID == "" {
 		fmt.Println("[WARN] Set the environment variable TOOLCHAIN_ID for testing the COS toolchain integration tool else tests will fail if this is not set correctly")
@@ -2611,6 +2684,13 @@ func TestAccPreCheckIAMIdpAccountSetting(t *testing.T) {
 	TestAccPreCheckIAMIdp(t)
 	if IAMIdpConsumerAccountId == "" {
 		t.Fatal("IBM_IAM_IDP_CONSUMER_ACCOUNT_ID must be set for IDP account-setting acceptance tests")
+	}
+}
+
+func TestAccPreCheckCloudMonitoring(t *testing.T) {
+	TestAccPreCheck(t)
+	if CloudMonitoringInstanceID == "" {
+		t.Fatal("IBM_CLOUD_MONITORING_INSTANCE_ID must be set for ibm_cloud_monitoring_api_token acceptance tests")
 	}
 }
 

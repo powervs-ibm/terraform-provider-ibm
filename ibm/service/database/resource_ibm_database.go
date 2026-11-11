@@ -110,23 +110,76 @@ func opsManagerRoles() []string {
 	return []string{"group_read_only", "group_data_access_admin"}
 }
 
-func retry(f func() error) (err error) {
-	attempts := 3
+const icdReadyMinTimeout = 10 * time.Second
 
-	for i := 0; ; i++ {
-		sleep := time.Duration(10*i*i) * time.Second
-		time.Sleep(sleep)
+// icdNotFoundGrace bounds how long a 404 from ICD is retried.
+var icdNotFoundGrace = 10 * time.Minute
 
-		err = f()
-		if err == nil {
+// remainingWaitTimeout returns the unused portion of a Terraform timeout.
+// A minimum is applied so a wait that finishes at the deadline still gets a
+// short ICD readiness poll instead of failing immediately.
+func remainingWaitTimeout(total, elapsed, minTimeout time.Duration) time.Duration {
+	if minTimeout <= 0 {
+		minTimeout = icdReadyMinTimeout
+	}
+	if total <= 0 {
+		return minTimeout
+	}
+	remaining := total - elapsed
+	if remaining < minTimeout {
+		return minTimeout
+	}
+	return remaining
+}
+
+func classifyICDReadyError(instanceID string, cdbErr error) error {
+	if cdbErr == nil {
+		return nil
+	}
+	if apiErr, ok := cdbErr.(bmxerror.RequestFailure); ok && apiErr.StatusCode() == 404 {
+		return fmt.Errorf("[ERROR] The database instance was not found in the region set for the Provider, or the default of us-south. Specify the correct region in the provider definition, or create a provider alias for the correct region. %w", cdbErr)
+	}
+	return fmt.Errorf("[ERROR] Error getting database config for: %s with error %s\n", instanceID, cdbErr)
+}
+
+// pollUntilReady invokes check immediately, then retries until timeout.
+// Transient ICD API errors (including HTTP 500 while the deployment is built)
+// are retried. A 404 is retried only for icdNotFoundGrace. The last error is
+// returned if the deadline is reached.
+func pollUntilReady(timeout, interval time.Duration, check func() error) error {
+	if interval <= 0 {
+		interval = icdReadyMinTimeout
+	}
+	if timeout <= 0 {
+		timeout = interval
+	}
+
+	deadline := time.Now().Add(timeout)
+	notFoundDeadline := time.Now().Add(icdNotFoundGrace)
+	var lastErr error
+
+	for {
+		if err := check(); err == nil {
 			return nil
+		} else {
+			var apiErr bmxerror.RequestFailure
+			if errors.As(err, &apiErr) && apiErr.StatusCode() == 404 && time.Now().After(notFoundDeadline) {
+				return err
+			}
+			lastErr = err
+			log.Println("retrying after error:", err)
 		}
 
-		if i == attempts {
-			return err
+		remaining := time.Until(deadline)
+		if remaining <= 0 {
+			return lastErr
 		}
 
-		log.Println("retrying after error:", err)
+		sleep := interval
+		if remaining < sleep {
+			sleep = remaining
+		}
+		time.Sleep(sleep)
 	}
 }
 
@@ -140,7 +193,10 @@ type resourceIBMDatabaseBackend interface {
 	WarnUnsupported(context context.Context, d *schema.ResourceData) diag.Diagnostics
 	ValidateUnsupportedAttrsDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
 	ValidateGroupsDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
+	ValidateMemberZonesDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
 	ValidateServiceEndpointsDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
+	ValidateMaintenanceWindowDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
+	ValidateShardsDiff(context context.Context, d *schema.ResourceDiff, meta interface{}) error
 }
 
 func pickResourceBackend(d *schema.ResourceData) resourceIBMDatabaseBackend {
@@ -181,14 +237,19 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 			validateUnsupportedAttrsDiff,
 			resourceIBMDatabaseInstanceDiff,
 			validateBackendSpecificGroupsDiff,
+			validateGen2SpecificMemberZonesDiff,
 			validateUsersDiff,
 			validateRemoteLeaderIDDiff,
 			validateVersionDiff,
 			validateAsyncRestoreDiff,
+			validateBackendSpecificMaintenanceWindowDiff,
+			validateShardsDiff,
 			validateBackendSpecificServiceEndpointsDiff,
 		),
 
-		Importer: &schema.ResourceImporter{},
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceIBMDatabaseImport,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -278,7 +339,7 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 					}
 					return json
 				},
-				Description: "The configuration in JSON format. Gen2: Accepted but ignored. Database configuration management is not yet implemented for Gen2 instances.",
+				Description: "The configuration in JSON format. Supported for both Classic and Gen2 plans. The accepted keys depend on the database service type (e.g. max_connections for PostgreSQL, maxmemory-policy for Redis).",
 			},
 			"configuration_schema": {
 				Type:        schema.TypeString,
@@ -290,6 +351,13 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Optional:    true,
+			},
+			"shards": {
+				Description:  "Explicit shard count for MongoDB Enterprise Edition Sharding Gen 2 is supported only for databases-for-mongodb with plan enterprise-sharding-gen2. The shard count can range from 1 to 3. It can be increased after provisioning, but cannot be decreased.",
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateShardCount,
 			},
 			"version_upgrade_skip_backup": {
 				Description: "Option to skip the backup when upgrading version. Only applicable to databases that do not support PITR. Skipping the backup means that your deployment becomes available more quickly, but there is no immediate backup available. This is not recommended as it could result in data loss. Gen2: Accepted but ignored (Classic-only feature for version upgrades).",
@@ -303,20 +371,25 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 				ValidateFunc: validate.InvokeValidator("ibm_database", "service_endpoints"),
 			},
 			"backup_id": {
-				Description:      "The CRN of backup source database. Gen2: Supports restoring from Gen2 coupled backups (from Gen2 instances) and Gen2 decoupled backups (databases-independent-backups). Classic backups are not supported for Gen2 instances.",
+				Description:      "The CRN of backup source database. Gen2: Supports restoring from Classic backups, Gen2 coupled backups, and Gen2 decoupled backups (databases-independent-backups).",
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: flex.ApplyOnce,
 			},
 			"remote_leader_id": {
-				Description: "The CRN of leader database. Gen2: Plan fails if set. Read-only replica creation and promotion are not supported for Gen2 instances.",
-				Type:        schema.TypeString,
-				Optional:    true,
+				Description: "The CRN of the leader (source) database. " +
+					"Classic: creates a read-only replica at provisioning time; clear to promote the replica to a standalone instance. " +
+					"Gen2: creates a read-only replica linked to the specified Gen1 or Gen2 source; clear to promote the replica to a standalone primary instance. " +
+					"Gen2 MongoDB (enterprise-sharding-gen2): the CRN of a Gen1 databases-for-mongodb Enterprise instance to migrate from using MongoSync; clear to stop synchronization and commit the migration (irreversible).",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"skip_initial_backup": {
-				Description: "Option to skip the initial backup when promoting a read-only replica. Skipping the initial backup means that your replica becomes available more quickly, but there is no immediate backup available. Gen2: Accepted but ignored (Classic-only feature for read replica promotion).",
-				Type:        schema.TypeBool,
-				Optional:    true,
+				Description: "Option to skip the initial backup when promoting a read-only replica. " +
+					"Skipping the initial backup means the replica becomes available more quickly, but no immediate backup is available. " +
+					"Classic only — accepted but ignored for Gen2.",
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"async_restore": {
 				Description:      "Option to support FAST PG Restore. Only applicable when restoring a PostgreSQL instance from backup_id. Gen2: Accepted but ignored (Classic-only feature).",
@@ -468,6 +541,14 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 									"allocation_count": {
 										Type:     schema.TypeInt,
 										Required: true,
+									},
+									"member_zones": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -684,6 +765,14 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 								},
 							},
 						},
+						"member_zones": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Description: "Availability zones for a single-member deployment. Gen2 only.",
+						},
 						"host_flavor": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -877,6 +966,50 @@ func ResourceIBMDatabaseInstance() *schema.Resource {
 					},
 				},
 			},
+			"maintenance": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				MaxItems:    1,
+				Description: "Maintenance window configuration for Gen2 database instances. Applicable to Gen2 plans only.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"window": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start_time": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										Description:  "Earliest time at which maintenance can be initiated. ISO 8601 UTC time format (hh:mmZ). Example: \"05:00Z\".",
+										ValidateFunc: validateMaintenanceStartTime,
+									},
+									"days": {
+										Type:        schema.TypeSet,
+										Optional:    true,
+										Computed:    true,
+										Description: "Day(s) of the week on which maintenance can be initiated. Example: [\"Wednesday\",\"Thursday\"].",
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validateMaintenanceDays,
+										},
+									},
+									"system_assigned": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Computed:    true,
+										Description: "When true, resets the maintenance window to the IBM Cloud system-assigned default. Cannot be set together with start_time or days.",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			flex.DeletionProtection: {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -996,12 +1129,13 @@ type Params struct {
 }
 
 type Group struct {
-	ID         string
-	Members    *GroupResource
-	Memory     *GroupResource
-	Disk       *GroupResource
-	CPU        *GroupResource
-	HostFlavor *HostFlavorGroupResource
+	ID          string
+	Members     *GroupResource
+	MemberZones []string
+	Memory      *GroupResource
+	Disk        *GroupResource
+	CPU         *GroupResource
+	HostFlavor  *HostFlavorGroupResource
 }
 
 type GroupResource struct {
@@ -1109,6 +1243,65 @@ type CountLimit struct {
 	CanScaleDown    bool
 }
 
+// validateConfigurationForService validates the configuration JSON against the known
+// schema for Classic plans. Gen2 plans pass configuration directly to the Resource
+// Controller API, which accepts fields not present in the Classic/ICD SDK structs
+// (e.g. max_worker_processes, max_logical_replication_workers, pgaudit.log,
+// pgaudit.role, and boolean log_connections/log_disconnections), so SDK-based field
+// validation is skipped for them.
+func validateConfigurationForService(service, plan, configJSON string) error {
+	var rawConfig map[string]json.RawMessage
+	err := json.Unmarshal([]byte(configJSON), &rawConfig)
+	if err != nil {
+		return fmt.Errorf("[ERROR] configuration JSON invalid\n%s", err)
+	}
+
+	if isGen2Plan(plan) {
+		return nil
+	}
+
+	var unmarshalFn func(m map[string]json.RawMessage, result interface{}) (err error)
+
+	var configuration clouddatabasesv5.ConfigurationIntf = new(clouddatabasesv5.Configuration)
+
+	switch service {
+	case "databases-for-postgresql":
+		unmarshalFn = clouddatabasesv5.UnmarshalConfigurationPgConfiguration
+	case "databases-for-enterprisedb":
+		unmarshalFn = clouddatabasesv5.UnmarshalConfigurationPgConfiguration
+	case "databases-for-redis":
+		unmarshalFn = clouddatabasesv5.UnmarshalConfigurationRedisConfiguration
+	case "databases-for-mysql":
+		unmarshalFn = clouddatabasesv5.UnmarshalConfigurationMySQLConfiguration
+	case "messages-for-rabbitmq":
+		unmarshalFn = clouddatabasesv5.UnmarshalConfigurationRabbitMqConfiguration
+	default:
+		return fmt.Errorf("[ERROR] configuration is not supported for %s", service)
+	}
+
+	err = core.UnmarshalModel(rawConfig, "", &configuration, unmarshalFn)
+	if err != nil {
+		return fmt.Errorf("[ERROR] configuration is invalid\n%s", err)
+	}
+
+	b, _ := json.Marshal(configuration)
+	var result map[string]json.RawMessage
+	json.Unmarshal(b, &result)
+
+	invalidFields := []string{}
+	for k, _ := range rawConfig {
+		if _, ok := result[k]; !ok {
+			invalidFields = append(invalidFields, k)
+		}
+	}
+
+	if len(invalidFields) != 0 {
+		return fmt.Errorf("[ERROR] configuration contained invalid field(s): %s", invalidFields)
+	}
+
+	return nil
+}
+
 func resourceIBMDatabaseInstanceDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) (err error) {
 	err = flex.ResourceTagsCustomizeDiff(diff)
 	if err != nil {
@@ -1127,49 +1320,8 @@ func resourceIBMDatabaseInstanceDiff(_ context.Context, diff *schema.ResourceDif
 	configJSON, configOk := diff.GetOk("configuration")
 
 	if configOk {
-		var rawConfig map[string]json.RawMessage
-		err = json.Unmarshal([]byte(configJSON.(string)), &rawConfig)
-		if err != nil {
-			return fmt.Errorf("[ERROR] configuration JSON invalid\n%s", err)
-		}
-
-		var unmarshalFn func(m map[string]json.RawMessage, result interface{}) (err error)
-
-		var configuration clouddatabasesv5.ConfigurationIntf = new(clouddatabasesv5.Configuration)
-
-		switch service {
-		case "databases-for-postgresql":
-			unmarshalFn = clouddatabasesv5.UnmarshalConfigurationPgConfiguration
-		case "databases-for-enterprisedb":
-			unmarshalFn = clouddatabasesv5.UnmarshalConfigurationPgConfiguration
-		case "databases-for-redis":
-			unmarshalFn = clouddatabasesv5.UnmarshalConfigurationRedisConfiguration
-		case "databases-for-mysql":
-			unmarshalFn = clouddatabasesv5.UnmarshalConfigurationMySQLConfiguration
-		case "messages-for-rabbitmq":
-			unmarshalFn = clouddatabasesv5.UnmarshalConfigurationRabbitMqConfiguration
-		default:
-			return fmt.Errorf("[ERROR] configuration is not supported for %s", service)
-		}
-
-		err = core.UnmarshalModel(rawConfig, "", &configuration, unmarshalFn)
-		if err != nil {
-			return fmt.Errorf("[ERROR] configuration is invalid\n%s", err)
-		}
-
-		b, _ := json.Marshal(configuration)
-		var result map[string]json.RawMessage
-		json.Unmarshal(b, &result)
-
-		invalidFields := []string{}
-		for k, _ := range rawConfig {
-			if _, ok := result[k]; !ok {
-				invalidFields = append(invalidFields, k)
-			}
-		}
-
-		if len(invalidFields) != 0 {
-			return fmt.Errorf("[ERROR] configuration contained invalid field(s): %s", invalidFields)
+		if err = validateConfigurationForService(service, plan, configJSON.(string)); err != nil {
+			return err
 		}
 	}
 
@@ -1664,6 +1816,39 @@ func classicDatabaseInstanceCreate(context context.Context, d *schema.ResourceDa
 	return resourceIBMDatabaseInstanceRead(context, d, meta)
 }
 
+func resourceIBMDatabaseImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	instanceID := d.Id()
+	rsConClient, err := meta.(conns.ClientSession).ResourceControllerV2API()
+	if err != nil {
+		return nil, err
+	}
+
+	rsInst := rc.GetResourceInstanceOptions{
+		ID: &instanceID,
+	}
+	instance, response, err := rsConClient.GetResourceInstance(&rsInst)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Error retrieving resource instance %s: %w (response: %v)", instanceID, err, response)
+	}
+
+	if instance.ResourcePlanID != nil {
+		rsCatClient, err := meta.(conns.ClientSession).ResourceCatalogAPI()
+		if err != nil {
+			return nil, err
+		}
+		rsCatRepo := rsCatClient.ResourceCatalog()
+		servicePlan, err := rsCatRepo.GetServicePlanName(*instance.ResourcePlanID)
+		if err != nil {
+			return nil, fmt.Errorf("[ERROR] Error retrieving plan for resource instance %s: %w", instanceID, err)
+		}
+		if err := d.Set("plan", servicePlan); err != nil {
+			return nil, err
+		}
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceIBMDatabaseInstanceRead(context context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	return pickResourceBackend(d).Read(context, d, meta)
 }
@@ -1902,7 +2087,7 @@ func classicDatabaseInstanceUpdate(context context.Context, d *schema.ResourceDa
 			return diag.FromErr(fmt.Errorf("[ERROR] Error updating resource instance: %s %s", err, response))
 		}
 
-		_, err = waitForDatabaseInstanceUpdate(d, meta)
+		_, err = waitForDatabaseInstanceUpdate(d, meta, true)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(
 				"[ERROR] Error waiting for update of resource instance (%s) to complete: %s", d.Id(), err))
@@ -2412,28 +2597,17 @@ func databaseInstanceExists(d *schema.ResourceData, meta interface{}) (bool, err
 	return *instance.ID == instanceID, nil
 }
 
-func waitForICDReady(meta interface{}, instanceID string) error {
+func waitForICDReady(meta interface{}, instanceID string, timeout time.Duration) error {
 	icdId := flex.EscapeUrlParm(instanceID)
 	icdClient, clientErr := meta.(conns.ClientSession).ICDAPI()
 	if clientErr != nil {
 		return fmt.Errorf("[ERROR] Error getting database client settings: %s", clientErr)
 	}
 
-	// Wait for ICD Interface
-	err := retry(func() (err error) {
+	return pollUntilReady(timeout, icdReadyMinTimeout, func() error {
 		_, cdbErr := icdClient.Cdbs().GetCdb(icdId)
-		if cdbErr != nil {
-			if apiErr, ok := err.(bmxerror.RequestFailure); ok && apiErr.StatusCode() == 404 {
-				return fmt.Errorf("[ERROR] The database instance was not found in the region set for the Provider, or the default of us-south. Specify the correct region in the provider definition, or create a provider alias for the correct region. %v", err)
-			}
-			return fmt.Errorf("[ERROR] Error getting database config for: %s with error %s\n", icdId, cdbErr)
-		}
-		return nil
+		return classifyICDReadyError(icdId, cdbErr)
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func waitForDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}, instanceID string, waitForICD bool) (interface{}, error) {
@@ -2466,17 +2640,27 @@ func waitForDatabaseInstanceCreate(d *schema.ResourceData, meta interface{}, ins
 		MinTimeout: 10 * time.Second,
 	}
 
+	// Resource-controller "active" is the first gate. The regional ICD API
+	// cannot answer until the deployment exists, so ICD readiness is checked
+	// after that wait and uses whatever remains of the create timeout.
+	start := time.Now()
+	instance, err := stateConf.WaitForState()
+	if err != nil {
+		return instance, err
+	}
+
 	if waitForICD {
-		waitErr := waitForICDReady(meta, instanceID)
+		remaining := remainingWaitTimeout(d.Timeout(schema.TimeoutCreate), time.Since(start), icdReadyMinTimeout)
+		waitErr := waitForICDReady(meta, instanceID, remaining)
 		if waitErr != nil {
-			return false, fmt.Errorf("[ERROR] Error ICD interface not ready after create: %s with error %s\n", instanceID, waitErr)
+			return instance, fmt.Errorf("[ERROR] Error ICD interface not ready after create: %s with error %s\n", instanceID, waitErr)
 		}
 	}
 
-	return stateConf.WaitForState()
+	return instance, nil
 }
 
-func waitForDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+func waitForDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}, waitForICD bool) (interface{}, error) {
 	rsConClient, err := meta.(conns.ClientSession).ResourceControllerV2API()
 	if err != nil {
 		return false, err
@@ -2507,13 +2691,21 @@ func waitForDatabaseInstanceUpdate(d *schema.ResourceData, meta interface{}) (in
 		MinTimeout: 10 * time.Second,
 	}
 
-	waitErr := waitForICDReady(meta, instanceID)
-	if waitErr != nil {
-		return false, fmt.Errorf("[ERROR] Error ICD interface not ready after update: %s with error %s\n", instanceID, waitErr)
-
+	start := time.Now()
+	instance, err := stateConf.WaitForState()
+	if err != nil {
+		return instance, err
 	}
 
-	return stateConf.WaitForState()
+	if waitForICD {
+		remaining := remainingWaitTimeout(d.Timeout(schema.TimeoutUpdate), time.Since(start), icdReadyMinTimeout)
+		waitErr := waitForICDReady(meta, instanceID, remaining)
+		if waitErr != nil {
+			return instance, fmt.Errorf("[ERROR] Error ICD interface not ready after update: %s with error %s\n", instanceID, waitErr)
+		}
+	}
+
+	return instance, nil
 }
 
 func waitForDatabaseTaskComplete(taskId string, d *schema.ResourceData, meta interface{}, t time.Duration) (bool, error) {
@@ -2857,7 +3049,12 @@ func expandGroups(_groups []interface{}) []*Group {
 			if membersSet, ok := tfGroup["members"].(*schema.Set); ok {
 				members := membersSet.List()
 				if len(members) != 0 {
-					group.Members = &GroupResource{Allocation: members[0].(map[string]interface{})["allocation_count"].(int)}
+					if memberMap, ok := members[0].(map[string]interface{}); ok {
+						group.Members = &GroupResource{Allocation: memberMap["allocation_count"].(int)}
+						if zonesRaw, ok := memberMap["member_zones"].([]interface{}); ok && len(zonesRaw) > 0 {
+							group.MemberZones = stringsFromInterfaceSlice(zonesRaw)
+						}
+					}
 				}
 			}
 
@@ -2997,6 +3194,10 @@ func publicServiceEndpointsWarning() diag.Diagnostics {
 
 func validateBackendSpecificGroupsDiff(context context.Context, diff *schema.ResourceDiff, meta interface{}) error {
 	return pickResourceBackendFromDiff(diff).ValidateGroupsDiff(context, diff, meta)
+}
+
+func validateGen2SpecificMemberZonesDiff(context context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+	return pickResourceBackendFromDiff(diff).ValidateMemberZonesDiff(context, diff, meta)
 }
 
 func validateGroupsDiffClassic(_ context.Context, diff *schema.ResourceDiff, meta interface{}) (err error) {
@@ -3303,12 +3504,59 @@ func expandUserChanges(_oldUsers []interface{}, _newUsers []interface{}) (userCh
 func validateRemoteLeaderIDDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) (err error) {
 	_, remoteLeaderIdOk := diff.GetOk("remote_leader_id")
 	service := diff.Get("service").(string)
+	plan := diff.Get("plan").(string)
 
-	if remoteLeaderIdOk && (service != "databases-for-postgresql" && service != "databases-for-mysql" && service != "databases-for-enterprisedb") {
-		return fmt.Errorf("[ERROR] remote_leader_id is only supported for databases-for-postgresql, databases-for-enterprisedb and databases-for-mysql")
+	if remoteLeaderIdOk && !isRemoteLeaderIDSupported(service, plan) {
+		return fmt.Errorf("[ERROR] remote_leader_id is only supported for databases-for-postgresql, databases-for-enterprisedb, databases-for-mysql and databases-for-mongodb with plan enterprise-sharding-gen2")
 	}
 
 	return nil
+}
+
+// isRemoteLeaderIDSupported reports whether remote_leader_id can be used with the given service and plan.
+// For databases-for-mongodb only enterprise-sharding-gen2 is supported (MongoSync migration).
+func isRemoteLeaderIDSupported(service, plan string) bool {
+	switch service {
+	case "databases-for-postgresql", "databases-for-mysql", "databases-for-enterprisedb":
+		return true
+	case "databases-for-mongodb":
+		return plan == "enterprise-sharding-gen2"
+	}
+	return false
+}
+
+// validateMaintenanceDays is a ValidateFunc for each element of maintenance.window.days.
+// Accepts a single full English day name (e.g. "Wednesday").
+func validateMaintenanceDays(v interface{}, k string) (warnings []string, errors []error) {
+	allowed := map[string]bool{
+		"Monday": true, "Tuesday": true, "Wednesday": true, "Thursday": true,
+		"Friday": true, "Saturday": true, "Sunday": true,
+	}
+	val := v.(string)
+	if !allowed[val] {
+		errors = append(errors, fmt.Errorf(
+			"%s: unrecognised day %q - must be a full English day name (e.g. \"Wednesday\")",
+			k, val,
+		))
+	}
+	return
+}
+
+// validateMaintenanceStartTime is a ValidateFunc for maintenance.window.start_time.
+// Ensures the time format matches ISO 8601 UTC format (hh:mmZ).
+func validateMaintenanceStartTime(v interface{}, k string) (warnings []string, errors []error) {
+	val := v.(string)
+	if val == "" {
+		return
+	}
+	return validation.StringMatch(
+		regexp.MustCompile(`^(2[0-3]|[01][0-9]):[0-5][0-9]Z$`),
+		"start_time must be in ISO 8601 UTC format hh:mmZ, e.g. \"05:00Z\"",
+	)(v, k)
+}
+
+func validateBackendSpecificMaintenanceWindowDiff(context context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+	return pickResourceBackendFromDiff(diff).ValidateMaintenanceWindowDiff(context, diff, meta)
 }
 
 func validateAsyncRestoreDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) (err error) {
@@ -3333,6 +3581,55 @@ func validateServiceEndpointsDiffClassic(_ context.Context, diff *schema.Resourc
 		return fmt.Errorf("[ERROR] service_endpoints is required for Classic plans")
 	}
 	return nil
+}
+
+func validateUnsupportedAttrsDiffClassic(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	var unsupportedAttrs []string
+
+	for _, attr := range classicUnsupportedAttrs {
+		if val, ok := d.GetOk(attr); ok && !isEmptyClassicAttrValue(val) {
+			unsupportedAttrs = append(unsupportedAttrs, attr)
+		}
+	}
+
+	if len(unsupportedAttrs) == 0 {
+		return nil
+	}
+
+	var msg strings.Builder
+	msg.WriteString("The following attributes are not supported for Classic databases:\n\n")
+
+	for i, attr := range unsupportedAttrs {
+		msg.WriteString(fmt.Sprintf("%d. Attribute: %q\n", i+1, attr))
+		msg.WriteString("\n")
+	}
+
+	return errors.New(msg.String())
+}
+
+func isEmptyClassicAttrValue(val interface{}) bool {
+	if val == nil {
+		return true
+	}
+
+	switch v := val.(type) {
+	case string:
+		return v == ""
+	case bool:
+		return !v
+	case int:
+		return v == 0
+	case int64:
+		return v == 0
+	case float64:
+		return v == 0
+	case []interface{}:
+		return len(v) == 0
+	case map[string]interface{}:
+		return len(v) == 0
+	default:
+		return false
+	}
 }
 
 func validateVersionDiff(_ context.Context, diff *schema.ResourceDiff, meta interface{}) (err error) {
@@ -3624,4 +3921,11 @@ func DatabaseUserPasswordValidator(userType string) schema.SchemaValidateFunc {
 		}
 		return
 	}
+}
+
+func validateShardCount(v interface{}, k string) (warnings []string, errors []error) {
+	if val := v.(int); val < 1 || val > 3 {
+		errors = append(errors, fmt.Errorf("shard count must be between 1 and 3"))
+	}
+	return
 }

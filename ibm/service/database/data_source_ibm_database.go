@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"reflect"
 
 	"github.com/IBM/cloud-databases-go-sdk/clouddatabasesv5"
 	"github.com/IBM/go-sdk-core/v5/core"
@@ -34,7 +33,9 @@ func pickDataSourceBackend(d *schema.ResourceData, meta interface{}) (dataSource
 	}
 	plan := *instance.ResourcePlanID
 	if isGen2Plan(plan) {
-		return newDataSourceIBMDatabaseGen2Backend(), nil
+		// Pass the already-fetched instance into the Gen2 backend so it does
+		// not need a second findInstance call.
+		return newDataSourceIBMDatabaseGen2Backend(instance), nil
 	}
 	return newDataSourceIBMDatabaseClassicBackend(), nil
 }
@@ -107,6 +108,11 @@ func DataSourceIBMDatabaseInstance() *schema.Resource {
 			"version": {
 				Description: "The database version to provision if specified",
 				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"shards": {
+				Description: "The shard count for MongoDB Enterprise Edition Sharding Gen2 instances",
+				Type:        schema.TypeInt,
 				Computed:    true,
 			},
 			"platform_options": {
@@ -302,6 +308,14 @@ func DataSourceIBMDatabaseInstance() *schema.Resource {
 								},
 							},
 						},
+						"member_zones": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Description: "Availability zones for a single-member deployment. Gen2 only.",
+						},
 						"host_flavor": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -321,6 +335,41 @@ func DataSourceIBMDatabaseInstance() *schema.Resource {
 										Type:        schema.TypeString,
 										Computed:    true,
 										Description: "The host flavor size",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"maintenance": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "Maintenance window configuration. Applicable to Gen2 plans only.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"window": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"start_time": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Earliest time at which maintenance can begin (hh:mmZ).",
+									},
+									"days": {
+										Type:        schema.TypeSet,
+										Computed:    true,
+										Description: "Day(s) of the week on which maintenance can run.",
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+									"system_assigned": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "True when IBM Cloud controls the maintenance schedule.",
 									},
 								},
 							},
@@ -629,10 +678,17 @@ func dataSourceIBMDatabaseInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	err = b.Read(d, meta)
-	if err != nil {
+	if err := b.Read(d, meta); err != nil {
+		if _, ok := err.(*s2sAuthWarning); ok {
+			return diag.Diagnostics{{
+				Severity: diag.Warning,
+				Summary:  s2sAuthWarningHeader,
+				Detail:   s2sAuthWarningDetail,
+			}}
+		}
 		return diag.FromErr(err)
 	}
+
 	return nil
 }
 
@@ -767,16 +823,4 @@ func classicDataSourceIBMDatabaseInstanceRead(d *schema.ResourceData, meta inter
 
 	d.Set("allowlist", flex.FlattenAllowlist(allowlist.IPAddresses))
 	return nil
-}
-
-func getInstancesNext(next *string) (string, error) {
-	if reflect.ValueOf(next).IsNil() {
-		return "", nil
-	}
-	u, err := url.Parse(*next)
-	if err != nil {
-		return "", err
-	}
-	q := u.Query()
-	return q.Get("next_url"), nil
 }

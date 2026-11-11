@@ -19,6 +19,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IBM/secrets-manager-management-go-sdk/v2/secretsmanagerinstancemanagementv2"
+
 	"github.com/IBM/cloud-db2-go-sdk/db2saasv1"
 
 	// Added code for the Power Colo Offering
@@ -128,6 +130,7 @@ import (
 	"github.com/IBM-Cloud/bluemix-go/rest"
 	bxsession "github.com/IBM-Cloud/bluemix-go/session"
 	ibmpisession "github.com/IBM-Cloud/power-go-client/ibmpisession"
+	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/service/rhaii/rhaiiv1"
 	codeengine "github.com/IBM/code-engine-go-sdk/codeenginev2"
 	"github.com/IBM/continuous-delivery-go-sdk/v2/cdtektonpipelinev2"
 	"github.com/IBM/continuous-delivery-go-sdk/v2/cdtoolchainv2"
@@ -352,10 +355,13 @@ type ClientSession interface {
 	MqcloudV1() (*mqcloudv1.MqcloudV1, error)
 	VmwareV1() (*vmwarev1.VmwareV1, error)
 	LogsV0() (*logsv0.LogsV0, error)
+	CloudMonitoringV1() (*core.BaseService, error)
 	SdsaasV1() (*sdsaasv1.SdsaasV1, error)
 	DrAutomationServiceV1() (*drautomationservicev1.DrAutomationServiceV1, error)
+	RhaiiV1() (*rhaiiv1.RhaiiV1, error)
 	PlatformNotificationsV1() (*platformnotificationsv1.PlatformNotificationsV1, error)
 	PowerhaAutomationServiceV1() (*powerhaautomationservicev1.PowerhaAutomationServiceV1, error)
+	SecretsManagerInstanceManagementV2() (*secretsmanagerinstancemanagementv2.SecretsManagerInstanceManagementV2, error)
 }
 
 type clientSession struct {
@@ -629,6 +635,9 @@ type clientSession struct {
 	secretsManagerClient    *secretsmanagerv2.SecretsManagerV2
 	secretsManagerClientErr error
 
+	secretsManagerInstanceManagementClient    *secretsmanagerinstancemanagementv2.SecretsManagerInstanceManagementV2
+	secretsManagerInstanceManagementClientErr error
+
 	// Schematics service options
 	schematicsClient    *schematicsv1.SchematicsV1
 	schematicsClientErr error
@@ -726,6 +735,9 @@ type clientSession struct {
 	logsClient    *logsv0.LogsV0
 	logsClientErr error
 
+	cloudMonitoringClient    *core.BaseService
+	cloudMonitoringClientErr error
+
 	// Logs Routing v1
 	ibmCloudLogsRoutingClient    *ibmcloudlogsroutingv0.IBMCloudLogsRoutingV0
 	ibmCloudLogsRoutingClientErr error
@@ -749,6 +761,10 @@ type clientSession struct {
 	// DR Automation
 	drAutomationServiceClient    *drautomationservicev1.DrAutomationServiceV1
 	drAutomationServiceClientErr error
+
+	// Red Hat AI Inference
+	rhaiiClient    *rhaiiv1.RhaiiV1
+	rhaiiClientErr error
 
 	// Platform Notifications
 	platformNotificationsClient    *platformnotificationsv1.PlatformNotificationsV1
@@ -1150,6 +1166,14 @@ func (session clientSession) DrAutomationServiceV1() (*drautomationservicev1.DrA
 	return session.drAutomationServiceClient, session.drAutomationServiceClientErr
 }
 
+// Red Hat AI Inference
+func (session clientSession) RhaiiV1() (*rhaiiv1.RhaiiV1, error) {
+	if session.rhaiiClientErr != nil {
+		return session.rhaiiClient, session.rhaiiClientErr
+	}
+	return session.rhaiiClient.Clone(), nil
+}
+
 // PowerhaAutomation Service
 func (session clientSession) PowerhaAutomationServiceV1() (*powerhaautomationservicev1.PowerhaAutomationServiceV1, error) {
 	return session.powerhaAutomationServiceClient, session.powerhaAutomationServiceClientErr
@@ -1316,6 +1340,11 @@ func (session clientSession) SecretsManagerV2() (*secretsmanagerv2.SecretsManage
 	return session.secretsManagerClient, session.secretsManagerClientErr
 }
 
+// IBM Cloud Secrets Manager Instance Management API
+func (session clientSession) SecretsManagerInstanceManagementV2() (*secretsmanagerinstancemanagementv2.SecretsManagerInstanceManagementV2, error) {
+	return session.secretsManagerInstanceManagementClient, session.secretsManagerInstanceManagementClientErr
+}
+
 // Satellite Link
 func (session clientSession) SatellitLinkClientSession() (*satellitelinkv1.SatelliteLinkV1, error) {
 	return session.satelliteLinkClient, session.satelliteLinkClientErr
@@ -1455,6 +1484,11 @@ func (session clientSession) VmwareV1() (*vmwarev1.VmwareV1, error) {
 // Cloud Logs
 func (session clientSession) LogsV0() (*logsv0.LogsV0, error) {
 	return session.logsClient, session.logsClientErr
+}
+
+// IBM Cloud Monitoring instance API (no Go SDK, so a go-sdk-core BaseService is used)
+func (session clientSession) CloudMonitoringV1() (*core.BaseService, error) {
+	return session.cloudMonitoringClient, session.cloudMonitoringClientErr
 }
 
 // IBM Cloud Logs Routing V1
@@ -1668,7 +1702,9 @@ func (c *Config) ClientSession() (*clientSession, error) {
 		session.projectClientErr = errEmptyBluemixCredentials
 		session.mqcloudClientErr = errEmptyBluemixCredentials
 		session.logsClientErr = errEmptyBluemixCredentials
+		session.cloudMonitoringClientErr = errEmptyBluemixCredentials
 		session.ibmCloudLogsRoutingClientErr = errEmptyBluemixCredentials
+		session.rhaiiClientErr = errEmptyBluemixCredentials
 
 		return session, nil
 	}
@@ -1951,6 +1987,29 @@ func (c *Config) ClientSession() (*clientSession, error) {
 		})
 	} else {
 		session.logsClientErr = fmt.Errorf("Error occurred while configuring Cloud Logs API service: %q", err)
+	}
+
+	// IBM Cloud Monitoring instance API
+	cloudMonitoringEndpoint := ContructEndpoint(fmt.Sprintf("%s.monitoring", c.Region), cloudEndpoint)
+	if c.Visibility == "private" || c.Visibility == "public-and-private" {
+		cloudMonitoringEndpoint = ContructEndpoint(fmt.Sprintf("private.%s.monitoring", c.Region), cloudEndpoint)
+	}
+	if fileMap != nil && c.Visibility != "public-and-private" {
+		cloudMonitoringEndpoint = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_MONITORING_API_ENDPOINT", c.Region, cloudMonitoringEndpoint)
+	}
+	session.cloudMonitoringClient, err = core.NewBaseService(&core.ServiceOptions{
+		Authenticator: authenticator,
+		URL:           EnvFallBack([]string{"IBMCLOUD_MONITORING_API_ENDPOINT"}, cloudMonitoringEndpoint),
+	})
+	if err == nil {
+		// Enable retries for API calls
+		session.cloudMonitoringClient.EnableRetries(c.RetryCount, c.RetryDelay)
+		// Add custom header for analytics
+		session.cloudMonitoringClient.SetDefaultHeaders(gohttp.Header{
+			"X-Original-User-Agent": {fmt.Sprintf("terraform-provider-ibm/%s", version.Version)},
+		})
+	} else {
+		session.cloudMonitoringClientErr = fmt.Errorf("Error occurred while configuring IBM Cloud Monitoring API service: %q", err)
 	}
 
 	// LOGS ROUTER Version 0
@@ -3743,6 +3802,41 @@ func (c *Config) ClientSession() (*clientSession, error) {
 		}
 	}
 
+	// Construct an instance of the 'Red Hat AI Inference' service.
+	if session.rhaiiClientErr == nil {
+		// The service is deployed in few regions (us-east today). When the
+		// provider region has no deployment, use the default region of the service.
+		rhaiiRegion := c.Region
+		if _, err := rhaiiv1.GetServiceURLForRegion(rhaiiRegion); err != nil {
+			rhaiiRegion = rhaiiv1.DefaultRegion
+		}
+		// public: public endpoint; private: private endpoint only;
+		// public-and-private: private endpoint when the region has one.
+		rhaiiURL, rhaiiURLErr := rhaiiv1.GetServiceURLForVisibility(rhaiiRegion, c.Visibility)
+		if fileMap != nil && c.Visibility != "public-and-private" {
+			rhaiiURL = fileFallBack(fileMap, c.Visibility, "IBMCLOUD_RHAII_API_ENDPOINT", c.Region, rhaiiURL)
+		}
+		rhaiiClientOptions := &rhaiiv1.RhaiiV1Options{
+			Authenticator: authenticator,
+			URL:           EnvFallBack([]string{"IBMCLOUD_RHAII_API_ENDPOINT"}, rhaiiURL),
+		}
+
+		if rhaiiClientOptions.URL == "" {
+			// Only possible with visibility "private" in a region without a private
+			// endpoint and no endpoint override. Never fall back to the public endpoint.
+			session.rhaiiClientErr = fmt.Errorf("error occurred while configuring 'Red Hat AI Inference' service: %q", rhaiiURLErr)
+		} else if session.rhaiiClient, err = rhaiiv1.NewRhaiiV1(rhaiiClientOptions); err == nil {
+			// Enable retries for API calls
+			session.rhaiiClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
+			// Add custom header for analytics
+			session.rhaiiClient.SetDefaultHeaders(gohttp.Header{
+				"X-Original-User-Agent": {fmt.Sprintf("terraform-provider-ibm/%s", version.Version)},
+			})
+		} else {
+			session.rhaiiClientErr = fmt.Errorf("error occurred while constructing 'Red Hat AI Inference' service client: %q", err)
+		}
+	}
+
 	// Construct an instance of the 'PowerhaAutomation Service' service.
 	if session.powerhaAutomationServiceClientErr == nil {
 		// Construct the service options.
@@ -3789,6 +3883,35 @@ func (c *Config) ClientSession() (*clientSession, error) {
 		})
 	} else {
 		session.secretsManagerClientErr = fmt.Errorf("Error occurred while configuring IBM Cloud Secrets Manager Basic API service: %q", err)
+	}
+
+	// Construct an instance of the 'IBM Cloud Secrets Manager Instance Management API' service.
+	if session.secretsManagerInstanceManagementClientErr == nil {
+		var smBrokerEndpoint string
+		if strings.Contains(os.Getenv("IBMCLOUD_IAM_API_ENDPOINT"), "test") {
+			smBrokerEndpoint = fmt.Sprintf("https://%s.secrets-manager.test.cloud.ibm.com", c.Region)
+		} else {
+			smBrokerEndpoint = fmt.Sprintf("https://%s.secrets-manager.cloud.ibm.com", c.Region)
+		}
+
+		// Construct the service options.
+		secretsManagerInstanceManagementClientOptions := &secretsmanagerinstancemanagementv2.SecretsManagerInstanceManagementV2Options{
+			Authenticator: authenticator,
+			URL:           smBrokerEndpoint,
+		}
+
+		// Construct the service client.
+		session.secretsManagerInstanceManagementClient, err = secretsmanagerinstancemanagementv2.NewSecretsManagerInstanceManagementV2(secretsManagerInstanceManagementClientOptions)
+		if err == nil {
+			// Enable retries for API calls
+			session.secretsManagerInstanceManagementClient.Service.EnableRetries(c.RetryCount, c.RetryDelay)
+			// Add custom header for analytics
+			session.secretsManagerInstanceManagementClient.SetDefaultHeaders(gohttp.Header{
+				"X-Original-User-Agent": {fmt.Sprintf("terraform-provider-ibm/%s", version.Version)},
+			})
+		} else {
+			session.secretsManagerInstanceManagementClientErr = fmt.Errorf("Error occurred while constructing 'IBM Cloud Secrets Manager Instance Management API' service client: %q", err)
+		}
 	}
 
 	// SATELLITE Service
