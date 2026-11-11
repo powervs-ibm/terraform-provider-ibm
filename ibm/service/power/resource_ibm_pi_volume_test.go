@@ -305,3 +305,37 @@ func testAccCheckIBMPIVolumeUserTagsConfig(name string, userTagsString string) s
 			pi_user_tags            = %[3]s
 		}`, name, acc.Pi_cloud_instance_id, userTagsString)
 }
+
+// TestAccIBMPIVolumeReplicatedSnapshotSupport tests the pi_replicated_snapshot_support argument
+func TestAccIBMPIVolumeReplicatedSnapshotSupport(t *testing.T) {
+	name := fmt.Sprintf("tf-pi-volume-%d", acctest.RandIntRange(10, 100))
+	volumeRes := "ibm_pi_volume.power_volume"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.TestAccPreCheck(t) },
+		Providers:    acc.TestAccProviders,
+		CheckDestroy: testAccCheckIBMPIVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIVolumeReplicatedSnapshotSupportConfig(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckIBMPIVolumeExists(volumeRes),
+					resource.TestCheckResourceAttr(volumeRes, "pi_volume_name", name),
+					resource.TestCheckResourceAttr(volumeRes, "pi_replicated_snapshot_support", "true"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckIBMPIVolumeReplicatedSnapshotSupportConfig(name string) string {
+	return fmt.Sprintf(`
+		resource "ibm_pi_volume" "power_volume" {
+			pi_cloud_instance_id           = "%[2]s"
+			pi_replicated_snapshot_support = "zonal_only"
+			pi_volume_name                 = "%[1]s"
+			pi_volume_pool                 = "%[3]s"
+			pi_volume_shareable            = true
+			pi_volume_size                 = 20
+			pi_volume_type                 = "tier3"
+		}`, name, acc.Pi_cloud_instance_id, acc.PiStoragePool)
+}
