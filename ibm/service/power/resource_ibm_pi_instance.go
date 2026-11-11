@@ -698,6 +698,64 @@ func ResourceIBMPIInstance() *schema.Resource {
 				Description: "Minimum Virtual Cores Assigned to the PVMInstance",
 				Type:        schema.TypeInt,
 			},
+			Attr_NetworkAttachments: {
+				Computed:    true,
+				Description: "List of VPC Virtual Network Interface network attachments associated with this instance.",
+				Type:        schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Name: {
+							Computed:    true,
+							Description: "The name of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_NetworkAttachmentID: {
+							Computed:    true,
+							Description: "ID of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_Type: {
+							Computed:    true,
+							Description: "The type of network that is attached.",
+							Type:        schema.TypeString,
+						},
+						Attr_VPCVirtualNetworkInterface: {
+							Computed:    true,
+							Description: "The VPC Virtual Network Interface that is attached.",
+							Type:        schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									Attr_Bandwidth: {
+										Computed:    true,
+										Description: "Bandwidth in Gbps of the network interface.",
+										Type:        schema.TypeInt,
+									},
+									Attr_CRN: {
+										Computed:    true,
+										Description: "CRN of the VPC Virtual Network Interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_IPAddress: {
+										Computed:    true,
+										Description: "The IP address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_MacAddress: {
+										Computed:    true,
+										Description: "The MAC address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_Name: {
+										Computed:    true,
+										Description: "The name for the network interface.",
+										Type:        schema.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			Attr_OperatingSystem: {
 				Computed:    true,
 				Description: "Operating System",
@@ -902,15 +960,13 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		for _, n := range powervmdata.Networks {
 			if n != nil {
 				v := map[string]any{
-					Attr_ExternalIP:                        n.ExternalIP,
-					Attr_ExternalNetworkInterfaceBandwidth: n.ExternalNetworkInterfaceBandwidth,
-					Attr_ExternalNetworkInterfaceCRN:       n.ExternalNetworkInterfaceCRN,
-					Attr_IPAddress:                         n.IPAddress,
-					Attr_MacAddress:                        n.MacAddress,
-					Attr_NetworkID:                         n.NetworkID,
-					Attr_NetworkInterfaceID:                n.NetworkInterfaceID,
-					Attr_NetworkName:                       n.NetworkName,
-					Attr_Type:                              n.Type,
+					Attr_ExternalIP:         n.ExternalIP,
+					Attr_IPAddress:          n.IPAddress,
+					Attr_MacAddress:         n.MacAddress,
+					Attr_NetworkID:          n.NetworkID,
+					Attr_NetworkInterfaceID: n.NetworkInterfaceID,
+					Attr_NetworkName:        n.NetworkName,
+					Attr_Type:               n.Type,
 				}
 				if len(n.NetworkSecurityGroupIDs) > 0 {
 					v[Attr_NetworkSecurityGroupIDs] = n.NetworkSecurityGroupIDs
@@ -923,7 +979,7 @@ func resourceIBMPIInstanceRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 	d.Set(Arg_Network, networksMap)
-
+	d.Set(Attr_NetworkAttachments, flattenPvmInstanceNetworkAttachments(powervmdata.NetworkAttachments))
 	if powervmdata.SapProfile != nil && powervmdata.SapProfile.ProfileID != nil {
 		d.Set(Arg_SAPProfileID, powervmdata.SapProfile.ProfileID)
 	}
@@ -2053,11 +2109,9 @@ func expandPVMNetworks(networks []any) []*models.PVMInstanceAddNetwork {
 	for _, v := range networks {
 		network := v.(map[string]any)
 		pvmInstanceNetwork := &models.PVMInstanceAddNetwork{
-			ExternalNetworkInterfaceBandwidth: int64(network[Attr_ExternalNetworkInterfaceBandwidth].(int)),
-			ExternalNetworkInterfaceCRN:       network[Attr_ExternalNetworkInterfaceCRN].(string),
-			IPAddress:                         network[Attr_IPAddress].(string),
-			NetworkID:                         network[Attr_NetworkID].(string),
-			NetworkSecurityGroupIDs:           flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
+			IPAddress:               network[Attr_IPAddress].(string),
+			NetworkID:               network[Attr_NetworkID].(string),
+			NetworkSecurityGroupIDs: flex.ExpandStringList((network[Attr_NetworkSecurityGroupIDs].(*schema.Set)).List()),
 		}
 		pvmNetworks = append(pvmNetworks, pvmInstanceNetwork)
 	}

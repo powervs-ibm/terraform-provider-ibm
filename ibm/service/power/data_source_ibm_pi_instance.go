@@ -201,6 +201,64 @@ func DataSourceIBMPIInstance() *schema.Resource {
 				Description: "The minimum number of virtual cores that can be assigned without rebooting the instance.",
 				Type:        schema.TypeInt,
 			},
+			Attr_NetworkAttachments: {
+				Computed:    true,
+				Description: "List of VPC Virtual Network Interface network attachments associated with this instance.",
+				Type:        schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						Attr_Name: {
+							Computed:    true,
+							Description: "The name of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_NetworkAttachmentID: {
+							Computed:    true,
+							Description: "ID of the network attachment.",
+							Type:        schema.TypeString,
+						},
+						Attr_Type: {
+							Computed:    true,
+							Description: "The type of network that is attached.",
+							Type:        schema.TypeString,
+						},
+						Attr_VPCVirtualNetworkInterface: {
+							Computed:    true,
+							Description: "The VPC Virtual Network Interface that is attached.",
+							Type:        schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									Attr_Bandwidth: {
+										Computed:    true,
+										Description: "Bandwidth in Gbps of the network interface.",
+										Type:        schema.TypeInt,
+									},
+									Attr_CRN: {
+										Computed:    true,
+										Description: "CRN of the VPC Virtual Network Interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_IPAddress: {
+										Computed:    true,
+										Description: "The IP address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_MacAddress: {
+										Computed:    true,
+										Description: "The MAC address of the network interface.",
+										Type:        schema.TypeString,
+									},
+									Attr_Name: {
+										Computed:    true,
+										Description: "The name for the network interface.",
+										Type:        schema.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			Attr_Networks: {
 				Computed:    true,
 				Description: "List of networks associated with this instance.",
@@ -424,6 +482,7 @@ func dataSourceIBMPIInstancesRead(ctx context.Context, d *schema.ResourceData, m
 	d.Set(Attr_MinMem, powervmdata.Minmem)
 	d.Set(Attr_MinProc, powervmdata.Minproc)
 	d.Set(Attr_MinVirtualCores, powervmdata.VirtualCores.Min)
+	d.Set(Attr_NetworkAttachments, flattenPvmInstanceNetworkAttachments(powervmdata.NetworkAttachments))
 	d.Set(Attr_Networks, flattenPvmInstanceNetworks(powervmdata.Networks))
 	d.Set(Attr_PinPolicy, powervmdata.PinPolicy)
 	d.Set(Attr_PreferredProcessorCompatibilityMode, powervmdata.PreferredProcessorCompatibilityMode)
