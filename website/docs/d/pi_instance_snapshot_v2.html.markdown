@@ -48,6 +48,7 @@ In addition to all argument reference list, you can access the following attribu
 
 - `action` - (String) Action performed on the instance snapshot.
 - `aggregated_snapshot_usage` - (Map) Aggregated usage for the snapshot, keyed by storage pool.
+- `async_job_id` - (String) The ID of the asynchronous job created to track the progress of the snapshot operation.
 - `completion_date` - (String) Date of snapshot completion.
 - `copy_volumes` - (List) List of copy volumes created as part of the snapshot.
 
@@ -61,7 +62,6 @@ In addition to all argument reference list, you can access the following attribu
 - `crn` - (String) The CRN of this resource.
 - `creation_date` - (String) Date of snapshot creation.
 - `description` - (String) The description of the snapshot.
-- `job_id` - (String) The ID of the job associated with the snapshot operation.
 - `last_update_date` - (String) Date of last update.
 - `name` - (String) The name of the Power Systems Virtual Machine instance snapshot.
 - `percent_complete` - (Integer) The snapshot completion percentage.

@@ -76,6 +76,7 @@ Review the argument references that you can specify for your resource.
 In addition to all argument reference list, you can access the following attribute reference after your resource is created.
 
 - `aggregated_snapshot_usage` - (Map) Aggregated usage for the snapshot, keyed by storage pool.
+- `async_job_id` - (String) The ID of the asynchronous job created to track the progress of the snapshot operation.
 - `completion_date` - (String) Date of snapshot completion.
 - `copy_volumes` - (List) List of copy volumes created as part of the snapshot.
 
@@ -89,7 +90,6 @@ In addition to all argument reference list, you can access the following attribu
 - `crn` - (String) The CRN of this resource.
 - `creation_date` - (String) Creation date of the snapshot.
 - `id` - (String) The unique identifier of the snapshot. The ID is composed of `<pi_cloud_instance_id>/<snapshot_id>`.
-- `job_id` - (String) The ID of the job associated with the snapshot operation.
 - `last_update_date` - (String) The last updated date of the snapshot.
 - `percent_complete` - (Integer) The snapshot completion percentage.
 - `pvm_instance_crn` - (String) The CRN of the PVM instance associated with the snapshot.

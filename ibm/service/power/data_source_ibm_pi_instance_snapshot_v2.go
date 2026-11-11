@@ -46,6 +46,11 @@ func DataSourceIBMPIInstanceSnapshotV2() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeFloat},
 				Type:        schema.TypeMap,
 			},
+			Attr_AsyncJobID: {
+				Computed:    true,
+				Description: "The ID of the asynchronous job created to track the progress of the snapshot operation.",
+				Type:        schema.TypeString,
+			},
 			Attr_CompletionDate: {
 				Computed:    true,
 				Description: "Date when the instance snapshot completed. This will represent the date when in-place and zonal instance snapshots complete.  For a zonal instance snapshot with a remote peer instance snapshot, this will represent when both instance snapshots have completed.",
@@ -271,7 +276,7 @@ func dataSourceIBMPIInstanceSnapshotV2Read(ctx context.Context, d *schema.Resour
 	d.Set(Attr_Action, snapshotData.Action)
 	d.Set(Attr_CreationDate, snapshotData.CreationDate.String())
 	d.Set(Attr_Description, snapshotData.Description)
-	d.Set(Attr_JobID, snapshotData.JobID)
+	d.Set(Attr_AsyncJobID, snapshotData.AsyncJobID)
 	d.Set(Attr_PercentComplete, snapshotData.PercentComplete)
 	d.Set(Attr_PVMInstanceCRN, string(snapshotData.PvmInstanceCRN))
 	d.Set(Attr_PVMInstanceID, snapshotData.PvmInstanceID)

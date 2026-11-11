@@ -47,6 +47,11 @@ func DataSourceIBMPIInstanceSnapshotsV2() *schema.Resource {
 							Elem:        &schema.Schema{Type: schema.TypeFloat},
 							Type:        schema.TypeMap,
 						},
+						Attr_AsyncJobID: {
+							Computed:    true,
+							Description: "The ID of the asynchronous job created to track the progress of the snapshot operation.",
+							Type:        schema.TypeString,
+						},
 						Attr_CompletionDate: {
 							Computed:    true,
 							Description: "Date when the instance snapshot completed. This will represent the date when in-place and zonal instance snapshots complete.  For a zonal instance snapshot with a remote peer instance snapshot, this will represent when both instance snapshots have completed.",
@@ -101,11 +106,6 @@ func DataSourceIBMPIInstanceSnapshotsV2() *schema.Resource {
 						Attr_Description: {
 							Computed:    true,
 							Description: "The description of the snapshot.",
-							Type:        schema.TypeString,
-						},
-						Attr_ID: {
-							Computed:    true,
-							Description: "The unique identifier of the Power Systems Virtual Machine instance snapshot.",
 							Type:        schema.TypeString,
 						},
 						Attr_JobID: {
@@ -293,7 +293,7 @@ func flattenSnapshotsV2(list []*models.SnapshotV2, meta any) []map[string]any {
 			Attr_CreationDate:    s.CreationDate.String(),
 			Attr_Description:     s.Description,
 			Attr_ID:              *s.SnapshotID,
-			Attr_JobID:           s.JobID,
+			Attr_AsyncJobID:      s.AsyncJobID,
 			Attr_PercentComplete: s.PercentComplete,
 			Attr_PVMInstanceCRN:  string(s.PvmInstanceCRN),
 			Attr_PVMInstanceID:   s.PvmInstanceID,

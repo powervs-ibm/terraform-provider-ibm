@@ -224,6 +224,7 @@ const (
 	Attr_Asaps                               = "asaps"
 	Attr_AsynchronousReplication             = "asynchronous_replication"
 	Attr_AsyncJob                            = "async_job"
+	Attr_AsyncJobID                          = "async_job_id"
 	Attr_AsyncJobs                           = "async_jobs"
 	Attr_Autolink                            = "autolink"
 	Attr_Auxiliary                           = "auxiliary"
