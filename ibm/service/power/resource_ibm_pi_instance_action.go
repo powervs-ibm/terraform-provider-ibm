@@ -39,13 +39,13 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 
 		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ any) error {
 			_, hasChapName := diff.GetOk(Arg_ChapName)
-			_, hasChapSecret := diff.GetOk(Arg_ChapSecret)
+			_, hasChapPassword := diff.GetOk(Arg_ChapPassword)
 			_, hasMacAddress := diff.GetOk(Arg_MacAddress)
-			if (hasChapName || hasChapSecret || hasMacAddress) && diff.Get(Arg_Action).(string) != Action_Start {
-				return fmt.Errorf("%s, %s and %s can only be set when %s is \"%s\"", Arg_ChapName, Arg_ChapSecret, Arg_MacAddress, Arg_Action, Action_Start)
+			if (hasChapName || hasChapPassword || hasMacAddress) && diff.Get(Arg_Action).(string) != Action_Start {
+				return fmt.Errorf("%s, %s and %s can only be set when %s is \"%s\"", Arg_ChapName, Arg_ChapPassword, Arg_MacAddress, Arg_Action, Action_Start)
 			}
-			if (hasChapName || hasChapSecret) && !hasMacAddress {
-				return fmt.Errorf("%s and %s require %s to be set", Arg_ChapName, Arg_ChapSecret, Arg_MacAddress)
+			if (hasChapName || hasChapPassword) && !hasMacAddress {
+				return fmt.Errorf("%s and %s require %s to be set", Arg_ChapName, Arg_ChapPassword, Arg_MacAddress)
 			}
 			return nil
 		},
@@ -63,17 +63,17 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 			Arg_ChapName: {
 				Type:         schema.TypeString,
 				Optional:     true,
-				RequiredWith: []string{Arg_ChapSecret},
+				RequiredWith: []string{Arg_ChapPassword},
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[\x00-\x7F]{1,32}$`), "must be 1 to 32 ASCII characters"),
-				Description:  "CHAP authentication name for iSCSI D-mode IPL. Requires pi_chap_secret and pi_mac_address. Can only be set when pi_action is start.",
+				Description:  "CHAP authentication name for iSCSI D-mode IPL. Requires pi_chap_password and pi_mac_address. Can only be set when pi_action is start.",
 			},
-			Arg_ChapSecret: {
+			Arg_ChapPassword: {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Sensitive:    true,
 				RequiredWith: []string{Arg_ChapName},
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[\x00-\x7F]{12,32}$`), "must be 12 to 32 ASCII characters"),
-				Description:  "CHAP authentication secret for iSCSI D-mode IPL. Requires pi_chap_name and pi_mac_address. Can only be set when pi_action is start.",
+				Description:  "CHAP authentication password for iSCSI D-mode IPL. Requires pi_chap_name and pi_mac_address. Can only be set when pi_action is start.",
 			},
 			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
@@ -229,7 +229,7 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta any, t
 			if v, ok := d.GetOk(Arg_ChapName); ok {
 				netBoot.ChapName = v.(string)
 			}
-			if v, ok := d.GetOk(Arg_ChapSecret); ok {
+			if v, ok := d.GetOk(Arg_ChapPassword); ok {
 				netBoot.ChapPassword = strfmt.Password(v.(string))
 			}
 			body.NetBoot = netBoot

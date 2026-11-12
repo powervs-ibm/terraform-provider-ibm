@@ -24,7 +24,7 @@ const (
 	Arg_CaptureStorageImagePath              = "pi_capture_storage_image_path"
 	Arg_CaptureVolumeIDs                     = "pi_capture_volume_ids"
 	Arg_ChapName                             = "pi_chap_name"
-	Arg_ChapSecret                           = "pi_chap_secret"
+	Arg_ChapPassword                         = "pi_chap_password"
 	Arg_Cidr                                 = "pi_cidr"
 	Arg_CloudConnectionClassicEnabled        = "pi_cloud_connection_classic_enabled"
 	Arg_CloudConnectionGlobalRouting         = "pi_cloud_connection_global_routing"

@@ -5,6 +5,7 @@ package power_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -113,13 +114,57 @@ func TestAccIBMPIInstanceActionDumprestart(t *testing.T) {
 	})
 }
 
+// Good path for a D-mode IPL start with CHAP. It needs a SHUTOFF instance that already has a
+// network boot configuration staged through the instance operations API, which Terraform can't do,
+// so it skips unless the environment provides one:
+//
+//	PI_NETBOOT_INSTANCE_ID   instance with a staged iSCSI netboot configuration, in SHUTOFF state
+//	PI_NETBOOT_MAC_ADDRESS   MAC address of the network interface to boot from
+//	PI_CHAP_NAME             CHAP name (1 to 32 ASCII characters)
+//	PI_CHAP_PASSWORD         CHAP password (12 to 32 ASCII characters)
+func TestAccIBMPIInstanceActionChapStart(t *testing.T) {
+	instanceID := os.Getenv("PI_NETBOOT_INSTANCE_ID")
+	macAddress := os.Getenv("PI_NETBOOT_MAC_ADDRESS")
+	chapName := os.Getenv("PI_CHAP_NAME")
+	chapPassword := os.Getenv("PI_CHAP_PASSWORD")
+	if instanceID == "" || macAddress == "" || chapName == "" || chapPassword == "" {
+		t.Skip("PI_NETBOOT_INSTANCE_ID, PI_NETBOOT_MAC_ADDRESS, PI_CHAP_NAME and PI_CHAP_PASSWORD must be set to run this test")
+	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { acc.TestAccPreCheck(t) },
+		Providers: acc.TestAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckIBMPIInstanceActionChapStartConfig(instanceID, macAddress, chapName, chapPassword),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"ibm_pi_instance_action.example", "status", strings.ToUpper(power.State_Active)),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckIBMPIInstanceActionChapStartConfig(instanceID, macAddress, chapName, chapPassword string) string {
+	return fmt.Sprintf(`
+	resource "ibm_pi_instance_action" "example" {
+		pi_action            = "start"
+		pi_chap_name         = "%[3]s"
+		pi_chap_password     = "%[4]s"
+		pi_cloud_instance_id = "%[5]s"
+		pi_instance_id       = "%[1]s"
+		pi_mac_address       = "%[2]s"
+	}
+	`, instanceID, macAddress, chapName, chapPassword, acc.Pi_cloud_instance_id)
+}
+
 func TestAccIBMPIInstanceActionChapInvalidAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acc.TestAccPreCheck(t) },
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckIBMPIInstanceActionChapInvalidActionConfig(power.Action_Stop, "chapuser", "chapsecret12345"),
+				Config:      testAccCheckIBMPIInstanceActionChapInvalidActionConfig(power.Action_Stop, "chapuser", "chappassword12345"),
 				ExpectError: regexp.MustCompile("can only be set when"),
 			},
 		},
@@ -127,17 +172,17 @@ func TestAccIBMPIInstanceActionChapInvalidAction(t *testing.T) {
 }
 
 // No real instance is needed: the CHAP validation fails at plan time, before any API call.
-func testAccCheckIBMPIInstanceActionChapInvalidActionConfig(action, chapName, chapSecret string) string {
+func testAccCheckIBMPIInstanceActionChapInvalidActionConfig(action, chapName, chapPassword string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_instance_action" "example" {
 		pi_action            = "%[1]s"
 		pi_chap_name         = "%[2]s"
-		pi_chap_secret       = "%[3]s"
+		pi_chap_password       = "%[3]s"
 		pi_cloud_instance_id = "00000000-0000-0000-0000-000000000000"
 		pi_instance_id       = "00000000-0000-0000-0000-000000000000"
 		pi_mac_address       = "fa:16:3e:00:00:01"
 	}
-	`, action, chapName, chapSecret)
+	`, action, chapName, chapPassword)
 }
 
 func TestAccIBMPIInstanceActionChapMissingMacAddress(t *testing.T) {
@@ -146,7 +191,7 @@ func TestAccIBMPIInstanceActionChapMissingMacAddress(t *testing.T) {
 		Providers: acc.TestAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckIBMPIInstanceActionChapMissingMacAddressConfig("chapuser", "chapsecret12345"),
+				Config:      testAccCheckIBMPIInstanceActionChapMissingMacAddressConfig("chapuser", "chappassword12345"),
 				ExpectError: regexp.MustCompile("require pi_mac_address to be set"),
 			},
 		},
@@ -154,16 +199,16 @@ func TestAccIBMPIInstanceActionChapMissingMacAddress(t *testing.T) {
 }
 
 // No real instance is needed: the validation fails at plan time, before any API call.
-func testAccCheckIBMPIInstanceActionChapMissingMacAddressConfig(chapName, chapSecret string) string {
+func testAccCheckIBMPIInstanceActionChapMissingMacAddressConfig(chapName, chapPassword string) string {
 	return fmt.Sprintf(`
 	resource "ibm_pi_instance_action" "example" {
 		pi_action            = "start"
 		pi_chap_name         = "%[1]s"
-		pi_chap_secret       = "%[2]s"
+		pi_chap_password       = "%[2]s"
 		pi_cloud_instance_id = "00000000-0000-0000-0000-000000000000"
 		pi_instance_id       = "00000000-0000-0000-0000-000000000000"
 	}
-	`, chapName, chapSecret)
+	`, chapName, chapPassword)
 }
 
 func testAccCheckIBMPIInstanceActionConfig(name, action string) string {
