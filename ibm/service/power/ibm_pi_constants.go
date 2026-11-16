@@ -113,6 +113,7 @@ const (
 	Arg_NetworkPortDescription               = "pi_network_port_description"
 	Arg_NetworkPortIPAddress                 = "pi_network_port_ipaddress"
 	Arg_NetworkSecurityGroupID               = "pi_network_security_group_id"
+	Arg_NetworkSecurityGroupIDs              = "pi_network_security_group_ids"
 	Arg_NetworkSecurityGroupMemberID         = "pi_network_security_group_member_id"
 	Arg_NetworkSecurityGroupRuleID           = "pi_network_security_group_rule_id"
 	Arg_NetworkType                          = "pi_network_type"
