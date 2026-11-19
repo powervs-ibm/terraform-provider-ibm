@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,9 +16,12 @@ import (
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/conns"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/flex"
 	"github.com/IBM-Cloud/terraform-provider-ibm/ibm/validate"
+	"github.com/IBM/go-sdk-core/v5/core"
+	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceIBMPIInstanceAction() *schema.Resource {
@@ -33,6 +37,19 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 			Update: schema.DefaultTimeout(15 * time.Minute),
 		},
 
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ any) error {
+			_, hasChapName := diff.GetOk(Arg_ChapName)
+			_, hasChapPassword := diff.GetOk(Arg_ChapPassword)
+			_, hasMacAddress := diff.GetOk(Arg_MacAddress)
+			if (hasChapName || hasChapPassword || hasMacAddress) && diff.Get(Arg_Action).(string) != Action_Start {
+				return fmt.Errorf("%s, %s and %s can only be set when %s is \"%s\"", Arg_ChapName, Arg_ChapPassword, Arg_MacAddress, Arg_Action, Action_Start)
+			}
+			if (hasChapName || hasChapPassword) && !hasMacAddress {
+				return fmt.Errorf("%s and %s require %s to be set", Arg_ChapName, Arg_ChapPassword, Arg_MacAddress)
+			}
+			return nil
+		},
+
 		Schema: map[string]*schema.Schema{
 			// Arguments
 			Arg_Action: {
@@ -43,10 +60,31 @@ func ResourceIBMPIInstanceAction() *schema.Resource {
 						Action_ResetState, Action_Start, Action_Stop, Action_SoftReboot}),
 				Description: "PVM instance action type",
 			},
+			Arg_ChapName: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				RequiredWith: []string{Arg_ChapPassword},
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[\x00-\x7F]{1,32}$`), "must be 1 to 32 ASCII characters"),
+				Description:  "CHAP authentication name for iSCSI D-mode IPL. Requires pi_chap_password and pi_mac_address. Can only be set when pi_action is start.",
+			},
+			Arg_ChapPassword: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				RequiredWith: []string{Arg_ChapName},
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[\x00-\x7F]{12,32}$`), "must be 12 to 32 ASCII characters"),
+				Description:  "CHAP authentication password for iSCSI D-mode IPL. Requires pi_chap_name and pi_mac_address. Can only be set when pi_action is start.",
+			},
 			Arg_CloudInstanceID: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "PI Cloud instance id",
+			},
+			Arg_MacAddress: {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 64),
+				Description:  "MAC address of the network interface to boot from. Required for a network boot (D-mode IPL). Can only be set when pi_action is start.",
 			},
 			Arg_HealthStatus: {
 				Type:         schema.TypeString,
@@ -185,6 +223,18 @@ func takeInstanceAction(ctx context.Context, d *schema.ResourceData, meta any, t
 	}
 
 	body := &models.PVMInstanceAction{Action: &action}
+	if action == Action_Start {
+		if v, ok := d.GetOk(Arg_MacAddress); ok {
+			netBoot := &models.StartNetbootConfig{MacAddress: core.StringPtr(v.(string))}
+			if v, ok := d.GetOk(Arg_ChapName); ok {
+				netBoot.ChapName = v.(string)
+			}
+			if v, ok := d.GetOk(Arg_ChapPassword); ok {
+				netBoot.ChapPassword = strfmt.Password(v.(string))
+			}
+			body.NetBoot = netBoot
+		}
+	}
 	log.Printf("Calling the IBM PI Action %s on the instance %s", action, id)
 
 	err = client.Action(id, body)
