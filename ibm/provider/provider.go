@@ -1617,6 +1617,7 @@ func Provider() *schema.Provider {
 			"ibm_pi_image_export":                    power.ResourceIBMPIImageExport(),
 			"ibm_pi_image":                           power.ResourceIBMPIImage(),
 			"ibm_pi_instance_action":                 power.ResourceIBMPIInstanceAction(),
+			"ibm_pi_instance_network_attach":         power.ResourceIBMPIInstanceNetworkAttach(),
 			"ibm_pi_instance_snapshot":               power.ResourceIBMPIInstanceSnapshot(),
 			"ibm_pi_instance_vpmem_volumes":          power.ResourceIBMPIInstanceVpmemVolumes(),
 			"ibm_pi_instance":                        power.ResourceIBMPIInstance(),
