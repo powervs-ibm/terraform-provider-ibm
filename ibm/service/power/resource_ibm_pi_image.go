@@ -197,6 +197,13 @@ func ResourceIBMPIImage() *schema.Resource {
 				Optional: true,
 				Type:     schema.TypeList,
 			},
+			Arg_ReplicatedSnapshotSupport: {
+				Description:  "Indicates if the image is required to be created in a storage pool that supports replicated instance snapshots. Allowable values: `none`, `zonal_only`, `zonal_with_regional`.",
+				ForceNew:     true,
+				Optional:     true,
+				Type:         schema.TypeString,
+				ValidateFunc: validate.ValidateAllowedStringValues([]string{None, ZonalOnly, ZonalWithRegional}),
+			},
 			Arg_SourceChecksum: {
 				ConflictsWith: []string{Arg_ImageID},
 				Description:   "Checks the checksum file from the COS bucket against the one computed on the downloaded image.",
@@ -248,6 +255,10 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			ImageID: imageid,
 			Source:  &source,
 		}
+		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+			rss := v.(string)
+			body.ReplicatedSnapshotSupport = &rss
+		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {
 			body.UserTags = flex.FlattenSet(tags.(*schema.Set))
 		}
@@ -288,7 +299,7 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 			BucketName:    &bucketName,
 			BucketAccess:  &bucketAccess,
 			ImageFilename: &bucketImageFileName,
-			Region:        &bucketRegion,
+			Region:        bucketRegion,
 		}
 
 		if v, ok := d.GetOk(Arg_ImageAccessKey); ok {
@@ -342,6 +353,10 @@ func resourceIBMPIImageCreate(ctx context.Context, d *schema.ResourceData, meta 
 				Vendor:      core.StringPtr(details[Attr_Vendor].(string)),
 			}
 			body.ImportDetails = &importDetailsModel
+		}
+		if v, ok := d.GetOk(Arg_ReplicatedSnapshotSupport); ok {
+			rss := v.(string)
+			body.ReplicatedSnapshotSupport = &rss
 		}
 		if tags, ok := d.GetOk(Arg_UserTags); ok {
 			body.UserTags = flex.FlattenSet(tags.(*schema.Set))
