@@ -33,7 +33,7 @@ resource "ibm_pi_image_export" "testacc_image_export"{
   pi_image_id               = "test_image"
   pi_image_access_key       = "dummy-access-key"
   pi_image_bucket_name      = "images-public-bucket"
-  pi_endpoint  = "https://s3.example.com"
+  pi_endpoint               = "https://s3.example.com"
   pi_image_secret_key       = "dummy-secret-key"
 }
 ```
@@ -66,7 +66,7 @@ The `ibm_pi_image_export` provides the following [timeouts](https://www.terrafor
 Review the argument references that you can specify for your resource.
 
 - `pi_cloud_instance_id` - (Required, String) The GUID of the service instance associated with an account.
-- `pi_endpoint` - (Optional, String) S3 compatible endpoint URL for the Cloud Object Storage bucket. Required when `pi_image_bucket_region` is not provided. Conflicts with `pi_image_bucket_region`.(for on-prem locations only)
+- `pi_endpoint` - (Optional, String) S3 compatible endpoint URL for the Cloud Object Storage bucket. Required when `pi_image_bucket_region` is not provided. Conflicts with `pi_image_bucket_region`.This argument is only available for on-prem locations.
 - `pi_image_access_key` - (Required, String, Sensitive) The Cloud Object Storage access key; required for buckets with private access.
 - `pi_image_bucket_name` - (Required, String) The Cloud Object Storage bucket name; `bucket-name[/optional/folder]`
 - `pi_image_bucket_region` - (Required, String) The Cloud Object Storage region. Required when `pi_endpoint` is not provided. Conflicts with `pi_endpoint`. Supported COS regions are:`au-syd`, `br-sao`, `ca-tor`, `che01`, `eu-de`, `eu-es`, `eu-gb`, `jp-osa`, `jp-tok`, `us-east`, `us-south`.
